@@ -12,5 +12,5 @@
 - Security & regression review: Restricts local navigation URLs, avoids dynamic innerHTML for errors and footer; no credentials, dependencies, workflow, production data or license touched. Dataset remains canonical in courses.json.
 - Risk & rollback: Generated courses-data.js may become stale after editing courses.json; generator --check and tests detect this. Revert PR if file-origin browser regression is observed.
 - Follow-up: Run Python --check and Node tests in a full checkout; manually verify file:// and HTTP rendering in Chromium. Then consider chapter search/filtering.
-- Commit: pending
-- PR: pending
+- Commit: 6f477e62b7c3e2a9252f2849ddcfa415cae8d56c (initial code and tests)
+- PR: https://github.com/1998x-stack/vllm-tutorial/pull/1
