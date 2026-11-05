@@ -19,7 +19,7 @@
 无需安装任何依赖，直接用浏览器打开 `index.html` 即可在线阅读全部章节：
 
 ```bash
-open index.html   # macOS
+open index.html   # macOS；无需启动 HTTP 服务器
 # 或在浏览器中直接打开 index.html
 ```
 
@@ -80,3 +80,5 @@ vllm-tutorial/
 
 ---
 *本课程由 `vllm-tutorial/` 项目维护。*
+
+修改 `courses.json` 后请运行 `python3 scripts/build_course_data.py` 更新离线目录，并使用 `python3 scripts/build_course_data.py --check` 检查同步。回归测试：`node --test tests/offline-catalog.test.cjs`（Node.js 18+）。
