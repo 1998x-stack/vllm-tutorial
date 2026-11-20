@@ -55,7 +55,7 @@ test("all chapter links remain local and resolve to files", () => {
 });
 
 test("the first six upgraded chapters use semantic HTML and unique SVGs", () => {
-  for (const number of ["01", "02", "03", "04", "05", "06"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
     assert.match(html, /<main\b/);
@@ -78,6 +78,9 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "04-kv-write-read-path.svg",
     "05-iteration-batching.svg",
     "06-first-run-path.svg",
+    "07-model-config-map.svg",
+    "08-kv-memory-budget.svg",
+    "09-prefix-cache-hash.svg",
     "04-kv-write-read-path.svg",
     "05-iteration-batching.svg",
     "06-first-run-path.svg",
