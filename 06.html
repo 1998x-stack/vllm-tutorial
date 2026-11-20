@@ -44,7 +44,7 @@ nvidia-smi
 # 磁盘空间
 df -h</code></pre>
       <p>还要确认你打算使用哪类设备：NVIDIA CUDA、AMD ROCm、Intel XPU、CPU、TPU，或 Apple Silicon。不同平台的安装包、依赖和支持的模型并不相同。不要把 NVIDIA CUDA 的安装命令直接复制到 ROCm 或其他平台。</p>
-      <div class="callout warning"><p><strong>平台说明：</strong>官方 Quickstart 当前以 Linux 环境为主要路径，并列出对应的 Python 支持范围；macOS Apple Silicon、AMD、Intel、TPU 等路径有各自的安装说明。请在实际安装时打开官方文档，按硬件选项核对要求。</p></div>
+      <div class="callout warning"><p><strong>平台说明：</strong>截至 2026-11-20，官方 Quickstart 的主要路径列出 Linux 与 Python 3.11–3.14；但不同加速器的 wheel、驱动和依赖组合可能进一步收窄可用范围。macOS Apple Silicon、AMD、Intel、TPU 等路径有各自的安装说明。请在实际安装时打开官方文档，按硬件选项核对要求。</p></div>
       <p>另外，模型权重通常需要从 Hugging Face 或本地模型目录加载。首次运行前确认网络、访问权限、磁盘空间和模型许可，避免把模型下载失败误判为 vLLM 安装失败。</p>
     </section>
 
