@@ -1,159 +1,119 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第9章 Prefix Caching</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="理解 vLLM Automatic Prefix Caching 的 token block 哈希、命中条件、引用计数、淘汰和多租户安全。">
+  <title>第 09 章｜Automatic Prefix Caching：复用已计算的前缀</title>
+  <link rel="stylesheet" href="assets/css/article.css">
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html" class="active">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第9章 Prefix Caching</h2>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener noreferrer">Prefix Cache 文档 ↗</a></nav></div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol>
+    <li><a href="#scenario">9.1 为什么需要前缀缓存</a></li><li><a href="#hash">9.2 如何判断一个块能否复用</a></li><li><a href="#lifecycle">9.3 命中、引用和淘汰</a></li><li><a href="#benefit">9.4 如何测量实际收益</a></li><li><a href="#security">9.5 多租户安全与 cache_salt</a></li><li><a href="#limits">9.6 哪些场景不会受益</a></li>
+  </ol></nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 09 章 · KV Cache 与内存管理</p>
+      <h1>Automatic Prefix Caching：复用已计算的前缀</h1>
+      <p class="article-dek">RAG、Few-shot 评测和多轮对话经常重复使用相同的上下文。Prefix Caching 让系统有机会复用这些上下文已经计算出的 KV blocks，减少重复 Prefill。</p>
+      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 16 分钟</span><span class="meta-chip">前置章节：03、04、08</span></div>
+    </header>
+    <p class="article-lead">想象你每天都要给模型发送一段相同的系统提示词，然后只替换最后一个用户问题。如果系统每次都从头计算这段相同前缀，就会重复做一部分工作。Prefix Caching 解决的是“之前是否已经计算过完全相同的 token 前缀”，而不是“这两段文字语义是否相似”。</p>
+    <div class="outcomes"><h2>读完这一章，你应该能够</h2><ul>
+      <li>解释 Prefix Cache 为什么能减少重复 Prefill 计算。</li>
+      <li>理解 block hash 为什么需要考虑块内 token 和之前的前缀上下文。</li>
+      <li>说明完整块、引用计数和淘汰队列在缓存生命周期中的作用。</li>
+      <li>用命中计数、TTFT 和 Prefill token 数测量收益，并理解多租户安全风险。</li>
+    </ul></div>
+    <figure class="diagram"><img src="assets/diagrams/09-prefix-cache-hash.svg" alt="两个请求共享完整 token 前缀，通过块哈希命中 Prefix Cache 并只计算不同后缀的示意图"><figcaption>图 1：当请求 B 与请求 A 的 token 前缀和块边界匹配时，前缀 blocks 有机会复用；不同后缀仍需要计算。</figcaption></figure>
 
-<p>上一章结尾提到了前缀缓存。这一章是真正的"省钱利器"——在 RAG 和多轮对话场景中，Prefix Caching 可以让你的 GPU 成本直接砍半。</p>
+    <section id="scenario">
+      <h2>9.1 为什么需要前缀缓存？</h2>
+      <p>常见场景包括：</p>
+      <ul>
+        <li><strong>RAG：</strong>同一套 system prompt、输出格式要求或固定规则会被大量请求重复使用。</li>
+        <li><strong>Few-shot 评测：</strong>很多测试请求共享相同的示例前缀，只在最后的测试问题上不同。</li>
+        <li><strong>多轮对话：</strong>新一轮请求可能包含之前已经处理过的对话历史。</li>
+        <li><strong>共享上下文的批处理：</strong>一组任务围绕相同文档、说明或模板展开。</li>
+      </ul>
+      <p>没有前缀缓存时，每个新请求通常都要为它的 Prompt 执行 Prefill。若前缀完全一致且之前计算出的 KV blocks 仍然可用，系统就可以复用它们，从而减少需要重新计算的 Prompt tokens。</p>
+    </section>
 
-<h3>9.1 什么场景适合 Prefix Caching</h3>
+    <section id="hash">
+      <h2>9.2 如何判断一个块能否复用？</h2>
+      <p>vLLM 的 Prefix Caching 使用基于哈希的块识别方式。一个 KV block 的哈希不只取决于块内 token，还会考虑它之前的前缀上下文。这样做是为了避免把“块内 token 一样、但前面上下文不同”的 KV 状态错误地当成同一份缓存。</p>
+      <p>可以用一个 block size 为 4 的教学例子理解：</p>
+      <pre><code>请求 A:
+[System, A, B, C] [D, E, F, G] [问题 A ...]
+     Block 0          Block 1
 
-<pre><code>场景 1 — RAG 应用:
-请求 A: [System Prompt "你是客服助手..." 1000 tokens] + "退货流程是什么？"
-请求 B: [System Prompt "你是客服助手..." 1000 tokens] + "怎么查询物流？"
-请求 C: [System Prompt "你是客服助手..." 1000 tokens] + "支持哪些支付方式？"
-→ 1000 token 的 system prompt 算了 3 遍 ← 浪费！
+请求 B:
+[System, A, B, C] [D, E, F, G] [问题 B ...]
+     Block 0          Block 1
 
-场景 2 — Few-Shot 批量评估:
-请求 A: [10个示例 2000 tokens] + "测试题1..."
-请求 B: [10个示例 2000 tokens] + "测试题2..."
-请求 C: [10个示例 2000 tokens] + "测试题3..."
-→ 2000 token 的示例算了 3 遍 ← 浪费！
+如果前两个完整块的 token 与前缀上下文完全一致：
+请求 B 有机会命中 A 对应的 KV blocks。</code></pre>
+      <p>当前 V1 设计文档说明，block hash 会在块完整时赋值。一个未完成的尾块不能简单地当成已经稳定的完整缓存块复用。多模态请求还可能把图像等输入的额外哈希纳入缓存标识；因此“文本看起来一样”并不一定意味着整个多模态请求都能命中。</p>
+      <p>Prefix Cache 是精确 token 前缀复用，不是向量检索，不会因为两段话语义接近就共享 KV。空格、模板、特殊 token、消息顺序和 tokenizer 输出都可能影响是否命中。</p>
+    </section>
 
-场景 3 — 多轮对话:
-Round 1: "推荐北京三日游"       → KV Cache 存下
-Round 2: Round1上下文 + "第二天去哪吃？" → 复用 Round1 的 KV Cache！
-</code></pre>
+    <section id="lifecycle">
+      <h2>9.3 命中、引用和淘汰：缓存不是永久存储</h2>
+      <p>当前 V1 Prefix Cache 的核心管理对象包含 block ID、block hash 和引用计数，并使用空闲队列管理可回收的 blocks。可以把生命周期概括为：</p>
+      <ol>
+        <li><strong>查找：</strong>新请求按 token 前缀生成块哈希，并查询缓存中是否存在对应的已计算块。</li>
+        <li><strong>命中：</strong>如果找到可复用块，管理器增加引用计数，避免该块在仍被使用时被淘汰。</li>
+        <li><strong>分配：</strong>剩余的 Prompt 后缀和后续生成 token 继续申请新的 KV blocks。</li>
+        <li><strong>释放：</strong>请求结束后，减少对应块的引用计数；不再被引用的块可以进入空闲队列。</li>
+        <li><strong>淘汰：</strong>缓存空间不足时，从可回收队列中选择旧块并移除其缓存映射。</li>
+      </ol>
+      <p>所以“命中缓存”不等于“以后永远不用重新计算”。缓存块可能因为容量压力被淘汰；当请求到达另一台没有这份本地缓存的实例时，也未必能够命中，除非部署配置了相应的跨实例 KV 共享机制。</p>
+    </section>
 
-<h3>9.2 V1 的零开销实现</h3>
+    <section id="benefit">
+      <h2>9.4 如何测量实际收益？</h2>
+      <p>不要使用“开启 Prefix Cache 后成本一定砍半”这样的宣传结论。收益取决于共享前缀长度、重复请求比例、块边界、缓存是否仍在、请求路由和输出长度。</p>
+      <p>当前 vLLM V1 文档提供了 <code>vllm:prefix_cache_hits</code> 与 <code>vllm:prefix_cache_queries</code> 等计数器，记录缓存命中和查询的 token 数。你可以在同一时间窗口内计算命中比例，并结合其他指标判断是否真的减少了 Prefill：</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>观察信号</th><th>能回答什么</th><th>注意事项</th></tr></thead>
+        <tbody>
+          <tr><td>prefix_cache_hits / queries</td><td>有多少被查询的缓存 token 得到了复用</td><td>按相同窗口和相同指标口径计算</td></tr>
+          <tr><td>prompt_tokens_cached</td><td>有多少 Prompt tokens 来自缓存</td><td>区分本地缓存和外部 KV Connector 来源</td></tr>
+          <tr><td>TTFT</td><td>首 token 延迟是否下降</td><td>同时受排队、网络和模型执行影响</td></tr>
+          <tr><td>request_prefill_time / prompt tokens</td><td>Prefill 工作量是否减少</td><td>需控制 Prompt 长度和并发负载</td></tr>
+        </tbody>
+      </table></div>
+      <p>一个可复现的对照实验应固定模型 revision、tokenizer、Prompt token 序列、输出长度、并发和硬件；先跑冷缓存，再跑重复前缀的热缓存，并记录命中计数、TTFT、Prefill 时间和输出质量。</p>
+    </section>
 
-<p>V1 的 Prefix Caching 不需要拷贝数据。核心机制是指针重定向：</p>
+    <section id="security">
+      <h2>9.5 多租户安全：缓存命中可能成为时间侧信道</h2>
+      <p>如果多个租户共享同一个推理实例，攻击者可能通过 TTFT 的差异推测某个猜测的前缀是否已经被其他用户缓存。这是一种时间侧信道风险：缓存命中会减少部分 Prefill 工作，延迟变化可能泄露“某段内容曾经出现过”的信息。</p>
+      <p>vLLM 文档提供了 <code>cache_salt</code> 机制：把 salt 混入首个 KV block 的哈希，使只有携带相同 salt 的请求才能共享对应前缀缓存。多租户部署应根据隔离要求设计 salt 的作用域，避免不同租户无意共享缓存状态。</p>
+      <div class="callout warning"><p><strong>安全边界：</strong>cache_salt 是前缀缓存隔离机制之一，不替代 API 鉴权、租户授权、网络隔离、日志脱敏和模型输入安全策略。是否启用、如何分配 salt，应结合部署威胁模型设计。</p></div>
+    </section>
 
-<pre><code># V0 (旧方案): 有数据拷贝
-cached_kv = prefix_cache.lookup(prefix_hash)
-if cached_kv:
-    copy_kv_to_request(cached_kv, request)  # 显存拷贝，耗时
+    <section id="limits">
+      <h2>9.6 哪些场景不会受益？</h2>
+      <ul>
+        <li>每个请求的 Prompt token 序列都不同，几乎没有共享前缀。</li>
+        <li>共享前缀太短，无法形成足够的完整缓存块。</li>
+        <li>缓存块已被淘汰，或请求被路由到没有相应本地缓存的实例。</li>
+        <li>模型、适配器、特殊输入或多模态内容导致缓存键不同。</li>
+        <li>缓存管理与哈希查询的成本超过了实际减少的 Prefill 工作。</li>
+      </ul>
+      <p>Prefix Caching 最适合重复结构明显、前缀较长且缓存局部性良好的负载。下一章将进入调度器：当缓存和 GPU 资源都有限时，vLLM 如何决定哪个请求先运行？</p>
+    </section>
 
-# V1 (新方案): 纯指针
-cached_blocks = prefix_cache.lookup(prefix_hash)
-if cached_blocks:
-    request.block_table = cached_blocks  # 只改指针，零开销
-    # 不用 copies 数据！新请求的 Block Table 直接指向已缓存的物理 Block</code></pre>
-
-<p>这个改进让 CPU 开销降低了 90%，单台机器可以管理的缓存从几千个 block 变成几十万个。</p>
-
-<h3>9.3 命中率与实际收益</h3>
-
-<table>
-  <tr><th>应用场景</th><th>典型命中率</th><th>成本节约</th><th>推荐度</th></tr>
-  <tr><td>RAG（固定 system prompt）</td><td>60-90%</td><td>50-80%</td><td>⭐⭐⭐</td></tr>
-  <tr><td>多轮对话</td><td>40-70%</td><td>30-50%</td><td>⭐⭐⭐</td></tr>
-  <tr><td>批量评估（共享 few-shot）</td><td>80-95%</td><td>60-85%</td><td>⭐⭐⭐</td></tr>
-  <tr><td>单次随机问答</td><td>0-10%</td><td>0-5%</td><td>⭐</td></tr>
-  <tr><td>代码补全</td><td>15-30%</td><td>10-20%</td><td>⭐⭐</td></tr>
-</table>
-
-<div class="tip">
-  <p><strong>经验之谈</strong>：RAG 应用如果不开启 prefix caching，等于在烧钱。我见过一个团队的 RAG 服务，开启 prefix caching 后 GPU 成本从 $8/hr 降到 $2/hr——因为 80% 的 prompt tokens 是共享的 system prompt。</p>
+    <section class="sources" id="sources"><h2>参考资料</h2><ol>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener noreferrer">Automatic Prefix Caching</a>，V1 block hash、引用计数、分配和淘汰流程。</li>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/metrics/" target="_blank" rel="noopener noreferrer">Metrics</a>，Prefix Cache hits / queries 和缓存相关指标。</li>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/stable/usage/security/" target="_blank" rel="noopener noreferrer">Security — Prefix Cache Timing Side-Channel Mitigation</a>，cache_salt 安全隔离说明。</li>
+    </ol><p><small>图中的 token 和 block size 是教学示例；不代表真实请求内容、默认块大小或缓存命中率。</small></p></section>
+    <footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="08.html">← 上一章：KV Cache 管理</a><a class="next" href="10.html">下一章：Scheduler 调度器 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer>
+  </article></main>
 </div>
-
-<h3>9.4 如何启用和验证</h3>
-
-<pre><code># 启动时加一个参数
-vllm serve my-model --enable-prefix-caching
-
-# 观察日志
-# INFO: Prefix caching enabled
-# INFO: GPU KV cache size: 643,232 tokens
-# INFO: Prefix cache hit rate: 74.2%  ← 这个数字说明省钱效果
-
-# 通过 API 查询（需要 enable 统计）
-curl http://localhost:8000/v1/metrics | grep prefix_cache</code></pre>
-
-<h3>9.5 什么时候 Prefix Caching 不工作</h3>
-
-<p>不是所有场景都能受益。以下情况缓存几乎没用：</p>
-<ul>
-  <li>每个请求的 prompt 都是独特的（如开放式问答）</li>
-  <li>prompt 很短（缓存节省的 token 数不够看）</li>
-  <li>数据并行模式下（每个 engine 有自己的 cache，请求被随机路由）</li>
-</ul>
-
-<div class="warning">
-  <p><strong>注意</strong>：生产栈（Kubernetes）中如果启用了前缀感知路由（prefix-aware routing），同一个前缀的请求会自动路由到同一个 vLLM 实例，最大化缓存命中率。如果没有这个路由层，随机分发会导致缓存效率极低。</p>
-</div>
-
-<h3>9.6 SGLang RadixAttention 对比</h3>
-
-<p>SGLang 的 RadixAttention 是 Prefix Caching 的进阶版：用 Radix Tree（基数树/压缩前缀树）管理缓存，不仅缓存完全匹配的前缀，还能自动共享部分重叠的前缀：</p>
-
-<pre><code>请求 A: "你是客服助手。退货流程是什么？"
-请求 B: "你是客服助手。物流怎么查？"
-请求 C: "你是销售顾问。产品价格多少？"
-
-vLLM Prefix Cache: B 复用 A 的前缀 ✓; C 完全不一样 ✗
-SGLang Radix: B 复用 A 的前缀 ✓; C 也能部分复用（相同的 token 前缀 "你是"）✓
-
-但 RaxidAttention 只适合前缀高度重叠的场景，通用场景下和 vLLM 差别不大。</code></pre>
-
-<p>好了，Prefix Caching 搞清楚了。下一章咱们看 vLLM 的调度器——当几百个请求同时涌来，谁先谁后？GPU 资源怎么公平分配？</p>
-
-        <div class="footer-nav">
-            <a href="08.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="10.html">下一章 →</a>
-        </div>
-    </div>
-</div></div>
 </body>
 </html>
