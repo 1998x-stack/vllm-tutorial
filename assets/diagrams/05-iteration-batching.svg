@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+<title id="title">静态批处理与迭代级连续批处理对比</title>
+<desc id="desc">静态批处理把 A、B、C 放进同一批次并等待最长的 B 完成；连续批处理在每轮迭代后重新组织请求，A 完成后 D 可以在后续迭代进入执行批次，而 B 和 C 继续运行。</desc>
+<rect width="1200" height="600" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">批次何时重新组织，决定请求槽位会不会空等</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">下面是概念时间线，长度和颜色仅用于说明，不代表真实 benchmark。</text>
+<text x="60" y="145" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">静态批处理</text>
+<text x="60" y="175" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">整批请求一起开始，通常要等整批完成才进入下一批。</text>
+<g font-family="Arial,'PingFang SC',sans-serif" font-size="16">
+ <text x="80" y="225" fill="#53636b">请求 A</text><rect x="190" y="202" width="230" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="305" y="225" text-anchor="middle" fill="#0d5e58">短请求 · 已完成</text>
+ <text x="80" y="270" fill="#53636b">请求 B</text><rect x="190" y="247" width="700" height="34" rx="8" fill="#fff0e8" stroke="#c66a46"/><text x="540" y="270" text-anchor="middle" fill="#9c4d30">长请求 · 持续运行</text>
+ <text x="80" y="315" fill="#53636b">请求 C</text><rect x="190" y="292" width="400" height="34" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="390" y="315" text-anchor="middle" fill="#51488c">中等请求 · 已完成</text>
+ <path d="M420 190 V335 M590 190 V335 M890 190 V335" stroke="#b7c3be" stroke-dasharray="5 6"/>
+ <text x="420" y="358" text-anchor="middle" fill="#60716c" font-size="13">A 完成</text><text x="590" y="358" text-anchor="middle" fill="#60716c" font-size="13">C 完成</text><text x="890" y="358" text-anchor="middle" fill="#60716c" font-size="13">B 完成</text>
+</g>
+<path d="M60 390 H1140" stroke="#dce4e1" stroke-width="2"/>
+<text x="60" y="430" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">迭代级连续批处理</text>
+<text x="60" y="460" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">每轮迭代结束后，调度器可根据请求状态重组下一轮工作。</text>
+<g font-family="Arial,'PingFang SC',sans-serif" font-size="15">
+ <text x="80" y="510" fill="#53636b">Step 1</text><rect x="190" y="488" width="210" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="295" y="511" text-anchor="middle" fill="#0d5e58">A + B + C</text>
+ <text x="430" y="510" fill="#53636b">Step 2</text><rect x="520" y="488" width="210" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="625" y="511" text-anchor="middle" fill="#0d5e58">B + C + D</text>
+ <text x="760" y="510" fill="#53636b">Step 3</text><rect x="850" y="488" width="290" height="34" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="995" y="511" text-anchor="middle" fill="#51488c">B + D + 新到达请求</text>
+</g>
+<text x="190" y="558" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#9c4d30">A 完成后释放资源，D 可在后续调度轮次加入；是否加入仍取决于 token budget 与 KV Cache 容量。</text>
+</svg>
