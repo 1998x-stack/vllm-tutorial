@@ -1,7 +1,8 @@
 {
   "chapter": "05",
   "reviewed_at": "2026-11-20",
-  "scope": "Iteration-level batching concept and current vLLM V1 scheduler documentation.",
+  "scope": "Iteration-level batching and current V1 scheduler behavior.",
+  "upstream_source_commit": "6abe321bd8258565f7cd4081fabef6a74b671427",
   "claims": [
     {
       "id": "iteration-level-scheduling",
@@ -13,22 +14,40 @@
       "notes": "The chapter's A/B/C/D timeline is a teaching example, not a measured result."
     },
     {
-      "id": "v1-token-budget",
-      "claim": "The documented V1 scheduler allocates a per-step token budget across running and waiting requests.",
+      "id": "v1-unified-scheduler-loop",
+      "claim": "The V1 scheduler has no separate prefill and decode scheduling phases; it tracks computed tokens and assigns token work to requests within per-step budgets.",
       "kind": "official_behavior",
       "status": "verified",
       "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
       "locator": "Scheduler",
-      "notes": "Scheduler policy and implementation can change between releases."
+      "notes": "The article distinguishes the conceptual prefill/decode workloads from the scheduler's unified token-allocation loop."
     },
     {
-      "id": "chunked-prefill-mixed-batch",
-      "claim": "Chunked Prefill can mix prefill and decode work to balance TTFT and ITL, with tuning trade-offs.",
+      "id": "scheduler-token-budget",
+      "claim": "The scheduler uses a per-step token budget and supports running and waiting requests, including chunked prefill and prefix caching.",
       "kind": "official_behavior",
       "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/api/vllm/config/scheduler/",
+      "locator": "max_num_batched_tokens and max_num_scheduled_tokens",
+      "notes": "Parameter names and defaults can change; inspect vllm serve --help for the installed release."
+    },
+    {
+      "id": "preemption-recompute",
+      "claim": "When KV cache blocks are insufficient, V1 may preempt a running request, free its blocks, return it to waiting, and recompute progress when it is admitted again.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "Preemption",
+      "notes": "External KV connectors or prefix caching may restore some progress; the chapter avoids claiming CPU swapping as the default behavior."
+    },
+    {
+      "id": "no-universal-benchmark",
+      "claim": "Continuous batching performance depends on workload and service objectives; the article uses only a labeled toy timeline and does not claim universal throughput or utilization gains.",
+      "kind": "recommendation",
+      "status": "verified",
       "source_url": "https://docs.vllm.ai/en/latest/configuration/optimization/",
-      "locator": "Chunked Prefill and Performance Tuning",
-      "notes": "The scheduler behavior described is version-specific; do not infer a universal best token budget."
+      "locator": "Optimization and Tuning",
+      "notes": "Real comparisons must hold model, hardware, prompt/output lengths, concurrency, metrics and benchmark procedure constant."
     }
   ]
 }
