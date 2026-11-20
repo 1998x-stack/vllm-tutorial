@@ -94,10 +94,10 @@ window.VLLM_COURSES = {
       "num": "04",
       "title": "PagedAttention下篇",
       "topics": [
-        "Slot Mapping",
-        "Copy-on-Write",
-        "Block Size权衡",
-        "Flash Attn配合"
+        "Slot Mapping 写入定位",
+        "Block Table 读取定位",
+        "Prefix Cache 引用计数",
+        "Attention backend"
       ],
       "file": "04.html",
       "category": "memory",
@@ -106,26 +106,27 @@ window.VLLM_COURSES = {
       "prerequisites": [
         "03"
       ],
-      "summary": "进一步理解 KV 写入位置、分页 Attention kernel、块共享与 Block Size 的工程权衡。",
+      "summary": "沿着当前 vLLM V1 的调度、slot mapping、Block Table 与 Attention backend 追踪 KV Cache 的写入、读取和共享。",
       "learningObjectives": [
-        "区分 slot mapping 与 block table 的职责",
-        "追踪一次 KV Cache 写入与读取",
-        "说明块大小对元数据和内部浪费的影响"
+        "区分 slot mapping 与 Block Table 的职责",
+        "计算新 token 对应的物理 KV 写入槽位",
+        "解释 Prefix Cache 的整块复用与引用计数"
       ],
       "tags": [
         "slot-mapping",
-        "attention-kernel",
-        "block-size"
+        "block-table",
+        "prefix-cache",
+        "attention-backend"
       ]
     },
     {
       "num": "05",
       "title": "Continuous Batching",
       "topics": [
-        "静态vs动态批处理",
-        "Chunked Prefill",
-        "调度粒度",
-        "性能对比"
+        "固定批次 vs 迭代级批处理",
+        "token budget",
+        "V1 Scheduler",
+        "KV Cache 抢占"
       ],
       "file": "05.html",
       "category": "scheduling",
@@ -135,26 +136,28 @@ window.VLLM_COURSES = {
         "01",
         "03"
       ],
-      "summary": "理解 iteration-level Continuous Batching 如何让请求动态加入和退出执行批次。",
+      "summary": "用请求时间线理解 V1 Scheduler 如何在每轮迭代重组请求，并在 token budget 与 KV Cache 容量约束下安排工作。",
       "learningObjectives": [
-        "比较静态批处理与连续批处理",
-        "用时间线解释请求完成后的批次重组",
-        "理解吞吐、延迟与公平性之间的权衡"
+        "比较固定批次与迭代级连续批处理",
+        "解释 V1 token-budget scheduling 的基本思路",
+        "理解 KV Cache 抢占、重算及延迟权衡"
       ],
       "tags": [
         "continuous-batching",
         "iteration-level-scheduling",
-        "throughput"
+        "token-budget",
+        "preemption"
       ]
     },
     {
       "num": "06",
       "title": "快速上手",
       "topics": [
-        "安装环境",
-        "离线推理",
-        "在线API服务",
-        "Docker部署"
+        "硬件平台与环境检查",
+        "uv 安装",
+        "离线批量推理",
+        "OpenAI 兼容服务",
+        "Docker"
       ],
       "file": "06.html",
       "category": "getting-started",
@@ -164,16 +167,18 @@ window.VLLM_COURSES = {
         "01",
         "02"
       ],
-      "summary": "从环境检查到离线推理和 OpenAI 兼容 API，完成一次可验证的 vLLM 部署。",
+      "summary": "按硬件平台准备环境，使用 uv 安装 vLLM，完成离线批量推理、OpenAI 兼容 API 验证和 Docker 运行。",
       "learningObjectives": [
-        "检查 Python、GPU、驱动与模型访问条件",
+        "检查 Python、GPU 驱动与模型访问条件",
         "运行离线批量推理示例",
-        "启动服务并发送 API 请求"
+        "启动 API 服务并发送 Chat Completions 请求"
       ],
       "tags": [
         "installation",
-        "quickstart",
-        "openai-compatible-api"
+        "uv",
+        "offline-inference",
+        "openai-compatible-api",
+        "docker"
       ]
     },
     {
