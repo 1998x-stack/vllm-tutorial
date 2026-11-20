@@ -78,6 +78,9 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "04-kv-write-read-path.svg",
     "05-iteration-batching.svg",
     "06-first-run-path.svg",
+    "04-kv-write-read-path.svg",
+    "05-iteration-batching.svg",
+    "06-first-run-path.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
