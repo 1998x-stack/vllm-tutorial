@@ -3,181 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="按官方安装文档检查环境，创建隔离 Python 环境，完成 vLLM 离线推理和 OpenAI 兼容 API 服务。">
-  <title>第 06 章｜快速上手：安装、离线推理与 API 服务</title>
+  <meta name="description" content="按硬件平台准备环境，使用 uv 安装 vLLM，完成离线批量推理、OpenAI 兼容 API 验证和 Docker 运行。">
+  <title>第 06 章｜快速上手：安装 vLLM 并完成第一个推理请求</title>
   <link rel="stylesheet" href="assets/css/article.css">
 </head>
 <body class="article-page">
-<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/stable/getting_started/quickstart/" target="_blank" rel="noopener noreferrer">官方 Quickstart ↗</a></nav></div></header>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+    <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/stable/getting_started/quickstart/" target="_blank" rel="noopener noreferrer">官方 Quickstart ↗</a></nav>
+  </div>
+</header>
 <div class="reading-layout">
-  <nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol>
-    <li><a href="#before-install">6.1 安装前先检查什么</a></li><li><a href="#install">6.2 创建环境并安装</a></li><li><a href="#offline">6.3 第一个离线推理程序</a></li><li><a href="#server">6.4 启动 OpenAI 兼容服务</a></li><li><a href="#verify">6.5 验证与常见问题</a></li><li><a href="#version">6.6 为什么安装说明要跟版本走</a></li>
-  </ol></nav>
-  <main id="content" class="article-content"><article>
-    <header class="article-header">
-      <p class="chapter-kicker">第 06 章 · 安装、模型接入与生成控制</p>
-      <h1>快速上手：安装、离线推理与 API 服务</h1>
-      <p class="article-dek">本章带你走完第一次运行 vLLM 的完整路径：确认环境、安装依赖、在 Python 程序中批量生成，再启动一个兼容 OpenAI API 的模型服务。</p>
-      <div class="article-meta"><span class="meta-chip">入门</span><span class="meta-chip">约 15 分钟</span><span class="meta-chip">前置章节：01、02</span></div>
-    </header>
-    <p class="article-lead">“安装 vLLM”不是一条适用于所有电脑的 pip 命令。vLLM 包含与 GPU、驱动、PyTorch 和加速 kernel 相关的二进制组件。正确的第一步，是确认你使用的操作系统和加速器，再按照官方安装矩阵选择对应环境。</p>
-    <div class="outcomes"><h2>读完这一章，你应该能够</h2><ul>
-      <li>检查操作系统、Python、GPU 驱动和模型访问条件。</li>
-      <li>创建隔离环境，并按硬件平台安装 vLLM。</li>
-      <li>使用 Python API 完成一个最小批量推理程序。</li>
-      <li>启动在线服务，并通过 HTTP 或 OpenAI SDK 发送请求。</li>
-    </ul></div>
-    <figure class="diagram"><img src="assets/diagrams/06-first-run-path.svg" alt="检查环境、安装 vLLM、离线推理、启动在线 API 的四步流程图"><figcaption>图 1：先验证环境和硬件兼容，再安装、运行离线推理，最后启动 API 服务。安装和模型加载是两个不同的步骤。</figcaption></figure>
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#before-install">6.1 安装前先确认环境</a></li>
+      <li><a href="#install">6.2 创建环境并安装</a></li>
+      <li><a href="#offline">6.3 离线批量推理</a></li>
+      <li><a href="#server">6.4 启动 OpenAI 兼容服务</a></li>
+      <li><a href="#docker">6.5 使用官方 Docker 镜像</a></li>
+      <li><a href="#troubleshooting">6.6 常见问题排查</a></li>
+      <li><a href="#recap">完成检查</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content">
+    <article>
+      <header class="article-header">
+        <p class="chapter-kicker">第 06 章 · 安装、模型接入与生成控制</p>
+        <h1>快速上手：安装 vLLM 并完成第一个推理请求</h1>
+        <p class="article-dek">从环境检查到模型生成，再到本地 API 服务。本章给出一条可复现的入门路径，同时解释为什么安装命令必须先匹配硬件平台、Python 和驱动，而不是盲目复制某条 pip 命令。</p>
+        <div class="article-meta"><span class="meta-chip">入门</span><span class="meta-chip">约 20 分钟</span><span class="meta-chip">前置章节：01、02</span></div>
+      </header>
 
-    <section id="before-install">
-      <h2>6.1 安装前先检查什么？</h2>
-      <p>至少确认以下信息：</p>
-      <pre><code># 操作系统
-uname -a
+      <p class="article-lead">vLLM 的安装不像纯 Python 工具那样只需要关心一个包版本。它包含 PyTorch、设备驱动、GPU kernel 和 Attention backend 等依赖；NVIDIA CUDA、AMD ROCm、Intel XPU、TPU、Ascend NPU 和 Apple Silicon 的安装路径并不相同。我们先检查运行环境，再用官方 Quickstart 中的 NVIDIA 路径完成一次离线推理和一次 API 请求。</p>
 
-# Python 版本
-python3 --version
+      <div class="outcomes">
+        <h2>完成本章后，你应该能够</h2>
+        <ul>
+          <li>确认操作系统、Python、GPU 驱动和模型访问条件。</li>
+          <li>在隔离环境中安装 vLLM，并验证包版本。</li>
+          <li>使用 Python API 执行一组离线 prompt。</li>
+          <li>启动 OpenAI 兼容 API，并通过 curl 或 OpenAI SDK 请求模型。</li>
+          <li>理解 Docker 的模型缓存、共享内存和服务暴露边界。</li>
+        </ul>
+      </div>
 
-# NVIDIA GPU 和驱动（NVIDIA 环境）
-nvidia-smi
+      <figure class="diagram">
+        <img src="assets/diagrams/06-first-run-path.svg" alt="vLLM 第一次运行的四步路径：环境检查、安装 vLLM、离线推理、在线 API 服务">
+        <figcaption>图 1：建议先验证环境，再安装依赖；先跑通离线推理，再启动在线 API。这样出现问题时，更容易定位在驱动、安装、模型加载还是网络服务层。</figcaption>
+      </figure>
 
-# 磁盘空间
-df -h</code></pre>
-      <p>还要确认你打算使用哪类设备：NVIDIA CUDA、AMD ROCm、Intel XPU、CPU、TPU，或 Apple Silicon。不同平台的安装包、依赖和支持的模型并不相同。不要把 NVIDIA CUDA 的安装命令直接复制到 ROCm 或其他平台。</p>
-      <div class="callout warning"><p><strong>平台说明：</strong>截至 2026-11-20，官方 Quickstart 的主要路径列出 Linux 与 Python 3.11–3.14；但不同加速器的 wheel、驱动和依赖组合可能进一步收窄可用范围。macOS Apple Silicon、AMD、Intel、TPU 等路径有各自的安装说明。请在实际安装时打开官方文档，按硬件选项核对要求。</p></div>
-      <p>另外，模型权重通常需要从 Hugging Face 或本地模型目录加载。首次运行前确认网络、访问权限、磁盘空间和模型许可，避免把模型下载失败误判为 vLLM 安装失败。</p>
-    </section>
+      <section id="before-install">
+        <h2>6.1 安装前先确认环境</h2>
+        <p>先确认自己属于哪一种硬件平台。官方安装文档为不同平台提供了独立安装页和 wheel / container 选择；不要把 NVIDIA 的 CUDA 命令直接套到 AMD 或 Apple Silicon 机器上。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>检查项</th><th>命令或动作</th><th>为什么重要</th></tr></thead>
+            <tbody>
+              <tr><td>操作系统</td><td><code>uname -s</code></td><td>官方 Quickstart 的通用 Linux 路径与其他平台路径不同</td></tr>
+              <tr><td>Python</td><td><code>python --version</code></td><td>官方 Stable Quickstart 当前列出的 Linux Python 范围为 3.11–3.14</td></tr>
+              <tr><td>NVIDIA GPU / Driver</td><td><code>nvidia-smi</code></td><td>确认设备可见、驱动正常，并据此选择匹配的 PyTorch / CUDA wheel</td></tr>
+              <tr><td>磁盘空间</td><td><code>df -h</code></td><td>模型权重、编译缓存和 Hugging Face cache 都会占用磁盘</td></tr>
+              <tr><td>模型访问</td><td>检查模型仓库是否公开或需要授权</td><td>受限模型需要提前配置访问权限和安全的 HF_TOKEN</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>vLLM 也提供其他平台的安装方式，例如 Apple Silicon 使用 vLLM-Metal，而不是普通 NVIDIA CUDA wheel。若使用 AMD、Intel、TPU 或 Ascend，请直接进入官方 GPU / TPU 安装矩阵选择对应平台步骤。</p>
+        <div class="callout warning">
+          <p><strong>不要使用过时的“固定显存门槛”。</strong>“7B 一定需要 16GB”“70B 一定需要 140GB”都不是可靠的安装判断。实际显存需求取决于权重精度、量化方式、KV Cache dtype、上下文长度、并发数、模型结构和运行时开销。请用目标模型和目标 workload 验证。</p>
+        </div>
+      </section>
 
-    <section id="install">
-      <h2>6.2 创建隔离环境并安装</h2>
-      <p>对官方 Quickstart 中的常见 NVIDIA CUDA 路径，可以使用 <code>uv</code> 管理隔离环境。下面命令是当前官方文档提供的安装路径示例；如果你的平台或驱动版本不同，应先查看对应硬件安装页。</p>
-      <pre><code># 1. 创建虚拟环境
+      <section id="install">
+        <h2>6.2 创建隔离环境并安装 vLLM</h2>
+        <p>下面以 Linux + NVIDIA GPU 为例，使用官方 Quickstart 推荐的 <code>uv</code> 管理 Python 环境。这里选择 Python 3.12，是官方示例中的一个明确版本；如果你使用其他 Python 版本，请先核对当前安装矩阵。</p>
+        <pre><code># 先确保 uv 已安装
+# 然后创建独立的 Python 3.12 环境
 uv venv --python 3.12 --seed
-
-# 2. 激活环境
 source .venv/bin/activate
 
-# 3. 安装 vLLM，并让 uv 选择匹配的 PyTorch backend
+# 自动选择匹配的 PyTorch backend
 uv pip install vllm --torch-backend=auto
 
-# 4. 按当前 Quickstart 预下载预编译 kernels
-vllm download-kernels
-
-# 5. 检查命令是否可用
+# 安装与当前 vLLM / FlashInfer 版本匹配的预编译 kernels
+vllm download-kernels</code></pre>
+        <p><code>--torch-backend=auto</code> 会让 uv 根据设备驱动信息选择合适的 PyTorch backend。若你需要固定 CUDA wheel，应按官方安装页选择明确的 CUDA 版本，而不是随意拼接 PyTorch index URL。</p>
+        <p><code>vllm download-kernels</code> 用于安装预编译 kernel。若缺少对应预编译 kernel，某些环境可能在启动时下载或编译；官方文档特别提示，Hopper 及更新 GPU 上这可能增加数分钟启动时间。安装或升级 vLLM 后，应按对应版本的文档重新检查 kernel 包是否匹配。</p>
+        <h3>验证安装</h3>
+        <pre><code>python --version
+python -c "import vllm; print(vllm.__version__)"
 vllm --help</code></pre>
-      <p>为什么建议使用隔离环境？vLLM 的 C++ / CUDA 扩展与 PyTorch、CUDA 或 ROCm 构建配置存在兼容关系。把它安装在一个全新的环境里，通常比复用已有的、装满不同版本深度学习依赖的环境更容易排查。</p>
-      <p><code>vllm download-kernels</code> 用于预先获取部分预编译 kernel，减少首次启动时下载或编译的等待。它不会下载模型权重，也不能代替硬件兼容性检查。</p>
-    </section>
+        <p>如果 Python 能导入 vLLM，并且 CLI 能正常显示帮助，说明基础安装链路已通过。它还不能证明目标模型一定能加载；模型架构支持、权重访问、显存和 Attention backend 仍需在实际推理时验证。</p>
+      </section>
 
-    <section id="offline">
-      <h2>6.3 第一个离线推理程序</h2>
-      <p>离线推理指的是在 Python 程序中直接调用 vLLM 的推理接口，而不是先启动 HTTP 服务。下面使用官方 Quickstart 中的小型指令模型作为示例。首次运行时，模型权重可能需要下载到本地缓存。</p>
-      <pre><code>from vllm import LLM, SamplingParams
+      <section id="offline">
+        <h2>6.3 离线批量推理：先在 Python 里生成几个结果</h2>
+        <p>离线推理适合脚本、批处理和数据集任务。你把一组 prompt 交给 <code>LLM.generate()</code>，vLLM 会在内部组织批量执行，并返回每条输入对应的生成结果。</p>
+        <p>以下使用官方 Quickstart 中的 Qwen2.5 1.5B Instruct 示例。第一次运行会下载模型权重；确保磁盘空间、网络和模型访问权限满足要求。</p>
+        <pre><code>from vllm import LLM, SamplingParams
 
-# 1. 加载模型
+# 加载模型；权重和 KV Cache 都需要设备内存
 llm = LLM(model="Qwen/Qwen2.5-1.5B-Instruct")
 
-# 2. 设置生成参数
-sampling = SamplingParams(
+sampling_params = SamplingParams(
     temperature=0.7,
     top_p=0.9,
     max_tokens=128,
 )
 
-# 3. 准备多个请求
 prompts = [
-    "用一句话解释什么是 KV Cache。",
-    "用三点总结 PagedAttention 的核心思想。",
+    "请用一句话解释什么是 KV Cache。",
+    "用 Python 写一个计算斐波那契数列的函数。",
+    "为什么长上下文会增加推理时的显存压力？",
 ]
 
-# 4. 批量生成
-outputs = llm.generate(prompts, sampling)
+outputs = llm.generate(prompts, sampling_params)
 
-# 5. 读取结果
 for output in outputs:
     print("Prompt:", output.prompt)
-    print("Generated:", output.outputs[0].text)
+    print("Response:", output.outputs[0].text)
     print("---")</code></pre>
-      <p>这个示例展示的是最小调用路径，不是生产配置。模型能否加载取决于权重大小、GPU 显存、dtype、模型架构和 vLLM 当前版本的支持情况。若显存不足，可以先换更小的模型，或按官方文档选择适合的量化模型和并行配置。</p>
-    </section>
+        <p>这个示例的重点是理解接口，不是承诺任何 GPU 都能加载该模型。若发生显存不足，先确认权重精度和模型大小，再检查上下文长度、并发请求和 KV Cache 需求；不要只靠不断调高某个显存比例参数来解决。</p>
+      </section>
 
-    <section id="server">
-      <h2>6.4 启动 OpenAI 兼容 API 服务</h2>
-      <p>如果多个应用都需要调用同一个模型，可以让 vLLM 作为服务进程运行。它提供兼容 OpenAI API 协议的接口，客户端可以通过 HTTP 或 OpenAI Python SDK 访问。</p>
-      <pre><code># 建议在对外开放的服务中设置 API Key
-export VLLM_API_KEY="replace-with-a-long-random-secret"
-
-# 启动服务
-vllm serve Qwen/Qwen2.5-1.5B-Instruct \
-  --host 0.0.0.0 \
-  --port 8000 \
-  --api-key "$VLLM_API_KEY"</code></pre>
-      <p>先检查服务暴露的模型列表：</p>
-      <pre><code>curl http://localhost:8000/v1/models \
-  -H "Authorization: Bearer $VLLM_API_KEY"</code></pre>
-      <p>再发送一次 Chat Completion 请求：</p>
-      <pre><code>curl http://localhost:8000/v1/chat/completions \
+      <section id="server">
+        <h2>6.4 启动 OpenAI 兼容 API 服务</h2>
+        <p>如果你的应用已经使用 OpenAI 风格的 API，vLLM 可以提供兼容接口。先在终端启动模型服务：</p>
+        <pre><code>vllm serve Qwen/Qwen2.5-1.5B-Instruct</code></pre>
+        <p>官方 Quickstart 的默认服务地址是 <code>http://localhost:8000</code>。在另一个终端，先检查模型列表：</p>
+        <pre><code>curl http://localhost:8000/v1/models</code></pre>
+        <p>再发送一个 Chat Completions 请求：</p>
+        <pre><code>curl http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $VLLM_API_KEY" \
   -d '{
     "model": "Qwen/Qwen2.5-1.5B-Instruct",
     "messages": [
-      {"role": "user", "content": "用一句话解释 Prefill 和 Decode 的区别。"}
+      {"role": "user", "content": "请用一句话介绍 vLLM。"}
     ],
-    "max_tokens": 128
+    "temperature": 0.7
   }'</code></pre>
-      <p>也可以使用 OpenAI Python SDK，只需要把 <code>base_url</code> 指向本地 vLLM 服务：</p>
-      <pre><code>from openai import OpenAI
-import os
+        <h3>通过 OpenAI Python SDK 调用</h3>
+        <p>当服务端已经启动时，客户端只需要把 <code>base_url</code> 指向本地服务。这里的 <code>EMPTY</code> 是本地开发示例使用的占位 key；如果服务端启用了 API key 校验，就必须提供服务端认可的 key。</p>
+        <pre><code>from openai import OpenAI
 
 client = OpenAI(
+    api_key="EMPTY",
     base_url="http://localhost:8000/v1",
-    api_key=os.environ["VLLM_API_KEY"],
 )
 
 response = client.chat.completions.create(
     model="Qwen/Qwen2.5-1.5B-Instruct",
     messages=[
-        {"role": "user", "content": "你好，请介绍一下自己。"}
+        {"role": "user", "content": "解释一下 Continuous Batching。"}
     ],
 )
 
 print(response.choices[0].message.content)</code></pre>
-      <div class="callout"><p><strong>安全提醒：</strong>本地开发和公网服务的风险不同。不要把没有鉴权的服务直接暴露到公网；生产环境还需要 TLS、反向代理、速率限制、日志脱敏和网络访问控制，第 15、18 章会进一步讨论。</p></div>
-    </section>
+        <div class="callout warning">
+          <p><strong>服务安全：</strong>本地学习时优先只监听 localhost。不要把一个未配置鉴权的推理服务直接暴露到公网。正式部署应启用 API key 或网关鉴权，并配置网络隔离、速率限制和日志策略；不要把真实密钥写进代码仓库。</p>
+        </div>
+        <p>如果你需要控制服务端的采样默认值，请留意模型仓库中的 <code>generation_config.json</code>。vLLM 默认可能应用模型仓库提供的生成配置；如果希望使用 vLLM 自己的默认设置，可以按当前版本 CLI 文档检查 <code>--generation-config vllm</code> 选项。</p>
+      </section>
 
-    <section id="verify">
-      <h2>6.5 验证与常见问题</h2>
-      <div class="table-wrap"><table>
-        <thead><tr><th>现象</th><th>优先检查</th><th>下一步</th></tr></thead>
-        <tbody>
-          <tr><td>安装时 wheel / CUDA 依赖不匹配</td><td>Python、驱动、PyTorch backend 和硬件平台</td><td>重新对照官方 GPU 安装矩阵，使用干净环境</td></tr>
-          <tr><td>模型下载失败</td><td>网络、模型访问许可、token 和磁盘空间</td><td>先验证模型仓库访问，再尝试本地模型路径</td></tr>
-          <tr><td>模型加载 OOM</td><td>权重大小、dtype、GPU 可用显存和上下文配置</td><td>先使用更小模型，逐项检查缓存和并行配置</td></tr>
-          <tr><td>Chat API 返回模板相关错误</td><td>模型 tokenizer 是否提供适用的 chat template</td><td>查看模型说明，按官方文档配置模板</td></tr>
-          <tr><td>API 无法连接</td><td>服务进程、监听地址、端口、防火墙和鉴权头</td><td>先请求 /v1/models，再检查服务日志</td></tr>
-        </tbody>
-      </table></div>
-      <p>查询命令帮助时，优先让当前安装版本告诉你它支持什么：</p>
-      <pre><code>vllm --help
-vllm serve --help
-vllm serve --help=all</code></pre>
-    </section>
+      <section id="docker">
+        <h2>6.5 使用官方 Docker 镜像</h2>
+        <p>Docker 可以把 vLLM 运行环境和宿主机隔离开，并复用官方提供的镜像。下面是 NVIDIA GPU 的简化示例：</p>
+        <pre><code>docker run --rm \
+  --runtime nvidia --gpus all \
+  -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
+  -p 127.0.0.1:8000:8000 \
+  --ipc=host \
+  vllm/vllm-openai:latest \
+  --model Qwen/Qwen3-0.6B</code></pre>
+        <p>其中：</p>
+        <ul>
+          <li><code>--gpus all</code>：把宿主机可用 GPU 暴露给容器。</li>
+          <li><code>-v ...huggingface...</code>：持久化模型缓存，避免每次创建容器都重新下载权重。</li>
+          <li><code>-p 127.0.0.1:8000:8000</code>：只把服务端口绑定到宿主机本地地址。</li>
+          <li><code>--ipc=host</code>：让容器使用宿主机 IPC / shared memory；官方也允许使用足够大的 <code>--shm-size</code> 替代。</li>
+        </ul>
+        <p>生产环境建议把 <code>latest</code> 换成明确的 vLLM release tag，并让镜像版本、客户端和模型配置一起进入部署记录。若模型需要 Hugging Face 授权，可通过安全的环境变量或 secret 注入 <code>HF_TOKEN</code>，不要把 token 写在 Dockerfile 或提交到仓库。</p>
+      </section>
 
-    <section id="version">
-      <h2>6.6 为什么安装说明必须跟版本走？</h2>
-      <p>vLLM 快速演进，支持的 Python 版本、CUDA / ROCm wheel、GPU 架构、预编译 kernel 和模型列表都会变化。网上旧教程可能仍然写着旧的 Python 范围、旧的环境变量或已经变更的 CLI 参数。</p>
-      <p>因此，这一章只把官方 Quickstart 中的命令作为一个可核验的安装示例，而不把它包装成永久不变的通用命令。开始一个新项目时，建议记录 vLLM 版本、Python 版本、驱动版本、GPU 型号、模型 ID 和启动参数，后续排障和复现实验才有依据。</p>
-      <p>下一章会深入模型加载与配置，解释模型格式、量化和显存参数分别影响什么。</p>
-    </section>
+      <section id="troubleshooting">
+        <h2>6.6 常见问题排查：先分层，不要盲目改参数</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>现象</th><th>优先检查</th><th>下一步</th></tr></thead>
+            <tbody>
+              <tr><td>安装阶段找不到匹配 wheel</td><td>操作系统、Python、GPU 架构、驱动与 PyTorch backend</td><td>回到官方平台安装矩阵，使用对应 wheel / container</td></tr>
+              <tr><td>模型下载失败</td><td>仓库权限、网络、磁盘空间和 Hugging Face cache</td><td>确认模型是否 gated；需要时配置 HF_TOKEN</td></tr>
+              <tr><td>模型加载时 CUDA OOM</td><td>权重精度、模型大小、上下文长度、KV Cache 和其他 GPU 进程</td><td>换合适模型 / dtype，降低上下文或并发，再测量</td></tr>
+              <tr><td>Chat 请求报模板错误</td><td>模型 tokenizer 是否包含适用的 chat template</td><td>选用 Instruct / Chat 模型，或按模型文档提供模板</td></tr>
+              <tr><td>容器多进程通信异常</td><td>共享内存、IPC 配置和容器 GPU runtime</td><td>核对官方 Docker 参数，检查 IPC / shm 容量</td></tr>
+              <tr><td>启动耗时很长</td><td>kernel 下载、首次编译、模型加载与缓存目录</td><td>检查是否需要运行 <code>vllm download-kernels</code>，并持久化缓存</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>遇到错误时，先保存完整日志和 <code>vllm collect-env</code> 输出，再对照当前版本 Troubleshooting 文档。一次只改变一个变量，避免同时更换 Python、CUDA、模型和调度参数，导致无法定位真正原因。</p>
+      </section>
 
-    <section class="sources" id="sources"><h2>参考资料</h2><ol>
-      <li>vLLM, <a href="https://docs.vllm.ai/en/stable/getting_started/quickstart/" target="_blank" rel="noopener noreferrer">Quickstart</a>，离线推理、在线 Serving 和当前安装流程。</li>
-      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/getting_started/installation/gpu/" target="_blank" rel="noopener noreferrer">GPU Installation Guide</a>，按 NVIDIA、AMD、Intel 和 Apple Silicon 等平台选择安装方式。</li>
-      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/cli/" target="_blank" rel="noopener noreferrer">CLI Guide</a>，查看当前命令和参数。</li>
-    </ol><p><small>命令和示例按 2026-11-20 可见的官方 Quickstart 编写；不同硬件平台和后续版本请以对应安装页为准。</small></p></section>
-    <footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="05.html">← 上一章：Continuous Batching</a><a class="next" href="07.html">下一章：模型加载与配置 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer>
-  </article></main>
+      <section id="recap">
+        <h2>完成检查：你已经打通了哪几步？</h2>
+        <ol>
+          <li>能确认自己的硬件平台，并找到对应的官方安装路径。</li>
+          <li>能在隔离环境中安装 vLLM，并输出版本信息。</li>
+          <li>能通过 Python API 对一组 prompt 执行离线推理。</li>
+          <li>能启动本地 API 服务，并通过 <code>/v1/models</code> 和 Chat Completions 验证。</li>
+          <li>能解释模型缓存、容器共享内存和服务鉴权的作用。</li>
+        </ol>
+        <p>下一章会进入模型加载与配置：模型格式、dtype、量化、最大上下文长度和显存预算如何共同决定一次部署能否稳定运行。</p>
+      </section>
+
+      <section class="sources" id="sources">
+        <h2>官方参考资料</h2>
+        <ol>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/stable/getting_started/quickstart/" target="_blank" rel="noopener noreferrer">Quickstart</a>。本章 NVIDIA 安装、Python 环境、离线推理和在线服务命令的主要依据。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/getting_started/installation/gpu/" target="_blank" rel="noopener noreferrer">GPU Installation Guide</a>。按 NVIDIA、AMD、Intel 和 Apple Silicon 等平台选择安装路径。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/deployment/docker/" target="_blank" rel="noopener noreferrer">Using Docker</a>。官方镜像、GPU runtime、模型缓存挂载和 IPC / shared memory 设置。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/cli/" target="_blank" rel="noopener noreferrer">CLI Guide</a>。检查 <code>vllm serve</code>、<code>vllm download-kernels</code> 和其他命令。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/usage/troubleshooting/" target="_blank" rel="noopener noreferrer">Troubleshooting</a>。安装、模型加载和运行时问题的排查入口。</li>
+        </ol>
+        <p><small>本章命令依据 2026-11-20 可访问的官方 Stable / Latest 文档整理。安装矩阵、模型支持和 CLI 参数会继续变化；运行前应再次核对对应版本文档。</small></p>
+      </section>
+
+      <footer class="chapter-footer">
+        <nav class="chapter-nav" aria-label="章节导航"><a href="05.html">← 上一章：Continuous Batching</a><a class="next" href="07.html">下一章：模型加载与配置 →</a></nav>
+        <a class="back-to-top" href="#content">回到顶部 ↑</a>
+      </footer>
+    </article>
+  </main>
 </div>
 </body>
 </html>
