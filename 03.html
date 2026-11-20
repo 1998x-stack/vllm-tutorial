@@ -1,187 +1,169 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第3章 PagedAttention上篇</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="通过一个可计算的 Block Table 例子，理解 PagedAttention 如何把逻辑 KV Cache 块映射到非连续的物理块。">
+  <title>第 03 章｜PagedAttention 上篇：Block Table 与分页管理</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border">
-<div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li>
-            <li><a href="02.html">第2章 vLLM概述</a></li>
-            <li><a href="03.html" class="active">第3章 PagedAttention上篇</a></li>
-            <li><a href="04.html">第4章 PagedAttention下篇</a></li>
-            <li><a href="05.html">第5章 Continuous Batching</a></li>
-            <li><a href="06.html">第6章 快速上手</a></li>
-            <li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li>
-            <li><a href="09.html">第9章 Prefix Caching</a></li>
-            <li><a href="10.html">第10章 调度器详解</a></li>
-            <li><a href="11.html">第11章 Chunked Prefill</a></li>
-            <li><a href="12.html">第12章 V1架构上篇</a></li>
-            <li><a href="13.html">第13章 V1架构下篇</a></li>
-            <li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li>
-            <li><a href="16.html">第16章 Kubernetes部署</a></li>
-            <li><a href="17.html">第17章 可观测性</a></li>
-            <li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li>
-            <li><a href="20.html">第20章 流水线与数据并行</a></li>
-            <li><a href="21.html">第21章 推测解码</a></li>
-            <li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li>
-            <li><a href="24.html">第24章 调试与问题排查</a></li>
-            <li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li>
-            <li><a href="27.html">第27章 实战项目</a></li>
-            <li><a href="28.html">第28章 课程总结</a></li>
+<body class="article-page">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+    <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/paged_attention/" target="_blank" rel="noopener noreferrer">Paged Attention 文档 ↗</a></nav>
+  </div>
+</header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#problem">3.1 连续分配的问题</a></li>
+      <li><a href="#analogy">3.2 分页类比</a></li>
+      <li><a href="#mapping">3.3 Block Table 如何映射</a></li>
+      <li><a href="#allocation">3.4 按需分配与回收</a></li>
+      <li><a href="#fragmentation">3.5 碎片问题的边界</a></li>
+      <li><a href="#tradeoffs">3.6 设计取舍</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content">
+    <article>
+      <header class="article-header">
+        <p class="chapter-kicker">第 03 章 · KV Cache 与内存管理</p>
+        <h1>PagedAttention 上篇：Block Table 与分页管理</h1>
+        <p class="article-dek">一条请求的 KV Cache 会随着生成不断增长。如果它必须放在一整块连续显存里，系统就很难灵活地接纳长短不一的请求。PagedAttention 的关键想法，是让逻辑连续的缓存可以映射到物理上分散的块。</p>
+        <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 18 分钟</span><span class="meta-chip">前置章节：01、02</span></div>
+      </header>
+
+      <p class="article-lead">先想象一个在线服务：请求 A 预计会生成 2,000 个 token，请求 B 可能只生成 80 个 token，请求 C 的长度暂时未知。系统如果一开始就为每个请求预留很大的连续空间，会浪费不少显存；如果预留得太小，又可能在生成过程中不够用。PagedAttention 要解决的正是 KV Cache 动态分配与访问的问题。</p>
+
+      <div class="outcomes">
+        <h2>读完这一章，你应该能够</h2>
+        <ul>
+          <li>区分内部碎片与外部碎片，并解释动态长度请求为什么难管理。</li>
+          <li>解释逻辑块、物理块和 Block Table 各自的职责。</li>
+          <li>给定 token 位置和 block size，算出物理块 ID 与块内偏移。</li>
+          <li>说明分页方案减少了什么浪费，以及它没有解决哪些问题。</li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第3章 PagedAttention 上篇：虚拟内存与 Block Table</h2>
+      </div>
 
-<p>这是全课程最重要的两章之一。PagedAttention 是 vLLM 的灵魂——没有它，就没有 vLLM。今天咱们从操作系统虚拟内存的角度切入，理解它是怎么把 GPU 显存利用率从 20-40% 拉到 96% 的。</p>
+      <figure class="diagram">
+        <img src="assets/diagrams/03-block-table-mapping.svg" alt="逻辑 token 序列分成四个逻辑块，通过 Block Table 映射到物理 block pool 中的分散块">
+        <figcaption>图 1：逻辑块按 token 顺序排列；Block Table 将逻辑块编号映射到物理 block ID。物理块不必相邻，但 Attention 仍然按逻辑 token 顺序读取数据。</figcaption>
+      </figure>
 
-<h3>3.1 问题的本质：显存碎片</h3>
+      <section id="problem">
+        <h2>3.1 连续分配为什么会浪费？</h2>
+        <p>KV Cache 的大小不是请求开始时就完全确定的。Prompt 长度已知，但生成多少 token 通常要等模型运行后才能知道。若系统按最大长度预留连续空间，实际输出较短时，预留空间就没有被使用；若系统按较短长度分配，后续扩容又可能需要搬移数据或寻找更大的连续区域。</p>
+        <p>这里要区分两种碎片：</p>
+        <ul>
+          <li><strong>内部碎片：</strong>分配给某个请求的空间比它实际使用的更多，空余部分被困在这次分配内部。</li>
+          <li><strong>外部碎片：</strong>空闲空间分散成多个小区域；总空闲量可能足够，但不容易找到满足连续分配要求的大区域。</li>
+        </ul>
+        <p>对于动态增长的 KV Cache，预分配策略需要在“提前多留空间”和“运行时扩容”之间取舍。请求越多、长度差异越大，越需要更灵活的内存组织方式。</p>
+      </section>
 
-<p>第一章提到，传统方式为每个请求预分配<strong>连续</strong>的显存存放 KV cache。咱们用一个具体例子说清楚问题在哪：</p>
-
-<pre><code>GPU 显存（简化）：[A████████░░░░░░░░░░░░][B█░░░░░░░░][C██████████░░]
-                    request A (预留 1000)  request B (预留 200) request C (预留 500)
-
-问题 1 — 内部碎片：B 预留了 200 token 空间但只生成 50 token，150 token 空间白白浪费
-问题 2 — 外部碎片：B 释放后留下 [░░░░] 空洞，和新来的 request D 所需空间不匹配
-问题 3 — 低利用率：整体显存看似有空间，但东一块西一块，凑不出一块连续的</code></pre>
-
-<p>这跟 1960 年代 OS 遇到的内存碎片问题一模一样的。当时的解法是<strong>虚拟内存 + 分页</strong>——vLLM 把它搬到了 GPU 显存。</p>
-
-<h3>3.2 类比：OS 虚拟内存</h3>
-
-<table>
-  <tr><th>概念</th><th>OS 虚拟内存</th><th>PagedAttention</th></tr>
-  <tr><td>基本分配单元</td><td>Page（页，4KB）</td><td>Block（块，16 tokens）</td></tr>
-  <tr><td>逻辑→物理映射</td><td>Page Table（页表）</td><td>Block Table（块表）</td></tr>
-  <tr><td>按需分配</td><td>Demand Paging（按需调页）</td><td>按需分配 Block</td></tr>
-  <tr><td>物理存储</td><td>物理页可以不连续</td><td>物理 Block 可以不连续</td></tr>
-  <tr><td>碎片问题</td><td>外部碎片 &lt;1%</td><td>碎片 &lt;4%</td></tr>
-</table>
-
-<p>核心思想只有一个：<strong>把逻辑上连续的东西，打散存到物理上不连续的地方，通过一张映射表把它们"缝"起来</strong>。</p>
-
-<h3>3.3 Block Table：逻辑到物理的映射</h3>
-
-<p>假设一个请求生成了 64 个 token 的 KV cache，Block 大小是 16 token：</p>
-
-<pre><code>逻辑 token 位置:  [0..15]    [16..31]    [32..47]    [48..63]
-                    ↓          ↓           ↓           ↓
-物理 Block:       block_7    block_3     block_12    block_5
-
-Block Table = [7, 3, 12, 5]</code></pre>
-
-<p>计算 Attention 时，GPU kernel 是这样找到 K/V 数据的：</p>
-
-<pre><code>给定: 逻辑位置 = 35
-
-1. block_index = 35 / 16 = 2        → 在 Block Table 的第 2 个位置
-2. physical_block = BlockTable[2] = 12  → 物理 Block 12
-3. offset = 35 % 16 = 3             → Block 12 内第 3 个位置
-4. 最终地址: block_12_base + 3 * sizeof(KV_per_token)</code></pre>
-
-<p>关键来了：Block Table 非常小。一个 request 即使生成 8192 token，Block Table 也只有 8192/16 = 512 个元素（整数数组，512 × 4 bytes = 2KB）。对比 KV cache 本身（4GB），Block Table 的额外开销可以忽略不计。</p>
-
-<h3>3.4 按需分配：彻底消灭内部碎片</h3>
-
-<p>传统方式必须在请求开始时一次分配足够的空间。PagedAttention 只在真正需要时才分配新 Block：</p>
-
-<pre><code>请求 A:
-├── 开始: 分配 1 block (16 tokens) — 只有 prompt 需要
-├── Step 1-16: 使用 block_0，满了 → 分配 block_7
-├── Step 17-32: 使用 block_0 + block_7，满了 → 分配 block_3
-├── Step 33-48: 使用 block_0 + block_7 + block_3
-├── 生成结束（45 token）: 释放所有 3 个 block
-└── 平均只占用恰好需要的空间</code></pre>
-
-<p>每个 Block 只在"上一块满了"的时候才分配。最后一个 Block 可能有 0-15 个 token 的浪费——这就是那不到 4% 的碎片。</p>
-
-<h3>3.5 Free Block Pool：解决外部碎片</h3>
-
-<p>所有物理 Block 在一个全局空闲池中管理：</p>
-
-<pre><code>Free Block Pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, ...]
-
-请求 A 来了: 取前 3 个 → free pool = [3, 4, 5, ..., 15, ...]
-请求 B 来了: 取前 2 个 → free pool = [5, 6, 7, ..., 15, ...]
-请求 A 结束: 归还 block_0, block_1, block_2 → free pool = [0, 1, 2, 5, 6, 7, ..., 15, ...]
-请求 C 来了: 需要 4 个 → 取 [0, 1, 2, 5]（虽然是分散的但没问题！）</code></pre>
-
-<p>注意请求 C 取到的 [0, 1, 2, 5] 不是连续的。但对 PagedAttention 来说完全 OK——Block Table 会把它们"缝"起来。</p>
-
-<div class="highlight">
-  <p><strong>关键洞察</strong>：PagedAttention 不要求物理 Block 连续。这彻底解决了外部碎片——只要能找到足够数量的 Block（不管它们在哪里），就能满足新请求的需求。</p>
-</div>
-
-<h3>3.6 显存利用率对比</h3>
-
-<table>
-  <tr><th>场景</th><th>传统连续分配</th><th>PagedAttention</th><th>提升倍数</th></tr>
-  <tr><td>128 并发, prompt 100 token</td><td>35.2%</td><td>96.8%</td><td>2.75×</td></tr>
-  <tr><td>512 并发, prompt 50 token</td><td>28.1%</td><td>95.4%</td><td>3.39×</td></tr>
-  <tr><td>混合长短 prompt</td><td>18.6%</td><td>93.2%</td><td>5.01×</td></tr>
-  <tr><td>长上下文（32768 token）</td><td>12.4%</td><td>91.7%</td><td>7.39×</td></tr>
-</table>
-
-<p>混合长短 prompt 的场景效果最好——因为传统分配在这种场景下碎片最严重，而 PagedAttention 不在乎长度差异。</p>
-
-<div class="tip">
-  <p><strong>实战经验</strong>：如果你发现 GPU 显存利用率很低（&lt;50%）但 vllm 报告显存已满，检查一下是否有大量短请求和长请求混合——传统推理框架在这个场景下碎片极严重，vLLM 能大幅改善。</p>
-</div>
-
-<p>今天咱们理解了 PagedAttention 的"思想篇"——虚拟内存+分页。下一章咱们深入实现细节：Block Table 怎么和 Attention kernel 配合？Slot Mapping 是什么？Copy-on-Write 怎么实现前缀共享？</p>
-
-        <div class="footer-nav">
-            <a href="02.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="04.html">下一章 →</a>
+      <section id="analogy">
+        <h2>3.2 分页类比：逻辑地址与物理地址分开</h2>
+        <p>操作系统的虚拟内存分页提供了一个有用的类比：程序看到的是连续的虚拟地址空间，底层页表再把虚拟页映射到物理页。物理页不必连续，程序也不需要知道每一页在内存条中的实际位置。</p>
+        <p>PagedAttention 借用了这个“逻辑连续、物理可分散”的思路。对于 KV Cache，可以把 token 序列按固定 token 数切成逻辑块；Block Table 记录每个逻辑块对应的物理 block ID。注意，这只是帮助建立直觉的类比：GPU KV Cache 的布局、访问方式和操作系统虚拟内存并不完全相同。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>概念</th><th>分页内存类比</th><th>Paged KV Cache</th></tr></thead>
+            <tbody>
+              <tr><td>逻辑单元</td><td>虚拟页</td><td>逻辑 KV block</td></tr>
+              <tr><td>物理单元</td><td>物理页</td><td>物理 KV block</td></tr>
+              <tr><td>映射结构</td><td>页表</td><td>Block Table</td></tr>
+              <tr><td>分配方式</td><td>按页分配</td><td>按 block 分配</td></tr>
+              <tr><td>访问过程</td><td>地址转换后访问物理页</td><td>通过块映射定位 K/V 数据</td></tr>
+            </tbody>
+          </table>
         </div>
-    </div>
-</div>
+      </section>
+
+      <section id="mapping">
+        <h2>3.3 Block Table 如何把 token 位置映射到物理块？</h2>
+        <p>用一个小例子计算。假设教学示例中的 block size 为 4，也就是每个物理块最多保存 4 个 token 的 KV 数据。某条请求的 Block Table 是：</p>
+        <pre><code>Block Table = [7, 2, 11, 4]
+
+逻辑块 0 → 物理块 7
+逻辑块 1 → 物理块 2
+逻辑块 2 → 物理块 11
+逻辑块 3 → 物理块 4</code></pre>
+        <p>现在要访问逻辑 token 位置 (t=9)。首先求它属于第几个逻辑块，再求它在块内的偏移：</p>
+        <div class="math-display">
+          <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="逻辑块编号等于 token 位置除以块大小向下取整，块内偏移等于 token 位置对块大小取模">
+            <mrow><msub><mi>block</mi><mtext>logical</mtext></msub><mo>=</mo><mo>⌊</mo><mi>t</mi><mo>/</mo><mi>B</mi><mo>⌋</mo></mrow>
+            <mspace width="1em"/>
+            <mrow><mi>offset</mi><mo>=</mo><mi>t</mi><mo>mod</mo><mi>B</mi></mrow>
+          </math>
+        </div>
+        <pre><code>t = 9, block_size = 4
+
+logical_block = floor(9 / 4) = 2
+offset        = 9 % 4 = 1
+physical_block = BlockTable[2] = 11
+
+所以：逻辑 token 9 → 物理 Block 11 的 offset 1</code></pre>
+        <p>这就是映射表的价值：请求看到的 token 顺序没有改变，但底层可以把每个逻辑块放到任意可用物理块中。Attention kernel 根据请求的块映射访问正确的 K/V 数据。</p>
+        <div class="stepper" data-stepper>
+          <h3>交互观察：访问 token 9 的地址转换</h3>
+          <div class="step-controls" role="group" aria-label="选择映射步骤">
+            <button type="button" data-step-target="step-one" aria-pressed="true">第 1 步：定位逻辑块</button>
+            <button type="button" data-step-target="step-two" aria-pressed="false">第 2 步：查 Block Table</button>
+            <button type="button" data-step-target="step-three" aria-pressed="false">第 3 步：定位块内位置</button>
+          </div>
+          <div class="step-panel" data-step-panel="step-one"><p><strong>9 ÷ 4 = 2 余 1。</strong>token 9 属于逻辑块 2。</p></div>
+          <div class="step-panel" data-step-panel="step-two" hidden><p><strong>BlockTable[2] = 11。</strong>逻辑块 2 对应物理块 11。</p></div>
+          <div class="step-panel" data-step-panel="step-three" hidden><p><strong>offset = 1。</strong>最终访问物理 Block 11 内的第 1 个 token 槽位（按从 0 开始计数）。</p></div>
+          <noscript><p>交互需要 JavaScript；上面的代码和图示已给出完整映射过程。</p></noscript>
+        </div>
+      </section>
+
+      <section id="allocation">
+        <h2>3.4 按需分配：请求增长时再拿新的 block</h2>
+        <p>在分页方案中，请求不需要一开始就拿到覆盖最大输出长度的整段连续空间。系统可以从 block pool 中取出当前需要的块；当已有块用满、请求继续增长时，再分配新块并更新该请求的映射关系。</p>
+        <ol>
+          <li>新请求进入调度器，系统计算当前需要的 KV block 数。</li>
+          <li>KV Cache 管理器从空闲块池分配物理块，并建立请求对应的 Block Table。</li>
+          <li>模型执行时，K/V 数据写入分配好的物理块；Attention 读取时依据映射找到对应块。</li>
+          <li>请求结束后，释放不再被引用的块，归还到可复用的块池。</li>
+        </ol>
+        <p>最后一个 block 可能没有填满。例如 block size 为 4，而当前请求只用了 10 个 token，那么它需要 3 个逻辑块，最后一块只使用 2 个槽位。这个尾部空位属于该方案下可预期的内部浪费。</p>
+      </section>
+
+      <section id="fragmentation">
+        <h2>3.5 分页方案减少了什么？又没有解决什么？</h2>
+        <p>由于一个请求的逻辑块可以映射到不同的物理块，KV Cache 的分配不再要求找到一段足够大的连续显存。因此，块池层面由“连续区域必须足够大”引起的外部碎片问题会大幅缓解；按块分配也让系统可以随着请求增长逐步增加缓存容量。</p>
+        <p>但不能把它描述成“所有显存碎片都消失了”或“显存利用率永远是 96%”。最后一个未填满的块仍可能有内部空位；模型权重、激活、CUDA 工作区、内存对齐和其他 GPU 进程仍然占用显存。不同模型、block size、缓存布局和运行负载也会产生不同结果。</p>
+        <div class="callout warning">
+          <p><strong>边界提醒：</strong>Paged KV Cache 解决的是 KV 缓存的块级组织与访问问题，不意味着 GPU 上所有分配都变成了分页，也不保证请求永远不会因为 KV Cache 容量不足而排队或被抢占。</p>
+        </div>
+      </section>
+
+      <section id="tradeoffs">
+        <h2>3.6 Block Size 是一个工程取舍</h2>
+        <p>块越小，尾部未使用空间的上限通常越小，但同样数量的 token 会对应更多 block 和更多映射元数据；块越大，映射项相对少一些，但最后一个块可能留下更多未使用槽位。实际可选范围还受 vLLM 版本、硬件、模型和 Attention backend 限制，不能把某个示例值说成所有环境的固定默认值。</p>
+        <p>还要记住：PagedAttention 不只是“把张量切成小块”。实现必须让写入路径知道新 token 应写入哪个物理槽位，也必须让读取路径能按请求的逻辑顺序遍历物理块。下一章会继续拆解 Block Table、slot mapping、Attention backend 和块共享之间的关系。</p>
+      </section>
+
+      <section class="sources" id="sources">
+        <h2>参考资料</h2>
+        <ol>
+          <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>，PagedAttention 原始论文。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/paged_attention/" target="_blank" rel="noopener noreferrer">Paged Attention Design</a>，Attention kernel 对分页 KV 数据的访问实现。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/api/vllm/config/cache/" target="_blank" rel="noopener noreferrer">Cache Configuration Reference</a>，当前缓存配置和 block size 参数。</li>
+        </ol>
+        <p><small>图中的 block size = 4、Block Table = [7, 2, 11, 4] 均为教学示例，不是 vLLM 的默认配置或真实运行日志。</small></p>
+      </section>
+
+      <footer class="chapter-footer">
+        <nav class="chapter-nav" aria-label="章节导航"><a href="02.html">← 上一章：vLLM 概述</a><a class="next" href="04.html">下一章：PagedAttention 下篇 →</a></nav>
+        <a class="back-to-top" href="#content">回到顶部 ↑</a>
+      </footer>
+    </article>
+  </main>
 </div>
 </body>
 </html>
