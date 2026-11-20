@@ -1,0 +1,43 @@
+{
+  "chapter": "04",
+  "reviewed_at": "2026-11-20",
+  "scope": "vLLM V1 cache interface and current Prefix Caching / Paged Attention design documents.",
+  "claims": [
+    {
+      "id": "slot-mapping-write",
+      "claim": "The KV store path writes newly computed K/V into cache slots specified by slot_mapping.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/6825e9cae902f4dd26517b8e08293c50dbd1d06b/vllm/v1/attention/ops/ultraquant/triton_store.py",
+      "locator": "Store kernel docstring and slot_mapping argument",
+      "notes": "Exact address calculation and tensor layout are backend/model specific."
+    },
+    {
+      "id": "block-table-read",
+      "claim": "Paged attention uses block mappings and backend metadata to access non-contiguous KV blocks.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/paged_attention/",
+      "locator": "Paged Attention Design",
+      "notes": "Backend support and physical layout are version- and platform-dependent."
+    },
+    {
+      "id": "prefix-cache-v1",
+      "claim": "V1 prefix caching uses block hashes, reference counts, a block pool, a free queue and eviction of reusable blocks.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
+      "locator": "Data Structure, Block Allocation, Free, Eviction",
+      "notes": "Do not reduce this implementation to a generic copy-on-write pointer model."
+    },
+    {
+      "id": "prefix-cache-full-block",
+      "claim": "Completed KV blocks are hashed using block tokens and preceding prefix context for cache reuse.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
+      "locator": "Block hash and allocation workflow",
+      "notes": "Multimodal content and cache isolation can add extra hash inputs."
+    }
+  ]
+}
