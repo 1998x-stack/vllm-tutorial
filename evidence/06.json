@@ -1,0 +1,34 @@
+{
+  "chapter": "06",
+  "reviewed_at": "2026-11-20",
+  "scope": "Current official Quickstart and platform-specific installation guide as viewed on the review date.",
+  "claims": [
+    {
+      "id": "quickstart-python-range",
+      "claim": "The current official Quickstart lists Linux and Python 3.11–3.14 as its primary prerequisites.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/getting_started/quickstart/",
+      "locator": "Prerequisites",
+      "notes": "Platform-specific installation pages can have different Python and runtime requirements."
+    },
+    {
+      "id": "uv-install-path",
+      "claim": "The current Quickstart demonstrates uv environment creation, vLLM installation with automatic PyTorch backend selection, and kernel pre-download.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/getting_started/quickstart/",
+      "locator": "Installation",
+      "notes": "The exact wheel/backend command must match the accelerator platform and release."
+    },
+    {
+      "id": "openai-compatible-server",
+      "claim": "vLLM can expose an OpenAI-compatible API server and accepts API key configuration.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/getting_started/quickstart/",
+      "locator": "Online Serving and API examples",
+      "notes": "Public deployments still need transport security, network controls, rate limits and operational safeguards."
+    }
+  ]
+}
