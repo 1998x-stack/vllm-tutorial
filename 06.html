@@ -1,235 +1,183 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第6章 快速上手</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="按官方安装文档检查环境，创建隔离 Python 环境，完成 vLLM 离线推理和 OpenAI 兼容 API 服务。">
+  <title>第 06 章｜快速上手：安装、离线推理与 API 服务</title>
+  <link rel="stylesheet" href="assets/css/article.css">
 </head>
-<body>
-<div class="double-border">
-<div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li>
-            <li><a href="02.html">第2章 vLLM概述</a></li>
-            <li><a href="03.html">第3章 PagedAttention上篇</a></li>
-            <li><a href="04.html">第4章 PagedAttention下篇</a></li>
-            <li><a href="05.html">第5章 Continuous Batching</a></li>
-            <li><a href="06.html" class="active">第6章 快速上手</a></li>
-            <li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li>
-            <li><a href="09.html">第9章 Prefix Caching</a></li>
-            <li><a href="10.html">第10章 调度器详解</a></li>
-            <li><a href="11.html">第11章 Chunked Prefill</a></li>
-            <li><a href="12.html">第12章 V1架构上篇</a></li>
-            <li><a href="13.html">第13章 V1架构下篇</a></li>
-            <li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li>
-            <li><a href="16.html">第16章 Kubernetes部署</a></li>
-            <li><a href="17.html">第17章 可观测性</a></li>
-            <li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li>
-            <li><a href="20.html">第20章 流水线与数据并行</a></li>
-            <li><a href="21.html">第21章 推测解码</a></li>
-            <li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li>
-            <li><a href="24.html">第24章 调试与问题排查</a></li>
-            <li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li>
-            <li><a href="27.html">第27章 实战项目</a></li>
-            <li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第6章 快速上手</h2>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/stable/getting_started/quickstart/" target="_blank" rel="noopener noreferrer">官方 Quickstart ↗</a></nav></div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol>
+    <li><a href="#before-install">6.1 安装前先检查什么</a></li><li><a href="#install">6.2 创建环境并安装</a></li><li><a href="#offline">6.3 第一个离线推理程序</a></li><li><a href="#server">6.4 启动 OpenAI 兼容服务</a></li><li><a href="#verify">6.5 验证与常见问题</a></li><li><a href="#version">6.6 为什么安装说明要跟版本走</a></li>
+  </ol></nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 06 章 · 安装、模型接入与生成控制</p>
+      <h1>快速上手：安装、离线推理与 API 服务</h1>
+      <p class="article-dek">本章带你走完第一次运行 vLLM 的完整路径：确认环境、安装依赖、在 Python 程序中批量生成，再启动一个兼容 OpenAI API 的模型服务。</p>
+      <div class="article-meta"><span class="meta-chip">入门</span><span class="meta-chip">约 15 分钟</span><span class="meta-chip">前置章节：01、02</span></div>
+    </header>
+    <p class="article-lead">“安装 vLLM”不是一条适用于所有电脑的 pip 命令。vLLM 包含与 GPU、驱动、PyTorch 和加速 kernel 相关的二进制组件。正确的第一步，是确认你使用的操作系统和加速器，再按照官方安装矩阵选择对应环境。</p>
+    <div class="outcomes"><h2>读完这一章，你应该能够</h2><ul>
+      <li>检查操作系统、Python、GPU 驱动和模型访问条件。</li>
+      <li>创建隔离环境，并按硬件平台安装 vLLM。</li>
+      <li>使用 Python API 完成一个最小批量推理程序。</li>
+      <li>启动在线服务，并通过 HTTP 或 OpenAI SDK 发送请求。</li>
+    </ul></div>
+    <figure class="diagram"><img src="assets/diagrams/06-first-run-path.svg" alt="检查环境、安装 vLLM、离线推理、启动在线 API 的四步流程图"><figcaption>图 1：先验证环境和硬件兼容，再安装、运行离线推理，最后启动 API 服务。安装和模型加载是两个不同的步骤。</figcaption></figure>
 
-<p>前五章咱们都在讲理论。这一章，卷起袖子动手。从零安装到第一个推理请求，我带你走一遍。后面所有实战章节都基于这一章的环境。</p>
+    <section id="before-install">
+      <h2>6.1 安装前先检查什么？</h2>
+      <p>至少确认以下信息：</p>
+      <pre><code># 操作系统
+uname -a
 
-<h3>6.1 环境准备</h3>
+# Python 版本
+python3 --version
 
-<p>vLLM 对环境要求不算苛刻，但有几个关键点：</p>
+# NVIDIA GPU 和驱动（NVIDIA 环境）
+nvidia-smi
 
-<table>
-  <tr><th>组件</th><th>要求</th><th>检查命令</th></tr>
-  <tr><td>Python</td><td>3.9-3.12</td><td><code>python --version</code></td></tr>
-  <tr><td>CUDA</td><td>12.1+ (NVIDIA)</td><td><code>nvidia-smi</code></td></tr>
-  <tr><td>GPU 显存</td><td>视模型而定 (7B→16GB+, 70B→140GB+)</td><td><code>nvidia-smi --query-gpu=memory.total --format=csv</code></td></tr>
-  <tr><td>OS</td><td>Linux（推荐）/ macOS（有限支持）</td><td><code>uname -s</code></td></tr>
-</table>
+# 磁盘空间
+df -h</code></pre>
+      <p>还要确认你打算使用哪类设备：NVIDIA CUDA、AMD ROCm、Intel XPU、CPU、TPU，或 Apple Silicon。不同平台的安装包、依赖和支持的模型并不相同。不要把 NVIDIA CUDA 的安装命令直接复制到 ROCm 或其他平台。</p>
+      <div class="callout warning"><p><strong>平台说明：</strong>官方 Quickstart 当前以 Linux 环境为主要路径，并列出对应的 Python 支持范围；macOS Apple Silicon、AMD、Intel、TPU 等路径有各自的安装说明。请在实际安装时打开官方文档，按硬件选项核对要求。</p></div>
+      <p>另外，模型权重通常需要从 Hugging Face 或本地模型目录加载。首次运行前确认网络、访问权限、磁盘空间和模型许可，避免把模型下载失败误判为 vLLM 安装失败。</p>
+    </section>
 
-<div class="warning">
-  <p><strong>重要</strong>：Windows 原生不支持 vLLM。如果你是 Windows 用户，请用 WSL2 或者 Docker。Docker 里跑注意加 <code>--ipc=host</code>，否则 NCCL 共享内存通信会失败。</p>
-</div>
+    <section id="install">
+      <h2>6.2 创建隔离环境并安装</h2>
+      <p>对官方 Quickstart 中的常见 NVIDIA CUDA 路径，可以使用 <code>uv</code> 管理隔离环境。下面命令是当前官方文档提供的安装路径示例；如果你的平台或驱动版本不同，应先查看对应硬件安装页。</p>
+      <pre><code># 1. 创建虚拟环境
+uv venv --python 3.12 --seed
 
-<h3>6.2 安装</h3>
+# 2. 激活环境
+source .venv/bin/activate
 
-<p>官方推荐用 <code>uv</code>（一个比 pip 快 10-100 倍的 Python 包管理器）：</p>
+# 3. 安装 vLLM，并让 uv 选择匹配的 PyTorch backend
+uv pip install vllm --torch-backend=auto
 
-<pre><code># 先装 uv
-pip install --upgrade pip
-pip install uv
+# 4. 按当前 Quickstart 预下载预编译 kernels
+vllm download-kernels
 
-# 用 uv 装 vLLM（自动选正确的 PyTorch backend）
-uv pip install -U vllm --torch-backend=auto
+# 5. 检查命令是否可用
+vllm --help</code></pre>
+      <p>为什么建议使用隔离环境？vLLM 的 C++ / CUDA 扩展与 PyTorch、CUDA 或 ROCm 构建配置存在兼容关系。把它安装在一个全新的环境里，通常比复用已有的、装满不同版本深度学习依赖的环境更容易排查。</p>
+      <p><code>vllm download-kernels</code> 用于预先获取部分预编译 kernel，减少首次启动时下载或编译的等待。它不会下载模型权重，也不能代替硬件兼容性检查。</p>
+    </section>
 
-# 验证安装
-python -c "import vllm; print(vllm.__version__)"</code></pre>
-
-<p>如果你习惯用 pip 直接装：</p>
-
-<pre><code>pip install vllm</code></pre>
-
-<div class="tip">
-  <p><strong>经验之谈</strong>：<code>uv</code> 比 pip 快很多（vLLM 的依赖包很多），而且它能自动处理 CUDA/PyTorch 版本兼容问题。强烈推荐。如果 pip install 太慢，加 <code>-i https://pypi.tuna.tsinghua.edu.cn/simple</code> 用清华镜像。</p>
-</div>
-
-<h3>6.3 离线推理：你的第一个 vLLM 程序</h3>
-
-<pre><code>from vllm import LLM, SamplingParams
+    <section id="offline">
+      <h2>6.3 第一个离线推理程序</h2>
+      <p>离线推理指的是在 Python 程序中直接调用 vLLM 的推理接口，而不是先启动 HTTP 服务。下面使用官方 Quickstart 中的小型指令模型作为示例。首次运行时，模型权重可能需要下载到本地缓存。</p>
+      <pre><code>from vllm import LLM, SamplingParams
 
 # 1. 加载模型
-llm = LLM(
-    model="Qwen/Qwen2.5-0.5B-Instruct",  # 小模型，方便测试
-    gpu_memory_utilization=0.90,
-)
+llm = LLM(model="Qwen/Qwen2.5-1.5B-Instruct")
 
-# 2. 设置采样参数
-sampling_params = SamplingParams(
+# 2. 设置生成参数
+sampling = SamplingParams(
     temperature=0.7,
     top_p=0.9,
-    max_tokens=256,
+    max_tokens=128,
 )
 
-# 3. 批量推理
+# 3. 准备多个请求
 prompts = [
-    "什么是人工智能？请用一句话回答。",
-    "用Python写一个斐波那契数列函数。",
-    "解释一下相对论。"
+    "用一句话解释什么是 KV Cache。",
+    "用三点总结 PagedAttention 的核心思想。",
 ]
 
-outputs = llm.generate(prompts, sampling_params)
+# 4. 批量生成
+outputs = llm.generate(prompts, sampling)
 
+# 5. 读取结果
 for output in outputs:
-    prompt = output.prompt
-    generated_text = output.outputs[0].text
-    print(f"Prompt: {prompt}")
-    print(f"Response: {generated_text}")
+    print("Prompt:", output.prompt)
+    print("Generated:", output.outputs[0].text)
     print("---")</code></pre>
+      <p>这个示例展示的是最小调用路径，不是生产配置。模型能否加载取决于权重大小、GPU 显存、dtype、模型架构和 vLLM 当前版本的支持情况。若显存不足，可以先换更小的模型，或按官方文档选择适合的量化模型和并行配置。</p>
+    </section>
 
-<p>跑起来应该看到类似输出：</p>
+    <section id="server">
+      <h2>6.4 启动 OpenAI 兼容 API 服务</h2>
+      <p>如果多个应用都需要调用同一个模型，可以让 vLLM 作为服务进程运行。它提供兼容 OpenAI API 协议的接口，客户端可以通过 HTTP 或 OpenAI Python SDK 访问。</p>
+      <pre><code># 建议在对外开放的服务中设置 API Key
+export VLLM_API_KEY="replace-with-a-long-random-secret"
 
-<pre><code>Processed prompts: 100%|████████| 3/3 [00:02<00:00, 1.47it/s]
-Prompt: 什么是人工智能？请用一句话回答。
-Response: 人工智能是让计算机系统模拟人类智能行为的学科。
----</code></pre>
+# 启动服务
+vllm serve Qwen/Qwen2.5-1.5B-Instruct \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --api-key "$VLLM_API_KEY"</code></pre>
+      <p>先检查服务暴露的模型列表：</p>
+      <pre><code>curl http://localhost:8000/v1/models \
+  -H "Authorization: Bearer $VLLM_API_KEY"</code></pre>
+      <p>再发送一次 Chat Completion 请求：</p>
+      <pre><code>curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $VLLM_API_KEY" \
+  -d '{
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "messages": [
+      {"role": "user", "content": "用一句话解释 Prefill 和 Decode 的区别。"}
+    ],
+    "max_tokens": 128
+  }'</code></pre>
+      <p>也可以使用 OpenAI Python SDK，只需要把 <code>base_url</code> 指向本地 vLLM 服务：</p>
+      <pre><code>from openai import OpenAI
+import os
 
-<h3>6.4 在线服务：启动 OpenAI 兼容 API</h3>
-
-<pre><code># 一行命令启动服务
-vllm serve Qwen/Qwen2.5-0.5B-Instruct --host 0.0.0.0 --port 8000
-
-# 另一个终端测试
-curl http://localhost:8000/v1/chat/completions \
-    -H "Content-Type: application/json" \
-    -d '{
-        "model": "Qwen/Qwen2.5-0.5B-Instruct",
-        "messages": [
-            {"role": "user", "content": "请用一句话介绍你自己。"}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 128
-    }'</code></pre>
-
-<p>因为兼容 OpenAI 格式，现有代码几乎零改动：</p>
-
-<pre><code>from openai import OpenAI
-
-# 只改 base_url！
 client = OpenAI(
     base_url="http://localhost:8000/v1",
-    api_key="not-needed"  # vLLM 默认不需要鉴权
+    api_key=os.environ["VLLM_API_KEY"],
 )
 
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-0.5B-Instruct",
-    messages=[{"role": "user", "content": "你好！"}],
+    model="Qwen/Qwen2.5-1.5B-Instruct",
+    messages=[
+        {"role": "user", "content": "你好，请介绍一下自己。"}
+    ],
 )
+
 print(response.choices[0].message.content)</code></pre>
+      <div class="callout"><p><strong>安全提醒：</strong>本地开发和公网服务的风险不同。不要把没有鉴权的服务直接暴露到公网；生产环境还需要 TLS、反向代理、速率限制、日志脱敏和网络访问控制，第 15、18 章会进一步讨论。</p></div>
+    </section>
 
-<h3>6.5 Docker 快速部署</h3>
+    <section id="verify">
+      <h2>6.5 验证与常见问题</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>现象</th><th>优先检查</th><th>下一步</th></tr></thead>
+        <tbody>
+          <tr><td>安装时 wheel / CUDA 依赖不匹配</td><td>Python、驱动、PyTorch backend 和硬件平台</td><td>重新对照官方 GPU 安装矩阵，使用干净环境</td></tr>
+          <tr><td>模型下载失败</td><td>网络、模型访问许可、token 和磁盘空间</td><td>先验证模型仓库访问，再尝试本地模型路径</td></tr>
+          <tr><td>模型加载 OOM</td><td>权重大小、dtype、GPU 可用显存和上下文配置</td><td>先使用更小模型，逐项检查缓存和并行配置</td></tr>
+          <tr><td>Chat API 返回模板相关错误</td><td>模型 tokenizer 是否提供适用的 chat template</td><td>查看模型说明，按官方文档配置模板</td></tr>
+          <tr><td>API 无法连接</td><td>服务进程、监听地址、端口、防火墙和鉴权头</td><td>先请求 /v1/models，再检查服务日志</td></tr>
+        </tbody>
+      </table></div>
+      <p>查询命令帮助时，优先让当前安装版本告诉你它支持什么：</p>
+      <pre><code>vllm --help
+vllm serve --help
+vllm serve --help=all</code></pre>
+    </section>
 
-<pre><code>docker run --gpus all \
-    -v ~/.cache/huggingface:/root/.cache/huggingface \
-    -p 8000:8000 \
-    --ipc=host \
-    vllm/vllm-openai:latest \
-    --model Qwen/Qwen2.5-0.5B-Instruct</code></pre>
+    <section id="version">
+      <h2>6.6 为什么安装说明必须跟版本走？</h2>
+      <p>vLLM 快速演进，支持的 Python 版本、CUDA / ROCm wheel、GPU 架构、预编译 kernel 和模型列表都会变化。网上旧教程可能仍然写着旧的 Python 范围、旧的环境变量或已经变更的 CLI 参数。</p>
+      <p>因此，这一章只把官方 Quickstart 中的命令作为一个可核验的安装示例，而不把它包装成永久不变的通用命令。开始一个新项目时，建议记录 vLLM 版本、Python 版本、驱动版本、GPU 型号、模型 ID 和启动参数，后续排障和复现实验才有依据。</p>
+      <p>下一章会深入模型加载与配置，解释模型格式、量化和显存参数分别影响什么。</p>
+    </section>
 
-<table>
-  <tr><th>参数</th><th>作用</th></tr>
-  <tr><td><code>--gpus all</code></td><td>把所有 GPU 暴露给容器</td></tr>
-  <tr><td><code>-v ~/.cache/huggingface:...</code></td><td>挂载模型缓存目录（避免每次下载）</td></tr>
-  <tr><td><code>--ipc=host</code></td><td>共享主机 IPC 命名空间（NCCL 需要）</td></tr>
-</table>
-
-<div class="warning">
-  <p><strong>常见踩坑</strong>：Docker 忘了 <code>--ipc=host</code> 会报 <code>NCCL WARN: Failed to initialize shm</code> 错误。这是因为 NCCL 默认用共享内存做 GPU 间通信。加了这个参数就好。</p>
-</div>
-
-<h3>6.6 常用采样参数速查</h3>
-
-<table>
-  <tr><th>参数</th><th>含义</th><th>推荐值</th></tr>
-  <tr><td><code>temperature</code></td><td>控制随机性，越高越随机</td><td>创意任务 0.8-1.0，严谨任务 0.0-0.3</td></tr>
-  <tr><td><code>top_p</code></td><td>核采样——只考虑累积概率达到 p 的 token</td><td>0.9</td></tr>
-  <tr><td><code>top_k</code></td><td>只考虑概率最高的 k 个 token</td><td>50</td></tr>
-  <tr><td><code>max_tokens</code></td><td>最大生成 token 数</td><td>按业务需求，默认 16</td></tr>
-  <tr><td><code>stop</code></td><td>停止字符串或 token ID</td><td><code>["\n\n", "&lt;/s&gt;"]</code></td></tr>
-</table>
-
-<p>好了，第一章到第五章的知识终于落地了。下一章咱们深入了解模型加载和各种配置参数的细节——那些让模型跑得又快又稳的关键参数。</p>
-
-        <div class="footer-nav">
-            <a href="05.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="07.html">下一章 →</a>
-        </div>
-    </div>
-</div>
+    <section class="sources" id="sources"><h2>参考资料</h2><ol>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/stable/getting_started/quickstart/" target="_blank" rel="noopener noreferrer">Quickstart</a>，离线推理、在线 Serving 和当前安装流程。</li>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/getting_started/installation/gpu/" target="_blank" rel="noopener noreferrer">GPU Installation Guide</a>，按 NVIDIA、AMD、Intel 和 Apple Silicon 等平台选择安装方式。</li>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/cli/" target="_blank" rel="noopener noreferrer">CLI Guide</a>，查看当前命令和参数。</li>
+    </ol><p><small>命令和示例按 2026-11-20 可见的官方 Quickstart 编写；不同硬件平台和后续版本请以对应安装页为准。</small></p></section>
+    <footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="05.html">← 上一章：Continuous Batching</a><a class="next" href="07.html">下一章：模型加载与配置 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer>
+  </article></main>
 </div>
 </body>
 </html>
