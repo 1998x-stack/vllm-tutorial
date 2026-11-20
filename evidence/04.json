@@ -1,43 +1,62 @@
 {
   "chapter": "04",
   "reviewed_at": "2026-11-20",
-  "scope": "vLLM V1 cache interface and current Prefix Caching / Paged Attention design documents.",
+  "scope": "vLLM V1 KV-cache write/read paths and prefix-cache lifecycle. Upstream source reviewed at commit 6abe321bd8258565f7cd4081fabef6a74b671427. Toy address calculation uses one KV group and no context parallelism.",
+  "upstream_source_commit": "6abe321bd8258565f7cd4081fabef6a74b671427",
   "claims": [
     {
-      "id": "slot-mapping-write",
-      "claim": "The KV store path writes newly computed K/V into cache slots specified by slot_mapping.",
-      "kind": "official_behavior",
-      "status": "verified",
-      "source_url": "https://github.com/vllm-project/vllm/blob/6825e9cae902f4dd26517b8e08293c50dbd1d06b/vllm/v1/attention/ops/ultraquant/triton_store.py",
-      "locator": "Store kernel docstring and slot_mapping argument",
-      "notes": "Exact address calculation and tensor layout are backend/model specific."
-    },
-    {
-      "id": "block-table-read",
-      "claim": "Paged attention uses block mappings and backend metadata to access non-contiguous KV blocks.",
+      "id": "legacy-paged-attention-doc",
+      "claim": "The current Paged Attention design page is explicitly marked historical and says its old kernel walkthrough no longer describes the current code.",
       "kind": "official_behavior",
       "status": "verified",
       "source_url": "https://docs.vllm.ai/en/latest/design/paged_attention/",
-      "locator": "Paged Attention Design",
-      "notes": "Backend support and physical layout are version- and platform-dependent."
+      "locator": "Warning section",
+      "notes": "The page names current Attention backends and the KV-cache helper module. This is why the chapter does not reproduce the old monolithic CUDA kernel as current architecture."
     },
     {
-      "id": "prefix-cache-v1",
-      "claim": "V1 prefix caching uses block hashes, reference counts, a block pool, a free queue and eviction of reusable blocks.",
+      "id": "slot-mapping-write-path",
+      "claim": "BlockTables.compute_slot_mappings maps scheduled token positions through the request Block Table and block size to physical KV-cache slot IDs.",
       "kind": "official_behavior",
       "status": "verified",
-      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
-      "locator": "Data Structure, Block Allocation, Free, Eviction",
-      "notes": "Do not reduce this implementation to a generic copy-on-write pointer model."
+      "source_url": "https://github.com/vllm-project/vllm/blob/6abe321bd8258565f7cd4081fabef6a74b671427/vllm/v1/worker/gpu/block_table.py",
+      "locator": "BlockTables.compute_slot_mappings and _compute_slot_mappings_kernel",
+      "notes": "The simplified formula assumes one KV-cache group and no context parallelism. Actual code handles padding, dummy requests, multiple groups and context-parallel layouts."
     },
     {
-      "id": "prefix-cache-full-block",
-      "claim": "Completed KV blocks are hashed using block tokens and preceding prefix context for cache reuse.",
+      "id": "slot-mapping-cache-write",
+      "claim": "The attention backend uses slot_mapping indices for scatter writes of newly computed K/V into paged KV cache.",
       "kind": "official_behavior",
       "status": "verified",
-      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
-      "locator": "Block hash and allocation workflow",
-      "notes": "Multimodal content and cache isolation can add extra hash inputs."
+      "source_url": "https://github.com/vllm-project/vllm/blob/6abe321bd8258565f7cd4081fabef6a74b671427/vllm/v1/attention/backends/flash_attn.py",
+      "locator": "FlashAttentionImpl.do_kv_cache_update",
+      "notes": "Backend-specific tensor layout and write operators differ; the chapter describes the responsibility boundary rather than one universal kernel."
+    },
+    {
+      "id": "block-table-attention-read",
+      "claim": "Attention metadata carries block-table information for reading the request's cached context, distinct from slot_mapping used to write new K/V.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/6abe321bd8258565f7cd4081fabef6a74b671427/vllm/v1/attention/backends/flash_attn.py",
+      "locator": "FlashAttention metadata builder and attention forward path",
+      "notes": "Different Attention backends may use different kernels and metadata layouts."
+    },
+    {
+      "id": "prefix-cache-reference-counts",
+      "claim": "V1 Prefix Cache stores full KV blocks with block hashes and reference counts; reused blocks are touched to prevent eviction while requests hold references.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/design/prefix_caching/",
+      "locator": "Data Structure, Block Allocation, Duplicated blocks",
+      "notes": "Do not conflate this with arbitrary token-granularity Copy-on-Write. The design document describes block-aligned prefix hits and append-only block tables."
+    },
+    {
+      "id": "block-size-platform-scope",
+      "claim": "KV cache block_size is a configuration value whose supported behavior depends on the selected platform and Attention backend.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/api/vllm/config/cache/",
+      "locator": "CacheConfig.block_size",
+      "notes": "The chapter intentionally avoids claiming one universal block-size default or universal fragmentation percentages."
     }
   ]
 }
