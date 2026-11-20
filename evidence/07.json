@@ -1,0 +1,43 @@
+{
+  "chapter": "07",
+  "reviewed_at": "2026-11-20",
+  "scope": "Current Engine Args and Quantization docs; configuration values are intentionally not presented as universal defaults.",
+  "claims": [
+    {
+      "id": "max-model-len",
+      "claim": "max_model_len limits model context length and can be derived automatically from the model configuration when unspecified.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/engine_args/",
+      "locator": "EngineArgs --max-model-len",
+      "notes": "The chosen length still has to fit model capability and available memory."
+    },
+    {
+      "id": "memory-utilization",
+      "claim": "gpu_memory_utilization is a per-instance device memory budget and its resolved default depends on extensible KV cache and platform support.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/engine_args/",
+      "locator": "CacheConfig --gpu-memory-utilization",
+      "notes": "Do not copy one fixed value across releases or hardware."
+    },
+    {
+      "id": "scheduler-capacity-args",
+      "claim": "max_num_seqs and max_num_batched_tokens constrain different dimensions: sequence capacity and per-iteration token budget.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/engine_args/",
+      "locator": "SchedulerConfig",
+      "notes": "Defaults and interaction with max_num_active_seqs can change."
+    },
+    {
+      "id": "quantization-support",
+      "claim": "Supported quantization formats and kernels depend on hardware and vLLM release.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/features/quantization/",
+      "locator": "Supported quantization formats and Supported Hardware",
+      "notes": "A loadable checkpoint does not guarantee the requested activation scheme or fastest kernel is selected."
+    }
+  ]
+}
