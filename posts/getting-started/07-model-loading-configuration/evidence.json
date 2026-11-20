@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "article": "model-loading-configuration",
+  "checked_at": "2026-11-20",
+  "version_scope": "vLLM 官方 main 分支文档与源码于 2026-11-20 核对；实际部署须按所用 release 复核。",
+  "sources": [
+    {
+      "id": "s1",
+      "title": "vLLM CLI 指南",
+      "url": "https://github.com/vllm-project/vllm/blob/main/docs/cli/README.md",
+      "kind": "official-docs",
+      "locator": "serve command",
+      "checked_at": "2026-11-20"
+    },
+    {
+      "id": "s2",
+      "title": "vLLM 支持模型列表",
+      "url": "https://docs.vllm.ai/en/latest/models/supported_models/",
+      "kind": "official-docs",
+      "locator": "Supported models",
+      "checked_at": "2026-11-20"
+    }
+  ],
+  "claims": [
+    {
+      "id": "mechanism-1",
+      "claim": "模型加载与配置 的核心机制以列出的官方文档、源码或原始论文为准。",
+      "kind": "mechanism",
+      "status": "verified",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    },
+    {
+      "id": "version-1",
+      "claim": "命令、默认值、模型支持和指标会随 vLLM 版本变化。",
+      "kind": "version-scope",
+      "status": "version-sensitive",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    },
+    {
+      "id": "benchmark-1",
+      "claim": "缺少原始环境与报告的历史性能数字不作为可复现结论。",
+      "kind": "measurement-policy",
+      "status": "verified",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    }
+  ],
+  "removed_unverified_claims": [
+    "缺少原始硬件、模型 revision、请求分布和报告的性能百分比。"
+  ]
+}

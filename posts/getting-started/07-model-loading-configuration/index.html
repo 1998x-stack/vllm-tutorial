@@ -1,0 +1,104 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="理解模型来源、权重格式、显存预算和常见启动参数之间的关系。"><title>07 · 模型加载与配置 | vLLM 技术知识库</title><link rel="stylesheet" href="../../../skills/olah-style-vllm-posts/assets/css/article.css"></head><body><a class="skip-link" href="#content">跳转至正文</a><div class="layout"><nav class="toc" aria-label="文章目录"><strong>本章目录</strong><a href="#section-01">01 · 7.1 模型来源</a><a href="#section-02">02 · 7.2 关键显存参数</a><a href="#section-03">03 · 7.3 量化模型加载</a><a href="#section-04">04 · 7.4 模型下载策略</a><a href="#section-05">05 · 7.5 HuggingFace Token 认证</a><a href="#section-06">06 · 7.6 遇到的坑与解法</a><a href="#references">参考资料</a></nav><main id="content"><article><header class="article-header"><p class="eyebrow">07 / 入门实践 · 基础 · 约 13 分钟</p><h1>模型加载与配置</h1><p class="dek">理解模型来源、权重格式、显存预算和常见启动参数之间的关系。</p><ul class="learning-goals"><li>模型来源</li><li>显存预算</li><li>量化格式</li><li>模型下载与认证</li></ul></header><aside class="note note-warning"><strong>版本边界：</strong>本文于 2026-11-20 对照 vLLM 官方文档与源码核查。命令、默认值、模型支持和指标会随版本变化；生产使用前请核对实际安装版本及对应文档。</aside><div class="article-content"><p>上一章咱们跑了 Hello World。这一章深入模型加载的各种细节——从哪里加载、支持什么格式、那些关键参数到底怎么调。说实话，我踩过的坑有一半来自参数配置不当。</p><figure><img src="assets/figure-01.svg" alt="模型加载与配置"><figcaption>模型加载与配置。示意图用于解释概念关系，具体实现以正文和来源为准。</figcaption></figure>
+
+
+
+<h2 id="section-01">7.1 模型来源</h2>
+
+<table>
+  <tr><th>来源</th><th>格式</th><th>示例</th></tr>
+  <tr><td>HuggingFace Hub</td><td>直接写 model ID</td><td><code>meta-llama/Llama-3-8B</code></td></tr>
+  <tr><td>本地路径</td><td>绝对路径或相对路径</td><td><code>/models/my-llama-3</code></td></tr>
+  <tr><td>ModelScope（中国镜像）</td><td>设置环境变量后直接写 ID</td><td><code>VLLM_USE_MODELSCOPE=True</code></td></tr>
+  <tr><td>S3 / GCS / OSS</td><td>通过 fsspec 协议</td><td><code>s3://bucket/model-path/</code></td></tr>
+</table>
+
+<div class="tip">
+  <p><strong>国内用户注意</strong>：HuggingFace Hub 在国内访问可能很慢。设置 <code>export HF_ENDPOINT=https://hf-mirror.com</code> 使用镜像，或者 <code>export VLLM_USE_MODELSCOPE=True</code> 切换到 ModelScope。</p>
+</div>
+
+<h2 id="section-02">7.2 关键显存参数</h2>
+
+<p>这些参数直接影响显存使用和性能——生产环境中也是最常调整的：</p>
+
+<pre><code>vllm serve meta-llama/Llama-3-8B \
+    --gpu-memory-utilization 0.95 \   # GPU 显存利用率上限
+    --max-model-len 8192 \            # 单个请求最大 token 数
+    --max-num-seqs 256 \              # 最大并发序列数
+    --max-num-batched-tokens 8192     # 每 batch 最大 token 数</code></pre>
+
+<table>
+  <tr><th>参数</th><th>含义</th><th>设太大</th><th>设太小</th></tr>
+  <tr><td><code>gpu-memory-utilization</code></td><td>GPU 显存使用比例上限</td><td>OOM</td><td>显存浪费，并发低</td></tr>
+  <tr><td><code>max-model-len</code></td><td>单个序列最大 token 数</td><td>单个请求霸占太多 KV cache</td><td>长请求被截断</td></tr>
+  <tr><td><code>max-num-seqs</code></td><td>同时处理的序列数上限</td><td>KV cache 不够，频繁抢占</td><td>GPU 利用率低</td></tr>
+</table>
+
+<h2 id="section-03">7.3 量化模型加载</h2>
+
+<p>vLLM 支持多种量化格式，可以大幅减少显存使用：</p>
+
+<table>
+  <tr><th>量化方法</th><th>压缩比</th><th>精度损失</th><th>启动参数</th></tr>
+  <tr><td>FP8</td><td>2×</td><td>几乎无损</td><td><code>--quantization fp8</code></td></tr>
+  <tr><td>AWQ</td><td>3-4×</td><td>微量</td><td><code>--quantization awq</code></td></tr>
+  <tr><td>GPTQ</td><td>3-4×</td><td>微量</td><td><code>--quantization gptq</code></td></tr>
+  <tr><td>BitsandBytes (8bit)</td><td>2×</td><td>小</td><td><code>--quantization bitsandbytes --load-format bitsandbytes</code></td></tr>
+</table>
+
+<p>FP8 是否可用、是否有原生硬件加速以及精度影响，取决于 GPU 架构、量化格式、kernel backend 和模型权重；A100 与 H100 的硬件能力并不相同。</p>
+
+<pre><code># 加载 FP8 量化模型（显存减半）
+vllm serve neuralmagic/Meta-Llama-3-8B-FP8 --quantization fp8
+
+# 加载 AWQ 量化模型
+vllm serve TheBloke/Llama-3-8B-AWQ --quantization awq</code></pre>
+
+<h2 id="section-04">7.4 模型下载策略</h2>
+
+<p>vLLM 支持多种模型格式，可以通过 <code>--load-format</code> 控制：</p>
+
+<table>
+  <tr><th>格式</th><th>说明</th><th>使用场景</th></tr>
+  <tr><td><code>auto</code></td><td>自动检测（默认）</td><td>通用</td></tr>
+  <tr><td><code>safetensors</code></td><td>安全的张量格式（推荐）</td><td>HuggingFace 标准格式</td></tr>
+  <tr><td><code>pt</code></td><td>PyTorch checkpoint</td><td>旧版或自定义模型</td></tr>
+  <tr><td><code>npcache</code></td><td>vLLM 自有格式</td><td>快速重复启动</td></tr>
+</table>
+
+<div class="highlight">
+  <p><strong>加速技巧</strong>：首次启动后，vLLM 会自动缓存转换后的模型权重。第二次启动同样的模型会快很多。缓存路径在 <code>~/.cache/vllm/</code>。</p>
+</div>
+
+<h2 id="section-05">7.5 HuggingFace Token 认证</h2>
+
+<p>访问 gated model（如 Llama、Mistral）需要 HuggingFace Token：</p>
+
+<pre><code># 方法1：环境变量
+export HF_TOKEN="hf_xxxxxxxxxxxx"
+
+# 方法2：huggingface-cli login
+huggingface-cli login
+
+# 方法3：启动参数传入
+vllm serve meta-llama/Llama-3-8B # 通过受保护的 HF_TOKEN 环境变量传入凭证</code></pre>
+
+<h2 id="section-06">7.6 遇到的坑与解法</h2>
+
+<div class="warning">
+  <p><strong>坑1：OOM 但显存明明有余量</strong></p>
+  <p>症状：<code>torch.cuda.OutOfMemoryError</code>，但 nvidia-smi 显示还有 5GB 空闲。原因：CUDA 的内存碎片或 driver context 占用了预留空间。解法：降低 <code>--gpu-memory-utilization</code> 到 0.85，或者设置 <code>VLLM_ATTENTION_BACKEND=FLASH_ATTN</code>。</p>
+</div>
+
+<div class="warning">
+  <p><strong>坑2：Docker 中 NCCL 通信失败</strong></p>
+  <p>症状：<code>NCCL WARN: Failed to initialize shm</code>。原因：Docker 默认限制共享内存为 64MB，NCCL 不够用。解法：<code>--ipc=host</code> 或 <code>--shm-size=8g</code>。</p>
+</div>
+
+<div class="warning">
+  <p><strong>坑3：模型下载超时</strong></p>
+  <p>症状：卡在 <code>Downloading model...</code>，然后 timeout。解法：先手动下载到本地路径，再用本地路径加载；或用国内镜像。</p>
+</div>
+
+<p>好了，第一部分"基础篇"到这里结束。从下一章开始，咱们进入"核心机制篇"——深入 vLLM 的内部，理解 KV Cache 管理、Prefix Caching、调度器等关键子系统。</p>
+
+        <section id="references" class="references"><h2>参考资料与证据</h2><ol><li><a href="https://github.com/vllm-project/vllm/blob/main/docs/cli/README.md" rel="noopener noreferrer">vLLM CLI 指南</a><span>serve command</span></li><li><a href="https://docs.vllm.ai/en/latest/models/supported_models/" rel="noopener noreferrer">vLLM 支持模型列表</a><span>Supported models</span></li></ol><p><a href="evidence.json">查看本篇 evidence.json（主张、来源与版本状态）</a></p></section></div><nav class="post-nav" aria-label="章节导航"><a href="../../../posts/getting-started/06-install-and-serve/index.html"><span>上一章</span><strong>快速上手：安装、离线推理与在线服务</strong></a><a href="../../../index.html">返回知识库</a><a href="../../../posts/core-mechanisms/08-kv-cache-management/index.html"><span>下一章</span><strong>KV Cache 管理与容量估算</strong></a></nav><footer class="article-footer"><p>以官方文档、源码和原始论文为准；性能数字应在目标环境中复测。</p><a href="../../../index.html">vLLM 技术知识库</a></footer></article></main></div><script defer src="../../../skills/olah-style-vllm-posts/assets/js/interactions.js"></script></body></html>
