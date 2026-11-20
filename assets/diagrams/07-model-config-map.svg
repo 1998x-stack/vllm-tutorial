@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+<title id="title">vLLM 模型加载与运行配置分层图</title>
+<desc id="desc">配置分为模型与 tokenizer 来源、权重精度与量化、GPU 与 KV Cache 内存预算、Scheduler 并发与 token budget 四层。所有层都受硬件和当前 vLLM 版本支持矩阵约束。</desc>
+<defs><marker id="a07" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<rect width="1200" height="560" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">配置不是一堆独立参数，而是四层约束</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">从模型身份开始，逐层确认精度、显存和调度预算。</text>
+<g font-family="Arial,'PingFang SC',sans-serif">
+ <rect x="70" y="125" width="820" height="78" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="100" y="157" font-size="19" font-weight="700" fill="#0d5e58">1 · 模型与 tokenizer</text>
+ <text x="100" y="184" font-size="15" fill="#315d56">model ID / 本地目录　·　模型配置　·　tokenizer　·　chat template</text>
+ <path d="M480 203 V222" stroke="#47756d" stroke-width="2.5" marker-end="url(#a07)"/>
+ <rect x="70" y="232" width="820" height="78" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <text x="100" y="264" font-size="19" font-weight="700" fill="#51488c">2 · 权重表示与计算精度</text>
+ <text x="100" y="291" font-size="15" fill="#625b91">dtype　·　quantization method　·　kernel / hardware compatibility</text>
+ <path d="M480 310 V329" stroke="#47756d" stroke-width="2.5" marker-end="url(#a07)"/>
+ <rect x="70" y="339" width="820" height="78" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <text x="100" y="371" font-size="19" font-weight="700" fill="#9c4d30">3 · 显存与 KV Cache 预算</text>
+ <text x="100" y="398" font-size="15" fill="#87533f">max_model_len　·　gpu_memory_utilization　·　kv_cache_memory_bytes</text>
+ <path d="M480 417 V436" stroke="#47756d" stroke-width="2.5" marker-end="url(#a07)"/>
+ <rect x="70" y="446" width="820" height="78" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <text x="100" y="478" font-size="19" font-weight="700" fill="#264b45">4 · Scheduler 容量预算</text>
+ <text x="100" y="505" font-size="15" fill="#53636b">max_num_seqs　·　max_num_batched_tokens　·　队列与抢占策略</text>
+ <rect x="940" y="174" width="205" height="255" rx="18" fill="#fff" stroke="#dce4e1" stroke-width="2"/>
+ <text x="1042" y="211" text-anchor="middle" font-size="20" font-weight="700" fill="#264b45">横向约束</text>
+ <text x="1042" y="259" text-anchor="middle" font-size="16" fill="#53636b">GPU 架构</text>
+ <text x="1042" y="292" text-anchor="middle" font-size="16" fill="#53636b">驱动 / CUDA / ROCm</text>
+ <text x="1042" y="325" text-anchor="middle" font-size="16" fill="#53636b">vLLM 版本</text>
+ <text x="1042" y="358" text-anchor="middle" font-size="16" fill="#53636b">模型实现与 backend</text>
+ <text x="1042" y="398" text-anchor="middle" font-size="13" fill="#9c4d30">每一层都需兼容</text>
+</g>
+</svg>
