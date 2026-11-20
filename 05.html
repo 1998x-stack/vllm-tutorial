@@ -183,7 +183,7 @@ for each engine_step:
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — Scheduler</a>。说明 V1 的 token-budget scheduling、FCFS / Priority 和 preemption。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/api/vllm/config/scheduler/" target="_blank" rel="noopener noreferrer">Scheduler Configuration Reference</a>。查询批处理 token 预算、序列上限和队列相关配置。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener noreferrer">Optimization and Tuning</a>。说明 KV Cache 不足时的抢占和重算影响。</li>
-          <li>源码：<a href="https://github.com/vllm-project/vllm/blob/main/vllm/v1/core/sched/scheduler.py" target="_blank" rel="noopener noreferrer">V1 Scheduler</a>，可查看当前调度循环与 preemption 实现。</li>
+          <li>源码：<a href="https://github.com/vllm-project/vllm/blob/6abe321bd8258565f7cd4081fabef6a74b671427/vllm/v1/core/sched/scheduler.py" target="_blank" rel="noopener noreferrer">V1 Scheduler</a>，可查看当前调度循环与 preemption 实现。</li>
         </ol>
         <p><small>请求长度和 Step 时间线均为教学构造，不是性能测试结果。</small></p>
       </section>
