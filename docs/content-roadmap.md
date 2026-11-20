@@ -14,11 +14,11 @@ The 28 chapter numbers and root HTML URLs are kept stable while the reading expe
 
 | Batch | Chapters | Main review focus |
 |---|---|---|
-| 2 | 07–09 | Model configuration, KV sizing, prefix cache semantics |
-| 3 | 10–13 | Scheduler, chunked prefill, V1 architecture and version boundaries |
-| 4 | 14–18 | Sampling, production deployment, Kubernetes, observability, security |
-| 5 | 19–23 | TP / PP / DP / EP, speculative decoding, multimodal, nano-vLLM |
-| 6 | 24–28 | Troubleshooting, benchmarking, roadmap, RAG project, synthesis |
+| 3 | 07–09 | Model configuration, KV sizing, prefix cache semantics |
+| 4 | 10–13 | Scheduler, chunked prefill, V1 architecture and version boundaries |
+| 5 | 14–18 | Sampling, production deployment, Kubernetes, observability, security |
+| 6 | 19–23 | TP / PP / DP / EP, speculative decoding, multimodal, nano-vLLM |
+| 7 | 24–28 | Troubleshooting, benchmarking, roadmap, RAG project, synthesis |
 
 
 A chapter is marked upgraded only after source verification, original diagram, semantic HTML, evidence record and static checks. Browser QA is recorded separately.
