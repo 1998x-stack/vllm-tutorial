@@ -1,0 +1,43 @@
+{
+  "chapter": "09",
+  "reviewed_at": "2026-11-20",
+  "scope": "Current V1 automatic prefix cache design, metrics and security guidance.",
+  "claims": [
+    {
+      "id": "prefix-hash-context",
+      "claim": "Prefix Cache block hashes include the block token IDs and preceding prefix context so that contextually different blocks are not treated as identical.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
+      "locator": "Block hash construction",
+      "notes": "Multimodal inputs may add extra hash material."
+    },
+    {
+      "id": "prefix-full-blocks",
+      "claim": "The V1 cache assigns a block hash when the block is full and manages reusable blocks with reference counts and an eviction queue.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
+      "locator": "KVCacheBlock data structure, Block Allocation and Eviction",
+      "notes": "An incomplete tail block should not be described as an already-complete reusable prefix block."
+    },
+    {
+      "id": "prefix-metrics",
+      "claim": "V1 exposes prefix_cache_hits and prefix_cache_queries counters for measuring cached and queried token counts.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/metrics/",
+      "locator": "V1 Metrics",
+      "notes": "Interpret counters over the same time window and according to the current metric semantics."
+    },
+    {
+      "id": "cache-salt",
+      "claim": "cache_salt is mixed into the first KV block hash to isolate prefix cache reuse and mitigate timing side-channel inference in multi-tenant deployments.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/usage/security/",
+      "locator": "Prefix Cache Timing Side-Channel Mitigation / Cache Salting",
+      "notes": "This is one isolation control, not a replacement for authentication or network security."
+    }
+  ]
+}
