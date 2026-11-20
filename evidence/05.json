@@ -1,0 +1,34 @@
+{
+  "chapter": "05",
+  "reviewed_at": "2026-11-20",
+  "scope": "Iteration-level batching concept and current vLLM V1 scheduler documentation.",
+  "claims": [
+    {
+      "id": "iteration-level-scheduling",
+      "claim": "Iteration-level scheduling allows requests to be admitted or removed between model iterations rather than waiting for an entire batch to finish.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2308.16369",
+      "locator": "Orca system design and iteration-level scheduling",
+      "notes": "The chapter's A/B/C/D timeline is a teaching example, not a measured result."
+    },
+    {
+      "id": "v1-token-budget",
+      "claim": "The documented V1 scheduler allocates a per-step token budget across running and waiting requests.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "Scheduler",
+      "notes": "Scheduler policy and implementation can change between releases."
+    },
+    {
+      "id": "chunked-prefill-mixed-batch",
+      "claim": "Chunked Prefill can mix prefill and decode work to balance TTFT and ITL, with tuning trade-offs.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/optimization/",
+      "locator": "Chunked Prefill and Performance Tuning",
+      "notes": "The scheduler behavior described is version-specific; do not infer a universal best token budget."
+    }
+  ]
+}
