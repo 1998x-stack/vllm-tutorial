@@ -1,0 +1,84 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="理解 vLLM 要解决的服务问题，以及调度、KV Cache 与在线服务之间的关系。"><title>02 · vLLM 概述 | vLLM 技术知识库</title><link rel="stylesheet" href="../../../skills/olah-style-vllm-posts/assets/css/article.css"></head><body><a class="skip-link" href="#content">跳转至正文</a><div class="layout"><nav class="toc" aria-label="文章目录"><strong>本章目录</strong><a href="#section-01">01 · 2.1 vLLM 的诞生</a><a href="#section-02">02 · 2.2 传统推理为什么&quot;慢&quot;</a><a href="#section-03">03 · 2.3 vLLM 为什么这么流行</a><a href="#section-04">04 · 2.4 发展历程</a><a href="#section-05">05 · 2.5 竞品对比</a><a href="#section-06">06 · 2.6 谁在用 vLLM</a><a href="#references">参考资料</a></nav><main id="content"><article><header class="article-header"><p class="eyebrow">02 / 基础原理 · 基础 · 约 10 分钟</p><h1>vLLM 概述</h1><p class="dek">理解 vLLM 要解决的服务问题，以及调度、KV Cache 与在线服务之间的关系。</p><ul class="learning-goals"><li>项目背景</li><li>核心机制</li><li>在线服务</li><li>适用边界</li></ul></header><aside class="note note-warning"><strong>版本边界：</strong>本文于 2026-11-20 对照 vLLM 官方文档与源码核查。命令、默认值、模型支持和指标会随版本变化；生产使用前请核对实际安装版本及对应文档。</aside><div class="article-content"><p>上一章咱们聊了 LLM 推理的基础和痛点。这一章正式认识今天的主角——vLLM。先说说这个名字：vLLM 是 "Very Large Language Model" 的缩写，但它的核心贡献不是"大"，而是"快"和"省"。</p><figure><img src="assets/figure-01.svg" alt="vLLM 概述"><figcaption>vLLM 概述。示意图用于解释概念关系，具体实现以正文和来源为准。</figcaption></figure>
+
+
+
+<h2 id="section-01">2.1 vLLM 的诞生</h2>
+
+<p>vLLM 诞生在 UC Berkeley 的 Ion Stoica 实验室（没错，就是那个做 Spark、Ray 的实验室）。2023 年 6 月，几位博士生在实验室里发现了一个问题：明明 GPU 显存还有空余，却没法容纳更多并发请求——因为显存是<strong>碎</strong>的。</p>
+
+<p>这几位博士生有深厚的系统背景（OS、分布式系统），他们一看这场景就想到了操作系统教科书里的经典解法：<strong>虚拟内存分页</strong>。于是 PagedAttention 诞生了。同年 10 月，论文在 SOSP 2023（操作系统原理大会，CS 顶会）正式发表。</p>
+
+<div class="highlight">
+  <p><strong>跨领域洞察</strong>：vLLM 是用 OS 的系统思想解决 ML 系统问题。60 年代的分页技术，在 GPU 显存管理上大放异彩。这也是为什么建议做 ML 系统的同学多读一些经典 OS/分布式论文——灵感往往来自跨领域。</p>
+</div>
+
+<h2 id="section-02">2.2 传统推理为什么"慢"</h2>
+
+<aside class="note note-warning"><strong>事实校准：</strong>旧版比较表中的数字缺少可复现配置与报告，已移除；请按相同 workload 重新测量。</aside>
+
+<p>这四个问题，vLLM 用四个核心特性逐一击破：</p>
+
+<aside class="note note-warning"><strong>事实校准：</strong>旧版比较表中的数字缺少可复现配置与报告，已移除；请按相同 workload 重新测量。</aside>
+
+<h2 id="section-03">2.3 vLLM 为什么这么流行</h2>
+
+<p>评估推理框架时，不要把安装量、Star 数或未经控制的单点 benchmark 当成性能证据。公平比较需要固定模型 revision、硬件、输入输出长度、并发和延迟目标。</p>
+
+<p><strong>第一，安装简单。</strong> 不需要编译 C++ 项目，不需要配 Docker 环境：</p>
+
+<pre><code>pip install vllm
+vllm serve meta-llama/Llama-3-8B</code></pre>
+
+<p>相比 TensorRT-LLM 的需要配置编译环境、HuggingFace TGI 的需要 Docker，vLLM 的门槛低了一个数量级。</p>
+
+<p><strong>第二，性能真的好。</strong> 相比 HuggingFace Transformers，vLLM 可以达到 2-4× 的吞吐提升。而且不用调参——默认配置就很能打。</p>
+
+<p><strong>第三，OpenAI 兼容 API。</strong> 现有用 OpenAI SDK 写的代码，改一行 base_url 就能切到 vLLM。迁移成本几乎为零。</p>
+
+<p><strong>第四，社区和生态。</strong> Databricks、AWS、Anthropic 等大厂在使用和贡献。支持的模型列表超过 50 个架构，NVIDIA/AMD/Intel GPU + TPU + CPU 全覆盖。</p>
+
+<h2 id="section-04">2.4 发展历程</h2>
+
+<table>
+  <tr><th>时间</th><th>事件</th><th>意义</th></tr>
+  <tr><td>2023.06</td><td>项目启动</td><td>UC Berkeley 实验室原型</td></tr>
+  <tr><td>2023.10</td><td>SOSP 2023 论文发表</td><td>学术认可，PagedAttention 正式亮相</td></tr>
+  <tr><td>2024</td><td>v0.x 快速迭代</td><td>社区爆发式增长，模型/硬件支持扩大</td></tr>
+  <tr><td>2025.01</td><td>V1 Alpha 发布</td><td>架构重写，V0 正式弃用</td></tr>
+  <tr><td>2025 Q2+</td><td>V1 稳定化</td><td>自适应批处理、跨节点推理、安全沙箱</td></tr>
+  <tr><td>2026</td><td>P-EAGLE, V2 Runner</td><td>并行解码加速 6.7×、控制面/数据面分离</td></tr>
+</table>
+
+<div class="tip">
+  <p><strong>学习建议</strong>：如果你是 2024 年开始用 vLLM 的老用户，注意 V1 和 V0 有些 API 差异（比如 best_of 被移除、logprobs 语义变化）。本教程基于 V1 讲解，V0 残留知识需要更新。</p>
+</div>
+
+<h2 id="section-05">2.5 竞品对比</h2>
+
+<table>
+  <tr><th>特性</th><th>vLLM</th><th>SGLang</th><th>TensorRT-LLM</th><th>HuggingFace TGI</th></tr>
+  <tr><td>KV Cache 管理</td><td>PagedAttention</td><td>RadixAttention</td><td>连续分配</td><td>连续分配</td></tr>
+  <tr><td>前缀缓存</td><td>零开销</td><td>Radix 树自动去重</td><td>有限</td><td>不支持</td></tr>
+  <tr><td>安装</td><td>pip install</td><td>pip install</td><td>需编译</td><td>需 Docker</td></tr>
+  <tr><td>模型覆盖</td><td>极广 (50+架构)</td><td>广</td><td>NVIDIA 专用</td><td>HF 模型</td></tr>
+  <tr><td>多硬件</td><td>NVIDIA/AMD/Intel/TPU/CPU</td><td>NVIDIA/AMD</td><td>NVIDIA only</td><td>NVIDIA/AMD</td></tr>
+  <tr><td>推测解码</td><td>n-gram/EAGLE/Medusa</td><td>EAGLE</td><td>Medusa</td><td>不支持</td></tr>
+</table>
+
+<h2 id="section-06">2.6 谁在用 vLLM</h2>
+
+<ul>
+  <li><strong>Stripe</strong>：迁移后推理成本降低 73%，1/3 GPU 集群处理 5000 万次日均 API 调用</li>
+  <li><strong>Anthropic</strong>：内部推理基础设施广泛使用</li>
+  <li><strong>Databricks</strong>：集成到 MosaicML 产品线</li>
+  <li><strong>AWS</strong>：SageMaker 和 Bedrock 均提供 vLLM 部署选项</li>
+  <li><strong>大量创业公司</strong>：vLLM 已成为 LLM 推理的默认选择</li>
+</ul>
+
+<div class="warning">
+  <p><strong>注意</strong>：虽然 vLLM 很强大，但它不是银弹。如果你的场景是单条请求异步生成（不需要并发），HuggingFace Transformers 可能更简单；如果你只跑 NVIDIA GPU 且追求极致性能，TensorRT-LLM 在一些 benchmark 上可能更优。选择工具要结合场景。</p>
+</div>
+
+<p>好了，这一章咱们对 vLLM 有了全局认识。下一章开始深入核心算法，首先就是 PagedAttention——看看 OS 的分页思想是如何在 GPU 显存管理上大放异彩的。</p>
+
+        <section id="references" class="references"><h2>参考资料与证据</h2><ol><li><a href="https://arxiv.org/abs/2309.06180" rel="noopener noreferrer">PagedAttention 论文（SOSP 2023）</a><span>Abstract；Evaluation</span></li><li><a href="https://github.com/vllm-project/vllm/blob/main/docs/design/arch_overview.md" rel="noopener noreferrer">vLLM 架构概览</a><span>Entrypoints；V1 Process Architecture</span></li></ol><p><a href="evidence.json">查看本篇 evidence.json（主张、来源与版本状态）</a></p></section></div><nav class="post-nav" aria-label="章节导航"><a href="../../../posts/fundamentals/01-llm-inference-basics/index.html"><span>上一章</span><strong>LLM 推理基础</strong></a><a href="../../../index.html">返回知识库</a><a href="../../../posts/core-mechanisms/03-pagedattention-memory-management/index.html"><span>下一章</span><strong>PagedAttention 上篇：虚拟内存与 Block Table</strong></a></nav><footer class="article-footer"><p>以官方文档、源码和原始论文为准；性能数字应在目标环境中复测。</p><a href="../../../index.html">vLLM 技术知识库</a></footer></article></main></div><script defer src="../../../skills/olah-style-vllm-posts/assets/js/interactions.js"></script></body></html>

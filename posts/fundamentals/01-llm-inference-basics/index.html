@@ -1,0 +1,102 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="从自回归生成、Prefill/Decode 与 KV Cache，建立理解推理引擎的共同语言。"><title>01 · LLM 推理基础 | vLLM 技术知识库</title><link rel="stylesheet" href="../../../skills/olah-style-vllm-posts/assets/css/article.css"></head><body><a class="skip-link" href="#content">跳转至正文</a><div class="layout"><nav class="toc" aria-label="文章目录"><strong>本章目录</strong><a href="#section-01">01 · 1.1 大语言模型是如何&quot;说话&quot;的</a><a href="#section-02">02 · 1.2 Transformer 推理的两个阶段</a><a href="#section-03">03 · 1.3 KV Cache：用空间换时间</a><a href="#section-04">04 · 1.4 显存都去哪了</a><a href="#section-05">05 · 1.5 传统推理的三大痛点</a><a href="#section-06">06 · 1.6 推理框架的衡量指标</a><a href="#references">参考资料</a></nav><main id="content"><article><header class="article-header"><p class="eyebrow">01 / 基础原理 · 基础 · 约 12 分钟</p><h1>LLM 推理基础</h1><p class="dek">从自回归生成、Prefill/Decode 与 KV Cache，建立理解推理引擎的共同语言。</p><ul class="learning-goals"><li>自回归生成</li><li>Prefill 与 Decode</li><li>KV Cache</li><li>显存估算</li></ul></header><aside class="note note-warning"><strong>版本边界：</strong>本文于 2026-11-20 对照 vLLM 官方文档与源码核查。命令、默认值、模型支持和指标会随版本变化；生产使用前请核对实际安装版本及对应文档。</aside><div class="article-content"><p>大家好，我是你们的讲师。在深入 vLLM 之前，咱们得先把 LLM 推理这件事本身搞明白。很多同学一上来就想装 vLLM、跑模型，结果遇到问题不知道怎么排查——根本原因是急着动手，没有理解推理的底层逻辑。这一章，咱们静下心来把基础打扎实。</p><figure><img src="assets/figure-01.svg" alt="LLM 推理基础"><figcaption>LLM 推理基础。示意图用于解释概念关系，具体实现以正文和来源为准。</figcaption></figure>
+
+
+
+<h2 id="section-01">1.1 大语言模型是如何"说话"的</h2>
+
+<p>你给 ChatGPT 发一句"写一首关于春天的诗"，它怎么就从这 8 个字生出一首五言绝句的？这个过程叫<strong>自回归生成（Autoregressive Generation）</strong>。</p>
+
+<p>简单说，模型每次只生成一个 token（可以理解为一个词或一个字），然后再把这个 token 拼到输入后面，继续生成下一个。就像多米诺骨牌，一块推倒一块：</p>
+
+<pre><code>Step 1: "写一首关于春天的诗" → 模型 → "春"
+Step 2: "写一首关于春天的诗春" → 模型 → "眠"
+Step 3: "写一首关于春天的诗春眠" → 模型 → "不"
+Step 4: "写一首关于春天的诗春眠不" → 模型 → "觉"
+...</code></pre>
+
+<p>每次生成都要把整个序列重新跑一遍模型。这就引出了一个关键问题：<strong>在没有 KV Cache 时，重复计算历史 token 会浪费工作；使用 KV Cache 后，每个新 token 仍需访问已有上下文，因此单步 attention 成本随上下文长度增长，整个生成过程也不会变成线性复杂度</strong>。输入 100 token，生成 1000 token，第 1000 步要处理 1100 个 token 的注意力矩阵——那计算量是 O(n²) 的。</p>
+
+<h2 id="section-02">1.2 Transformer 推理的两个阶段</h2>
+
+<p>LLM 推理可以清晰地分成两个阶段，了解这个区分是理解一切推理优化的基础。</p>
+
+<table>
+  <tr><th>阶段</th><th>Prefill（预填充）</th><th>Decode（解码）</th></tr>
+  <tr><td>处理什么</td><td>一次性处理所有 prompt token</td><td>逐个生成 output token</td></tr>
+  <tr><td>计算特征</td><td>计算密集（大量矩阵乘法）</td><td>内存密集（大量 KV cache 读写）</td></tr>
+  <tr><td>并行度</td><td>高（所有 token 同时计算）</td><td>低（必须串行，一步一个）</td></tr>
+  <tr><td>耗时占比</td><td>10-30%</td><td>70-90%</td></tr>
+  <tr><td>GPU 利用率</td><td>高（90%+）</td><td>低（30-60%，大部分时间等显存）</td></tr>
+</table>
+
+<p>注意看最后一列——Decode 占了大头却不是因为算不动，而是因为<strong>显存带宽不够</strong>。GPU 的计算单元大部分时间在等数据从显存搬过来。</p>
+
+<div class="highlight">
+  <p><strong>核心洞察</strong>：LLM 推理的瓶颈不在计算，在于显存。谁把显存用得更高效，谁就能跑得更快、服务更多人。vLLM 的所有优化几乎都围绕这个洞察展开。</p>
+</div>
+
+<h2 id="section-03">1.3 KV Cache：用空间换时间</h2>
+
+<p>回看自回归生成的每一步——之前算过的 token 的 Key 和 Value，是不是每次都要重新算一遍？答案是：<strong>不需要</strong>。第一次算出来存起来就行。</p>
+
+<p>这就是 KV Cache 的核心思想。对于 Attention 计算：</p>
+
+<pre><code>Attention(Q, K, V) = softmax(Q × K^T / √d) × V
+
+Step 1: Q=[q1],     K=[k1],           V=[v1]           → 计算 k1,v1 并缓存
+Step 2: Q=[q2],     K=[k1,k2],        V=[v1,v2]        → 只需算 k2,v2, k1,v1 从缓存读
+Step 3: Q=[q3],     K=[k1,k2,k3],     V=[v1,v2,v3]     → 只需算 k3,v3
+...</code></pre>
+
+<p>KV Cache 避免重复计算历史 token 的 K/V 投影；对单个 decode step，Attention 仍需访问已有上下文，但代价是——要存的东西越来越多。一条 8192 token 的请求，KV cache 可能占 4GB 显存。</p>
+
+<h2 id="section-04">1.4 显存都去哪了</h2>
+
+<p>很多初学者以为"8B 模型占 16GB 显存"就完事了。实际推理时，显存消耗远不止模型参数：</p>
+
+<table>
+  <tr><th>显存占用项</th><th>8B 模型 (FP16)</th><th>占比</th></tr>
+  <tr><td>模型权重</td><td>~16 GB</td><td>30-50%</td></tr>
+  <tr><td>KV Cache</td><td>~20-40 GB（取决于并发数和长度）</td><td>40-60%</td></tr>
+  <tr><td>中间激活</td><td>~2-4 GB</td><td>5-10%</td></tr>
+  <tr><td>其他（CUDA context等）</td><td>~1-2 GB</td><td>2-5%</td></tr>
+</table>
+
+<p>看清楚了吧？<strong>KV Cache 才是真正的显存大户</strong>。而且它是动态的——并发请求越多、序列越长，占得越多。</p>
+
+<div class="tip">
+  <p><strong>经验之谈</strong>：我刚入行时用 HuggingFace Transformers 部署模型，batch_size 设 4 就 OOM，一顿排查才发现 KV cache 导致显存碎片化严重。后来 vLLM 的 PagedAttention 让同样 GPU 跑 32 并发都没问题。第三章会详细讲这个。</p>
+</div>
+
+<h2 id="section-05">1.5 传统推理的三大痛点</h2>
+
+<p>在 vLLM 出现之前，用 HuggingFace Transformers 或类似框架做推理部署，有三个让人头疼的问题：</p>
+
+<p><strong>痛点 1：KV Cache 显存碎片化</strong></p>
+<p>传统方式为每个请求预分配一块<strong>连续</strong>的显存空间存放 KV cache。问题在于：(1) 生成长度不确定，预分配多了浪费，少了不够；(2) 不同请求的分配和释放交错进行，显存出现"瑞士奶酪"般的空洞。实测浪费率高达 60-80%。</p>
+
+<p><strong>痛点 2：静态批处理效率低</strong></p>
+<p>把多个请求打包成 batch 一起推理能提高 GPU 利用率，但传统的做法是——组好 batch 后必须等所有请求都生成完才能换下一批。一个请求生 5 个 token，另一个生 500 个，早完成的那个白白占着槽位干等。</p>
+
+<p><strong>痛点 3：重复计算系统提示</strong></p>
+<p>RAG 应用、聊天机器人，每个请求前面都挂着一样的 system prompt。传统方式每个请求独立计算 system prompt 的 KV cache——10 个请求算了 10 遍同样的东西。</p>
+
+<h2 id="section-06">1.6 推理框架的衡量指标</h2>
+
+<table>
+  <tr><th>指标</th><th>含义</th><th>目标</th></tr>
+  <tr><td>TTFT (Time To First Token)</td><td>从收到请求到输出第一个 token 的延迟</td><td>&lt;200ms (P99)</td></tr>
+  <tr><td>TPOT (Time Per Output Token)</td><td>每生成一个 token 的平均时间</td><td>&lt;20ms</td></tr>
+  <tr><td>Throughput (吞吐量)</td><td>每秒生成的 token 总数</td><td>最大化</td></tr>
+  <tr><td>QPS (Queries Per Second)</td><td>每秒处理的请求数</td><td>按业务需求</td></tr>
+  <tr><td>GPU Utilization</td><td>GPU 计算单元利用率</td><td>85-95%</td></tr>
+  <tr><td>Max Concurrent Seqs</td><td>最大并发序列数</td><td>显存允许的最大值</td></tr>
+</table>
+
+<div class="warning">
+  <p><strong>踩坑提醒</strong>：不要只看吞吐量。我曾经优化一个服务，吞吐看起来很好（2000 tok/s），但 P99 延迟飙到了 5 秒——因为有几个长请求一直霸占着资源。好的推理引擎要兼顾吞吐和延迟的公平性。</p>
+</div>
+
+<p>好了，第一章的内容就到这里。你不需要记住所有细节，但请记住一个核心洞察：<strong>LLM 推理的瓶颈是显存，不是计算</strong>。带着这个认知，下一章咱们正式认识 vLLM，看它是怎么解决这些痛点的。</p>
+
+        <section id="references" class="references"><h2>参考资料与证据</h2><ol><li><a href="https://arxiv.org/abs/2309.06180" rel="noopener noreferrer">PagedAttention 论文（SOSP 2023）</a><span>Abstract；§2</span></li><li><a href="https://github.com/vllm-project/vllm/blob/main/docs/design/arch_overview.md" rel="noopener noreferrer">vLLM 架构概览</a><span>Entrypoints；V1 Process Architecture</span></li></ol><p><a href="evidence.json">查看本篇 evidence.json（主张、来源与版本状态）</a></p></section></div><nav class="post-nav" aria-label="章节导航"><span>课程起点</span><a href="../../../index.html">返回知识库</a><a href="../../../posts/fundamentals/02-vllm-overview/index.html"><span>下一章</span><strong>vLLM 概述</strong></a></nav><footer class="article-footer"><p>以官方文档、源码和原始论文为准；性能数字应在目标环境中复测。</p><a href="../../../index.html">vLLM 技术知识库</a></footer></article></main></div><script defer src="../../../skills/olah-style-vllm-posts/assets/js/interactions.js"></script></body></html>
