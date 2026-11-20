@@ -1,206 +1,208 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第1章 LLM推理基础</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%);
-            font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 20px;
-        }
-        .double-border {
-            max-width: 1400px; margin: 0 auto; background: #ffffff;
-            border: 2px solid #8b5cf6; border-radius: 24px;
-            box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff;
-            overflow: hidden;
-        }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; }
-        .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        footer { text-align: center; margin-top: 30px; padding: 15px; color: #64748b; border-top: 1px dashed #cbd5e1; font-size: 0.9rem; }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; }
-        li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
-        pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-            .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; }
-            body { padding: 10px; }
-            .main-content { padding: 20px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从自回归生成、Prefill 与 Decode 到 KV Cache，建立理解大语言模型推理的基础心智模型。">
+  <title>第 01 章｜LLM 推理基础：一次请求如何变成 token？</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border">
-<div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html" class="active">第1章 LLM推理基础</a></li>
-            <li><a href="02.html">第2章 vLLM概述</a></li>
-            <li><a href="03.html">第3章 PagedAttention上篇</a></li>
-            <li><a href="04.html">第4章 PagedAttention下篇</a></li>
-            <li><a href="05.html">第5章 Continuous Batching</a></li>
-            <li><a href="06.html">第6章 快速上手</a></li>
-            <li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li>
-            <li><a href="09.html">第9章 Prefix Caching</a></li>
-            <li><a href="10.html">第10章 调度器详解</a></li>
-            <li><a href="11.html">第11章 Chunked Prefill</a></li>
-            <li><a href="12.html">第12章 V1架构上篇</a></li>
-            <li><a href="13.html">第13章 V1架构下篇</a></li>
-            <li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li>
-            <li><a href="16.html">第16章 Kubernetes部署</a></li>
-            <li><a href="17.html">第17章 可观测性</a></li>
-            <li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li>
-            <li><a href="20.html">第20章 流水线与数据并行</a></li>
-            <li><a href="21.html">第21章 推测解码</a></li>
-            <li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li>
-            <li><a href="24.html">第24章 调试与问题排查</a></li>
-            <li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li>
-            <li><a href="27.html">第27章 实战项目</a></li>
-            <li><a href="28.html">第28章 课程总结</a></li>
+<body class="article-page">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+    <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav>
+  </div>
+</header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#autoregressive">1.1 自回归生成</a></li>
+      <li><a href="#prefill-decode">1.2 Prefill 与 Decode</a></li>
+      <li><a href="#kv-cache">1.3 KV Cache 保存什么</a></li>
+      <li><a href="#memory">1.4 估算 KV Cache 显存</a></li>
+      <li><a href="#bottleneck">1.5 为什么 Decode 常受带宽限制</a></li>
+      <li><a href="#metrics">1.6 如何衡量推理服务</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content">
+    <article>
+      <header class="article-header">
+        <p class="chapter-kicker">第 01 章 · 推理基础与系统认知</p>
+        <h1>LLM 推理基础：一次请求如何变成一串 token？</h1>
+        <p class="article-dek">在理解 vLLM 之前，先看清楚大语言模型如何逐步生成文本、为什么要保存 KV Cache，以及推理服务究竟在和哪一种资源瓶颈较劲。</p>
+        <div class="article-meta"><span class="meta-chip">入门</span><span class="meta-chip">约 15 分钟</span><span class="meta-chip">前置知识：Transformer 基础</span></div>
+      </header>
+
+      <p class="article-lead">这一章要回答一个具体问题：当你发送“解释一下光合作用”时，模型如何把输入变成一段回答？关键不只是模型做了一次前向计算，而是它反复执行“计算下一个 token—追加到上下文—再计算下一个 token”的过程。理解这个循环，才能理解后面的缓存、批处理和调度优化。</p>
+
+      <div class="outcomes">
+        <h2>读完这一章，你应该能够</h2>
+        <ul>
+          <li>用自己的话解释自回归生成，以及 token 不等于一个完整汉字或单词。</li>
+          <li>区分 Prefill 与 Decode 的工作内容和计算特征。</li>
+          <li>解释 KV Cache 为什么能避免重复计算历史 token 的 K/V。</li>
+          <li>根据模型结构和上下文长度估算单请求 KV Cache 的理论大小。</li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第1章 LLM推理基础</h2>
+      </div>
 
-<p>大家好，我是你们的讲师。在深入 vLLM 之前，咱们得先把 LLM 推理这件事本身搞明白。很多同学一上来就想装 vLLM、跑模型，结果遇到问题不知道怎么排查——根本原因是急着动手，没有理解推理的底层逻辑。这一章，咱们静下心来把基础打扎实。</p>
+      <figure class="diagram">
+        <img src="assets/diagrams/01-inference-lifecycle.svg" alt="从 Prompt 到 Prefill、KV Cache、Decode 和下一个 token 的推理流程图">
+        <figcaption>图 1：推理分成 Prefill 和 Decode 两段。Decode 每轮为新 token 计算，并读取历史 K/V；它不会在启用 KV Cache 时重新计算所有历史 token 的 K/V 投影。</figcaption>
+      </figure>
 
-<h3>1.1 大语言模型是如何"说话"的</h3>
+      <section id="autoregressive">
+        <h2>1.1 自回归生成：模型一次只决定下一个 token</h2>
+        <p>大语言模型通常以 token 序列作为输入。token 是 tokenizer 切分出来的单位，可能是一个汉字、一个词的一部分、标点，也可能是多个字符的组合，因此不能简单地把 token 当成“一个字”或“一个单词”。</p>
+        <p>模型根据已有上下文计算下一个 token 的概率分布，再通过贪心选择或采样策略选出一个 token。把这个 token 接到上下文末尾，模型就可以继续预测下一个。</p>
+        <pre><code>输入：请解释光合作用
 
-<p>你给 ChatGPT 发一句"写一首关于春天的诗"，它怎么就从这 8 个字生出一首五言绝句的？这个过程叫<strong>自回归生成（Autoregressive Generation）</strong>。</p>
-
-<p>简单说，模型每次只生成一个 token（可以理解为一个词或一个字），然后再把这个 token 拼到输入后面，继续生成下一个。就像多米诺骨牌，一块推倒一块：</p>
-
-<pre><code>Step 1: "写一首关于春天的诗" → 模型 → "春"
-Step 2: "写一首关于春天的诗春" → 模型 → "眠"
-Step 3: "写一首关于春天的诗春眠" → 模型 → "不"
-Step 4: "写一首关于春天的诗春眠不" → 模型 → "觉"
-...</code></pre>
-
-<p>每次生成都要把整个序列重新跑一遍模型。这就引出了一个关键问题：<strong>计算量随着生成长度平方级增长</strong>。输入 100 token，生成 1000 token，第 1000 步要处理 1100 个 token 的注意力矩阵——那计算量是 O(n²) 的。</p>
-
-<h3>1.2 Transformer 推理的两个阶段</h3>
-
-<p>LLM 推理可以清晰地分成两个阶段，了解这个区分是理解一切推理优化的基础。</p>
-
-<table>
-  <tr><th>阶段</th><th>Prefill（预填充）</th><th>Decode（解码）</th></tr>
-  <tr><td>处理什么</td><td>一次性处理所有 prompt token</td><td>逐个生成 output token</td></tr>
-  <tr><td>计算特征</td><td>计算密集（大量矩阵乘法）</td><td>内存密集（大量 KV cache 读写）</td></tr>
-  <tr><td>并行度</td><td>高（所有 token 同时计算）</td><td>低（必须串行，一步一个）</td></tr>
-  <tr><td>耗时占比</td><td>10-30%</td><td>70-90%</td></tr>
-  <tr><td>GPU 利用率</td><td>高（90%+）</td><td>低（30-60%，大部分时间等显存）</td></tr>
-</table>
-
-<p>注意看最后一列——Decode 占了大头却不是因为算不动，而是因为<strong>显存带宽不够</strong>。GPU 的计算单元大部分时间在等数据从显存搬过来。</p>
-
-<div class="highlight">
-  <p><strong>核心洞察</strong>：LLM 推理的瓶颈不在计算，在于显存。谁把显存用得更高效，谁就能跑得更快、服务更多人。vLLM 的所有优化几乎都围绕这个洞察展开。</p>
-</div>
-
-<h3>1.3 KV Cache：用空间换时间</h3>
-
-<p>回看自回归生成的每一步——之前算过的 token 的 Key 和 Value，是不是每次都要重新算一遍？答案是：<strong>不需要</strong>。第一次算出来存起来就行。</p>
-
-<p>这就是 KV Cache 的核心思想。对于 Attention 计算：</p>
-
-<pre><code>Attention(Q, K, V) = softmax(Q × K^T / √d) × V
-
-Step 1: Q=[q1],     K=[k1],           V=[v1]           → 计算 k1,v1 并缓存
-Step 2: Q=[q2],     K=[k1,k2],        V=[v1,v2]        → 只需算 k2,v2, k1,v1 从缓存读
-Step 3: Q=[q3],     K=[k1,k2,k3],     V=[v1,v2,v3]     → 只需算 k3,v3
-...</code></pre>
-
-<p>KV Cache 让每步的计算量从 O(n²) 降到 O(n)，但代价是——要存的东西越来越多。一条 8192 token 的请求，KV cache 可能占 4GB 显存。</p>
-
-<h3>1.4 显存都去哪了</h3>
-
-<p>很多初学者以为"8B 模型占 16GB 显存"就完事了。实际推理时，显存消耗远不止模型参数：</p>
-
-<table>
-  <tr><th>显存占用项</th><th>8B 模型 (FP16)</th><th>占比</th></tr>
-  <tr><td>模型权重</td><td>~16 GB</td><td>30-50%</td></tr>
-  <tr><td>KV Cache</td><td>~20-40 GB（取决于并发数和长度）</td><td>40-60%</td></tr>
-  <tr><td>中间激活</td><td>~2-4 GB</td><td>5-10%</td></tr>
-  <tr><td>其他（CUDA context等）</td><td>~1-2 GB</td><td>2-5%</td></tr>
-</table>
-
-<p>看清楚了吧？<strong>KV Cache 才是真正的显存大户</strong>。而且它是动态的——并发请求越多、序列越长，占得越多。</p>
-
-<div class="tip">
-  <p><strong>经验之谈</strong>：我刚入行时用 HuggingFace Transformers 部署模型，batch_size 设 4 就 OOM，一顿排查才发现 KV cache 导致显存碎片化严重。后来 vLLM 的 PagedAttention 让同样 GPU 跑 32 并发都没问题。第三章会详细讲这个。</p>
-</div>
-
-<h3>1.5 传统推理的三大痛点</h3>
-
-<p>在 vLLM 出现之前，用 HuggingFace Transformers 或类似框架做推理部署，有三个让人头疼的问题：</p>
-
-<p><strong>痛点 1：KV Cache 显存碎片化</strong></p>
-<p>传统方式为每个请求预分配一块<strong>连续</strong>的显存空间存放 KV cache。问题在于：(1) 生成长度不确定，预分配多了浪费，少了不够；(2) 不同请求的分配和释放交错进行，显存出现"瑞士奶酪"般的空洞。实测浪费率高达 60-80%。</p>
-
-<p><strong>痛点 2：静态批处理效率低</strong></p>
-<p>把多个请求打包成 batch 一起推理能提高 GPU 利用率，但传统的做法是——组好 batch 后必须等所有请求都生成完才能换下一批。一个请求生 5 个 token，另一个生 500 个，早完成的那个白白占着槽位干等。</p>
-
-<p><strong>痛点 3：重复计算系统提示</strong></p>
-<p>RAG 应用、聊天机器人，每个请求前面都挂着一样的 system prompt。传统方式每个请求独立计算 system prompt 的 KV cache——10 个请求算了 10 遍同样的东西。</p>
-
-<h3>1.6 推理框架的衡量指标</h3>
-
-<table>
-  <tr><th>指标</th><th>含义</th><th>目标</th></tr>
-  <tr><td>TTFT (Time To First Token)</td><td>从收到请求到输出第一个 token 的延迟</td><td>&lt;200ms (P99)</td></tr>
-  <tr><td>TPOT (Time Per Output Token)</td><td>每生成一个 token 的平均时间</td><td>&lt;20ms</td></tr>
-  <tr><td>Throughput (吞吐量)</td><td>每秒生成的 token 总数</td><td>最大化</td></tr>
-  <tr><td>QPS (Queries Per Second)</td><td>每秒处理的请求数</td><td>按业务需求</td></tr>
-  <tr><td>GPU Utilization</td><td>GPU 计算单元利用率</td><td>85-95%</td></tr>
-  <tr><td>Max Concurrent Seqs</td><td>最大并发序列数</td><td>显存允许的最大值</td></tr>
-</table>
-
-<div class="warning">
-  <p><strong>踩坑提醒</strong>：不要只看吞吐量。我曾经优化一个服务，吞吐看起来很好（2000 tok/s），但 P99 延迟飙到了 5 秒——因为有几个长请求一直霸占着资源。好的推理引擎要兼顾吞吐和延迟的公平性。</p>
-</div>
-
-<p>好了，第一章的内容就到这里。你不需要记住所有细节，但请记住一个核心洞察：<strong>LLM 推理的瓶颈是显存，不是计算</strong>。带着这个认知，下一章咱们正式认识 vLLM，看它是怎么解决这些痛点的。</p>
-
-        <div class="footer-nav">
-            <a href="javascript:void(0)">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="02.html">下一章 →</a>
+第 1 轮：上下文 → 预测 token y₁
+第 2 轮：上下文 + y₁ → 预测 token y₂
+第 3 轮：上下文 + y₁ + y₂ → 预测 token y₃
+...
+停止：遇到 EOS、停止条件，或达到 max_tokens</code></pre>
+        <p>这里有两个容易混淆的概念：模型内部处理的是 token ID，而人看到的是解码后的文本；模型每轮输出的是一个 token（或在某些解码策略中是一组候选），并不是一次性写出完整句子。</p>
+        <div class="callout">
+          <p><strong>先建立正确直觉：</strong>生成过程是一个循环。优化推理速度，既要关注单轮计算，也要关注历史状态如何保存、多个请求如何共享 GPU，以及每一轮应该处理哪些请求。</p>
         </div>
-    </div>
-</div>
+      </section>
+
+      <section id="prefill-decode">
+        <h2>1.2 Prefill 与 Decode：一次处理输入，随后逐步生成</h2>
+        <p>推理服务通常把一次生成过程分成两个逻辑阶段。它们不是两种不同的模型，而是同一个 Transformer 在不同输入形态下执行的工作。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>维度</th><th>Prefill（预填充）</th><th>Decode（解码）</th></tr></thead>
+            <tbody>
+              <tr><td>输入</td><td>用户提供的整段 Prompt</td><td>当前新生成的 token</td></tr>
+              <tr><td>主要工作</td><td>处理 Prompt 中的 token，并建立各层 KV Cache</td><td>计算新 token 的表示，并对历史 K/V 做注意力读取</td></tr>
+              <tr><td>并行特征</td><td>同一层可以并行处理多个 Prompt 位置（受因果 mask 约束）</td><td>生成步骤之间存在依赖，通常逐步推进</td></tr>
+              <tr><td>常见瓶颈</td><td>较长 Prompt 时，计算量和注意力计算可能成为瓶颈</td><td>小批量场景常受模型权重与 KV 读取的显存带宽影响</td></tr>
+              <tr><td>关键指标</td><td>Time To First Token（TTFT）</td><td>Inter-Token Latency（ITL）/ Time Per Output Token（TPOT）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>可以把 Prefill 想成“读完题目并做第一次计算”：模型处理 Prompt 的所有位置，为每一层建立后续要复用的 K/V。Decode 则像“接着往下写”：新 token 依赖已经生成的上下文，但不需要重新计算历史 token 的 K/V 投影。</p>
+        <div class="stepper" data-stepper>
+          <h3>交互观察：切换到不同阶段</h3>
+          <p>选择一个阶段，观察模型此时处理哪些 token、缓存发生什么变化。</p>
+          <div class="step-controls" role="group" aria-label="选择推理阶段">
+            <button type="button" data-step-target="prefill" aria-pressed="true">Prefill</button>
+            <button type="button" data-step-target="decode-one" aria-pressed="false">Decode 第 1 轮</button>
+            <button type="button" data-step-target="decode-two" aria-pressed="false">Decode 第 2 轮</button>
+          </div>
+          <div class="step-panel" data-step-panel="prefill">
+            <p><strong>处理对象：</strong>Prompt 中的所有 token 位置。</p>
+            <p><strong>缓存变化：</strong>每层计算并写入 Prompt 对应的 Key 和 Value，供后续生成读取。</p>
+          </div>
+          <div class="step-panel" data-step-panel="decode-one" hidden>
+            <p><strong>处理对象：</strong>第一个新 token 的位置。</p>
+            <p><strong>缓存变化：</strong>新 token 的 K/V 被追加；它的 Query 可以读取 Prompt 已缓存的 K/V。</p>
+          </div>
+          <div class="step-panel" data-step-panel="decode-two" hidden>
+            <p><strong>处理对象：</strong>第二个新 token 的位置。</p>
+            <p><strong>缓存变化：</strong>新 Query 读取 Prompt 与第一个输出 token 的 K/V，再把自己的 K/V 追加到缓存。</p>
+          </div>
+          <noscript><p>交互需要 JavaScript；上方静态流程图已经展示完整过程。</p></noscript>
+        </div>
+        <div class="callout warning">
+          <p><strong>常见误解：</strong>“每生成一个 token，都要把整个历史序列重新跑一遍 Transformer。”这描述的是没有有效复用历史 K/V 的朴素做法，不是启用 KV Cache 后的标准 Decode 路径。Decode 仍要对不断增长的上下文做注意力读取，但历史 token 的 K/V 投影不必每轮重算。</p>
+        </div>
+      </section>
+
+      <section id="kv-cache">
+        <h2>1.3 KV Cache 保存什么，又没有保存什么？</h2>
+        <p>在 Transformer 的自注意力层中，输入隐藏状态会经过线性投影，得到 Query（Q）、Key（K）和 Value（V）。对后续 token 来说，历史位置的 K 和 V 会再次参与注意力计算，因此可以把它们缓存下来。</p>
+        <p>简化地看，生成第 (t) 个新 token 时：</p>
+        <pre><code>Q_new = 当前 token 的 Query
+K_all = [历史缓存的 K] + [当前 token 的 K]
+V_all = [历史缓存的 V] + [当前 token 的 V]
+
+Attention(Q_new, K_all, V_all) → 当前 token 的输出</code></pre>
+        <p>KV Cache 不是“把整个模型的中间结果都保存起来”，而是保存注意力计算需要复用的 Key / Value 张量。每个 Transformer 层通常都有自己的 K/V 缓存；模型结构、注意力类型、并行策略和缓存 dtype 都会影响实际内存布局。</p>
+        <p>因此，KV Cache 带来的是计算与显存之间的交换：减少历史 K/V 的重复投影计算，但需要随着上下文增长持续保存这些张量。它也是为什么一个模型权重能放进 GPU，并不代表就能承载很多长上下文并发请求。</p>
+      </section>
+
+      <section id="memory">
+        <h2>1.4 估算 KV Cache 显存：从每个 token 开始</h2>
+        <p>对一个使用标准注意力 K/V 缓存的模型，可以先用下面的理论公式做粗略估算：</p>
+        <div class="math-display">
+          <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="KV Cache bytes equals 2 times number of layers times number of KV heads times head dimension times number of tokens times bytes per element">
+            <mrow><msub><mi>M</mi><mtext>KV</mtext></msub><mo>=</mo><mn>2</mn><mo>×</mo><mi>L</mi><mo>×</mo><msub><mi>H</mi><mtext>KV</mtext></msub><mo>×</mo><msub><mi>D</mi><mtext>head</mtext></msub><mo>×</mo><mi>T</mi><mo>×</mo><mi>B</mi></mrow>
+          </math>
+        </div>
+        <p>其中：2 表示 K 和 V 两份张量；(L) 是层数；(H_{KV}) 是每层 KV heads 数；(D_{head}) 是每个 head 的维度；(T) 是缓存 token 数；(B) 是每个元素占用的字节数。若有多个并发请求，还要按每个请求的实际缓存长度求和。</p>
+        <h3>例子：一个 Llama 3 8B 结构的理论估算</h3>
+        <p>假设模型有 32 层、每层 8 个 KV heads、head dimension 为 128，缓存使用 FP16（每个元素 2 bytes）：</p>
+        <pre><code>每 token 字节数
+= 2 × 32 × 8 × 128 × 2
+= 131,072 bytes
+= 128 KiB / token
+
+单个 8,192-token 序列
+= 128 KiB × 8,192
+= 1 GiB（理论值）</code></pre>
+        <p>这里的数字是按给定结构和 dtype 推导的教学估算，不是 vLLM 启动时的显存承诺。实际可用 KV Cache 容量还受到权重、激活、CUDA Graph、缓存对齐、并行切分、模型注意力结构和其他 GPU 进程影响。</p>
+        <div class="callout">
+          <p><strong>为什么 GQA 重要？</strong>如果模型使用 Grouped-Query Attention，KV heads 可以少于 Query heads，因此每 token 需要保存的 K/V 元素会更少。估算时必须使用 KV heads，而不是盲目把 Query heads 数代入公式。</p>
+        </div>
+      </section>
+
+      <section id="bottleneck">
+        <h2>1.5 为什么 Decode 常常受显存带宽限制？</h2>
+        <p>推理的瓶颈并不是永远固定的。长 Prompt 的 Prefill 可能需要大量矩阵计算；Decode 则每轮只产生少量新 token，却要读取模型权重和不断增长的 KV Cache。特别是在批量较小的情况下，GPU 可能花费较多时间搬运数据，而不是执行足够多的算术运算。</p>
+        <p>增加并发请求有机会让一次权重读取服务更多 token，从而提高硬件利用率；但并发增加也会占用更多 KV Cache，带来排队、抢占和延迟变化。于是推理引擎要同时考虑计算、显存容量、显存带宽和服务目标。</p>
+        <p>这就是 vLLM 后续章节的主线：PagedAttention 改善 KV Cache 的组织与共享；Continuous Batching 让请求可以在迭代边界动态进入和退出；Scheduler 则在有限的 token budget 和缓存容量下安排下一轮工作。</p>
+      </section>
+
+      <section id="metrics">
+        <h2>1.6 如何衡量一个推理服务？</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>指标</th><th>含义</th><th>使用时要注意</th></tr></thead>
+            <tbody>
+              <tr><td>TTFT</td><td>请求进入后到第一个输出 token 的时间</td><td>受排队和 Prefill 影响明显</td></tr>
+              <tr><td>ITL</td><td>相邻输出 token 之间的时间</td><td>关注分布和尾延迟，不只看平均值</td></tr>
+              <tr><td>TPOT</td><td>平均每个输出 token 的耗时</td><td>具体统计口径要看 benchmark 工具</td></tr>
+              <tr><td>E2E latency</td><td>从请求发出到完整响应结束的时间</td><td>与输出长度和服务排队共同相关</td></tr>
+              <tr><td>Throughput</td><td>单位时间处理的请求数或 token 数</td><td>必须说明是 input、output 还是总 token</td></tr>
+              <tr><td>Goodput</td><td>满足延迟等服务目标的有效吞吐</td><td>比单独追求峰值吞吐更贴近 SLA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>没有适用于所有业务的“TTFT 必须低于某个毫秒数”或“GPU 利用率必须达到某个百分比”。交互式问答、离线批处理和长上下文分析的目标不同。基准测试必须把工作负载、并发、模型、硬件和延迟指标一起报告。</p>
+      </section>
+
+      <section id="recap">
+        <h2>本章自检：你能解释这三件事吗？</h2>
+        <ol>
+          <li>为什么 Decode 不能像 Prefill 一样把未来 token 一次性并行算出来？</li>
+          <li>启用 KV Cache 后，为什么仍然需要读取越来越长的历史 K/V？</li>
+          <li>为什么估算 KV Cache 时，GQA 模型应该使用 KV heads 数量？</li>
+        </ol>
+        <p>如果这三个问题都能回答，就已经具备理解 vLLM 的基础。下一章会从系统视角解释 vLLM 的定位：它如何围绕内存管理、请求调度和 GPU 执行组织一个高吞吐推理服务。</p>
+      </section>
+
+      <section class="sources" id="sources">
+        <h2>参考资料</h2>
+        <ol>
+          <li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer">Attention Is All You Need</a>，Transformer 注意力机制的原始论文。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview</a>，当前架构中 Engine Core、Scheduler 与 GPU Workers 的职责。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener noreferrer">Optimization and Tuning</a>，Prefill / Decode 调度与缓存压力相关说明。</li>
+        </ol>
+        <p><small>公式示例按本文列出的模型结构和 FP16 dtype 推导；不等同于某一具体部署环境的实测显存。</small></p>
+      </section>
+
+      <footer class="chapter-footer">
+        <nav class="chapter-nav" aria-label="章节导航"><a href="index.html">← 返回课程地图</a><a class="next" href="02.html">下一章：vLLM 概述 →</a></nav>
+        <a class="back-to-top" href="#content">回到顶部 ↑</a>
+      </footer>
+    </article>
+  </main>
 </div>
 </body>
 </html>
