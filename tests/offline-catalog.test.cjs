@@ -54,7 +54,7 @@ test("all chapter links remain local and resolve to files", () => {
   assert.doesNotMatch(index, /fetch\s*\(/, "offline index must not fetch remote data");
 });
 
-test("the first three upgraded chapters use semantic HTML and unique SVGs", () => {
+test("the first six upgraded chapters use semantic HTML and unique SVGs", () => {
   for (const number of ["01", "02", "03", "04", "05", "06"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
@@ -74,7 +74,10 @@ test("chapter diagrams and evidence records are independently inspectable", () =
   const expected = [
     "01-inference-lifecycle.svg",
     "02-vllm-serving-architecture.svg",
-    "03-block-table-mapping.svg",\n    "04-kv-write-read-path.svg",\n    "05-iteration-batching.svg",\n    "06-first-run-path.svg",
+    "03-block-table-mapping.svg",
+    "04-kv-write-read-path.svg",
+    "05-iteration-batching.svg",
+    "06-first-run-path.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
@@ -82,7 +85,7 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     assert.match(svg, /<desc\b/);
     assert.match(svg, /viewBox=/);
   }
-  for (const number of ["01", "02", "03"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06"]) {
     const evidence = JSON.parse(fs.readFileSync(path.join(root, "evidence", number + ".json"), "utf8"));
     assert.equal(evidence.chapter, number);
     assert.ok(evidence.claims.length >= 2);
