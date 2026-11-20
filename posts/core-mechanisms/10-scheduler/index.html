@@ -1,0 +1,79 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="拆解 waiting、running、finished 请求状态，以及 FCFS、priority 和资源抢占的边界。"><title>10 · Scheduler：请求如何进入下一轮计算 | vLLM 技术知识库</title><link rel="stylesheet" href="../../../skills/olah-style-vllm-posts/assets/css/article.css"></head><body><a class="skip-link" href="#content">跳转至正文</a><div class="layout"><nav class="toc" aria-label="文章目录"><strong>本章目录</strong><a href="#section-01">01 · 10.1 调度器的角色</a><a href="#section-02">02 · 10.2 三种调度策略</a><a href="#section-03">03 · 10.3 FCFS 的实际表现</a><a href="#section-04">04 · 10.4 统一调度器：Prefill + Decode 一起管</a><a href="#section-05">05 · 10.5 调度参数调优</a><a href="#references">参考资料</a></nav><main id="content"><article><header class="article-header"><p class="eyebrow">10 / 核心机制 · 进阶 · 约 14 分钟</p><h1>Scheduler：请求如何进入下一轮计算</h1><p class="dek">拆解 waiting、running、finished 请求状态，以及 FCFS、priority 和资源抢占的边界。</p><ul class="learning-goals"><li>请求状态</li><li>FCFS</li><li>Priority</li><li>Preemption</li></ul></header><aside class="note note-warning"><strong>版本边界：</strong>本文于 2026-11-20 对照 vLLM 官方文档与源码核查。命令、默认值、模型支持和指标会随版本变化；生产使用前请核对实际安装版本及对应文档。</aside><div class="article-content"><p>当一个请求到达 vLLM 服务时，它不会立刻上 GPU。它先进入<strong>等待队列</strong>，由调度器决定什么时候让它"上场"。调度器的质量直接决定了——用户等多久、GPU 用多满、长请求会不会霸占所有资源。</p><figure><img src="assets/figure-01.svg" alt="Scheduler：请求如何进入下一轮计算"><figcaption>Scheduler：请求如何进入下一轮计算。示意图用于解释概念关系，具体实现以正文和来源为准。</figcaption></figure><section class="demo" data-demo="batch-scheduler" aria-labelledby="demo-title"><p class="eyebrow">INTERACTIVE LAB</p><h2 id="demo-title">观察一次调度迭代</h2><p>请求完成后释放资源，等待队列中的新请求才有机会进入后续迭代；真实调度还会受 token budget 和 KV Cache 容量约束。</p><div class="demo-panel"><div class="demo-visual" data-visual>Running: A · B · C | Waiting: D · E</div><div class="demo-controls"><button type="button" data-step>执行下一轮</button><button type="button" data-reset>重置</button></div><p class="demo-output" data-output aria-live="polite">当前轮次 0：A、B、C 正在运行。</p></div></section>
+
+
+
+<h2 id="section-01">10.1 调度器的角色</h2>
+
+<p>调度器（Scheduler）是 vLLM 的"交通指挥中心"。每步迭代它要做三个决策：</p>
+
+<pre><code>每步调度循环：
+1. 哪些请求该"下场"了？（检测完成/超时请求，释放资源）
+2. 哪些请求可以"上场"？（从等待队列选请求，分配 KV Cache Block）
+3. 怎么组这一轮的 batch？（prefill/decode 混合，batch size 决定）
+
+约束条件：
+- Block 够不够？（显存约束）
+- 这轮 batch 的总 token 会不会太多？（计算约束）
+- 优先级规则是什么？（公平性约束）</code></pre>
+
+<h2 id="section-02">10.2 三种调度策略</h2>
+
+<table>
+  <tr><th>策略</th><th>规则</th><th>优点</th><th>缺点</th><th>适用场景</th></tr>
+  <tr><td>FCFS (先来先服务)</td><td>按到达时间排队</td><td>公平，实现简单</td><td>长请求阻塞短请求</td><td>通用，默认推荐</td></tr>
+  <tr><td>Priority (优先级)</td><td>高优先级请求插队</td><td>SLA 可控</td><td>低优先级可能饿死</td><td>多租户，VIP 用户</td></tr>
+  <tr><td>Preemption (抢占)</td><td>高优请求可中断低优请求</td><td>保证紧急请求低延迟</td><td>被抢占请求浪费已做的工作</td><td>实时交互+批量任务混合</td></tr>
+</table>
+
+<h2 id="section-03">10.3 FCFS 的实际表现</h2>
+
+<p>FCFS 看起来"公平"，但在 LLM 推理中有个致命问题：</p>
+
+<pre><code>假设先到 3 个短请求，后到 1 个长请求：
+✅ 短请求 A/B/C 很快完成 → GPU 效率高
+
+假设先到 1 个长请求（8000 token 输出），后到 10 个短请求：
+❌ 长请求霸占资源 30 秒 → 10 个短请求全在排队 → P99 延迟爆炸
+
+这就是所谓的 "Hogging 问题"（长请求霸占资源）</code></pre>
+
+<div class="highlight">
+  <p><strong>生产建议</strong>：如果你的服务混合了长短请求，推荐用 Priority 策略。给短请求（实时对话）设高优先级，给长请求（文章生成）设低优先级。这样短请求的 P99 延迟能控制住。</p>
+</div>
+
+<h2 id="section-04">10.4 统一调度器：Prefill + Decode 一起管</h2>
+
+<p>V1 的调度器不再区分"prefill 调度器"和"decode 调度器"，而是统一管理所有请求。这解决了 V0 的一个长期问题：</p>
+
+<pre><code>V0 问题:
+prefill_scheduler: "我有 3 个请求要做 prefill，每个需要 5 个 block"
+decode_scheduler: "我有 10 个请求在做 decode，占着 200 个 block"
+两个调度器互相看不到对方的决策，导致资源争抢
+
+V1 解法:
+unified_scheduler: "总共 215 个 block，prefill 需要 15 个，decode 需要 200 个。还剩 30 个，可以再放入 2 个短请求的 prefill"
+统一视图，统一决策</code></pre>
+
+<h2 id="section-05">10.5 调度参数调优</h2>
+
+<pre><code>vllm serve model \
+    --scheduling-policy fcfs \      # 或 priority
+    --max-num-seqs 128 \            # 最大并发序列
+    --max-num-batched-tokens 8192   # 每 batch 最大 token 数
+
+# max-num-seqs: 限制同时"在场"的请求数。太小→GPU闲。太大→KV Cache不够
+# max-num-batched-tokens: 限制一轮 batch 的总 token 数，控制计算量
+
+# 调优思路：
+# 1. 设置 max-num-seqs 到一个偏大的值（如 256）
+# 2. 观察 free_blocks 指标
+# 3. 如果 free_blocks 经常 < 100 → 降低 max-num-seqs
+# 4. 如果 GPU 利用率 < 70% → 提高 max-num-seqs（如果 free_blocks 还够）</code></pre>
+
+<div class="warning">
+  <p><strong>常见错误</strong>：很多人把 <code>max-num-seqs</code> 设得特别大（1000+）以为能提高吞吐。实际上 vLLM 的调度器会自动限制并发——KV cache 不够时请求自然进不了 batch。这个参数只是个硬上限，设太大没有额外好处，反而可能导致显存压力下不必要的抢占。</p>
+</div>
+
+<p>调度策略没有银弹，要结合你的业务特征。下一章咱们深入 Chunked Prefill——vLLM 处理长 prompt 的独门武器。</p>
+
+        <section id="references" class="references"><h2>参考资料与证据</h2><ol><li><a href="https://github.com/vllm-project/vllm/blob/main/docs/usage/v1_guide.md" rel="noopener noreferrer">vLLM V1 指南</a><span>Unified scheduler</span></li><li><a href="https://github.com/vllm-project/vllm/blob/main/vllm/config/scheduler.py" rel="noopener noreferrer">vLLM Scheduler 配置</a><span>Scheduling policy；token budgets</span></li></ol><p><a href="evidence.json">查看本篇 evidence.json（主张、来源与版本状态）</a></p></section></div><nav class="post-nav" aria-label="章节导航"><a href="../../../posts/core-mechanisms/09-automatic-prefix-caching/index.html"><span>上一章</span><strong>Automatic Prefix Caching：自动前缀缓存</strong></a><a href="../../../index.html">返回知识库</a><a href="../../../posts/core-mechanisms/11-chunked-prefill/index.html"><span>下一章</span><strong>Chunked Prefill：长 Prompt 的分块调度</strong></a></nav><footer class="article-footer"><p>以官方文档、源码和原始论文为准；性能数字应在目标环境中复测。</p><a href="../../../index.html">vLLM 技术知识库</a></footer></article></main></div><script defer src="../../../skills/olah-style-vllm-posts/assets/js/interactions.js"></script></body></html>
