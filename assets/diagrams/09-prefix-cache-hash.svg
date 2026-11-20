@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 570" role="img" aria-labelledby="title desc">
+<title id="title">Automatic Prefix Caching 的块哈希与复用</title>
+<desc id="desc">请求 A 的相同前缀按完整 token blocks 计算哈希并存入缓存。请求 B 带有相同 token 前缀时，前缀块可以命中复用，只需计算后续不同的后缀。不同租户可以使用不同 cache salt 隔离首块哈希。</desc>
+<defs><marker id="a09" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<rect width="1200" height="570" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">相同 token 前缀 → 相同的完整块哈希 → 有机会复用 KV</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">示例中 block size = 4；只用于解释块边界，不代表固定默认值。</text>
+<text x="60" y="142" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">请求 A</text>
+<g font-family="Arial,'PingFang SC',sans-serif" text-anchor="middle" font-size="15">
+ <rect x="160" y="115" width="240" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="280" y="150" fill="#0d5e58">System / A B C D</text>
+ <rect x="415" y="115" width="240" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="535" y="150" fill="#0d5e58">E F G H</text>
+ <rect x="670" y="115" width="240" height="58" rx="10" fill="#fff0e8" stroke="#c66a46"/><text x="790" y="150" fill="#9c4d30">A 的问题后缀</text>
+</g>
+<path d="M280 174 V207 H535 V174" fill="none" stroke="#147d73" stroke-width="2.5"/>
+<path d="M535 174 V228" stroke="#47756d" stroke-width="2.5" marker-end="url(#a09)"/>
+<rect x="350" y="238" width="370" height="66" rx="13" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+<text x="535" y="266" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#51488c">Prefix Cache</text>
+<text x="535" y="289" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">hash(prefix context + block tokens)</text>
+<path d="M535 304 V338" stroke="#47756d" stroke-width="2.5" marker-end="url(#a09)"/>
+<rect x="350" y="348" width="370" height="58" rx="13" fill="#fff" stroke="#147d73"/>
+<text x="535" y="383" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#0d5e58">缓存中保存可复用的完整 KV blocks</text>
+<text x="60" y="460" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">请求 B：共享前缀，后缀不同</text>
+<g font-family="Arial,'PingFang SC',sans-serif" text-anchor="middle" font-size="15">
+ <rect x="160" y="480" width="240" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="280" y="515" fill="#0d5e58">System / A B C D</text>
+ <rect x="415" y="480" width="240" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="535" y="515" fill="#0d5e58">E F G H</text>
+ <rect x="670" y="480" width="240" height="58" rx="10" fill="#fff0e8" stroke="#c66a46"/><text x="790" y="515" fill="#9c4d30">B 的问题后缀</text>
+</g>
+<path d="M535 480 V421" stroke="#147d73" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#a09)"/>
+<text x="935" y="260" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#53636b">命中前缀</text>
+<text x="935" y="284" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#53636b">计算新后缀</text>
+<text x="935" y="308" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#9c4d30">不是语义相似匹配</text>
+</svg>
