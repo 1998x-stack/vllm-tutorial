@@ -3,115 +3,197 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="用静态批处理与迭代级连续批处理的时间线，理解 vLLM 如何动态组织请求和 token budget。">
-  <title>第 05 章｜Continuous Batching：让请求在迭代间动态加入</title>
+  <meta name="description" content="用请求时间线理解 vLLM 的 iteration-level Continuous Batching、token budget、prefill 与 decode 混合调度和 KV Cache 抢占。">
+  <title>第 05 章｜Continuous Batching：每轮迭代重新组织请求</title>
   <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
 <body class="article-page">
-<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Scheduler 文档 ↗</a></nav></div></header>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+    <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">V1 架构 ↗</a></nav>
+  </div>
+</header>
 <div class="reading-layout">
-  <nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol>
-    <li><a href="#static">5.1 静态批处理的等待问题</a></li><li><a href="#continuous">5.2 Continuous Batching 的核心</a></li><li><a href="#timeline">5.3 逐轮看一个例子</a></li><li><a href="#scheduler">5.4 Scheduler 如何决定下一轮</a></li><li><a href="#metrics">5.5 评价收益不能只看吞吐</a></li><li><a href="#limits">5.6 能力边界</a></li>
-  </ol></nav>
-  <main id="content" class="article-content"><article>
-    <header class="article-header">
-      <p class="chapter-kicker">第 05 章 · 调度、批处理与运行时</p>
-      <h1>Continuous Batching：让请求在迭代间动态加入</h1>
-      <p class="article-dek">LLM 请求的输出长度差异很大。如果一批请求必须等到最长的那个完成，已经结束的请求就会占着批次位置等待。本章解释连续批处理如何在迭代边界重新组织工作。</p>
-      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 16 分钟</span><span class="meta-chip">前置章节：01、03</span></div>
-    </header>
-    <p class="article-lead">把三个请求放在同一批次：A 只需要生成几个 token，B 要生成一篇长文，C 需要中等长度回答。若系统只能在整个批次结束后再接收新请求，A 和 C 完成之后留下的计算槽位就不能及时服务排队中的 D。Continuous Batching 的思路是：在每轮迭代结束后，根据请求状态重新组织下一轮执行批次。</p>
-    <div class="outcomes"><h2>读完这一章，你应该能够</h2><ul>
-      <li>解释静态批处理为什么会被长输出请求拖住。</li>
-      <li>说明迭代级连续批处理如何让新请求加入正在运行的服务。</li>
-      <li>理解请求能否加入还受 KV Cache 和 token budget 约束。</li>
-      <li>用 TTFT、ITL、吞吐和尾延迟评价批处理策略。</li>
-    </ul></div>
-    <figure class="diagram"><img src="assets/diagrams/05-iteration-batching.svg" alt="静态批处理等待最长请求结束，与连续批处理在迭代间加入新请求的时间线对比"><figcaption>图 1：连续批处理不是把同一批次无限扩容，而是在迭代边界根据完成状态和资源预算重组下一轮请求。</figcaption></figure>
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#problem">5.1 固定批次的问题</a></li>
+      <li><a href="#continuous">5.2 迭代级连续批处理</a></li>
+      <li><a href="#timeline">5.3 用时间线看请求进出</a></li>
+      <li><a href="#v1-scheduler">5.4 V1 Scheduler 如何分配工作</a></li>
+      <li><a href="#preemption">5.5 KV Cache 不够时会怎样</a></li>
+      <li><a href="#tradeoffs">5.6 吞吐、延迟与公平性</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content">
+    <article>
+      <header class="article-header">
+        <p class="chapter-kicker">第 05 章 · 调度、批处理与运行时</p>
+        <h1>Continuous Batching：每轮迭代重新组织请求</h1>
+        <p class="article-dek">多个用户同时请求模型时，生成长度却各不相同。Continuous Batching 的关键不是让所有请求永远待在同一个 batch，而是在每轮模型迭代后，根据请求状态动态调整下一轮要执行的集合。</p>
+        <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 18 分钟</span><span class="meta-chip">前置章节：01、03</span></div>
+      </header>
 
-    <section id="static">
-      <h2>5.1 静态批处理的等待问题</h2>
-      <p>在一个简化的静态批处理模型中，系统先收集若干请求组成 batch，然后按 batch 执行；只有整批处理完成，才能启动下一批。这个方式在输入长度和输出长度较整齐的任务中容易理解，但自回归生成的输出长度通常不一致。</p>
-      <p>假设 A 生成 12 个 token 后就结束，C 生成 100 个 token 后结束，而 B 需要 1,000 个 token。若 batch 生命周期绑定最长的 B，A 和 C 对应的位置可能在这段时间内无法接纳新请求。此时，批次的有效工作量逐渐减少，等待队列也可能持续增长。</p>
-      <p>注意：这是一种用来解释问题的静态批处理基线。不同推理框架的真实实现各有差异，不能把它当作所有传统框架都完全相同的内部行为。</p>
-    </section>
+      <p class="article-lead">想象三位用户同时发来请求：A 只需要一句简短回答，B 要生成一篇长文，C 需要翻译一段文字。如果系统把 A、B、C 固定成一个批次，并且必须等 B 结束才能开始下一批，那么 A 和 C 完成后留下的执行位置就会空着。Continuous Batching 要解决的就是这个“请求完成时间不一致”的问题。</p>
 
-    <section id="continuous">
-      <h2>5.2 Continuous Batching 的核心：每轮迭代重新组织</h2>
-      <p>Continuous Batching（也常称 iteration-level batching）的关键变化是：批次不再必须等到所有请求都生成完才结束。每次模型执行完一个迭代后，调度器可以更新请求集合：</p>
-      <ol>
-        <li>识别已经完成、取消或失败的请求，并释放其不再需要的资源。</li>
-        <li>检查等待队列中的新请求，以及当前运行请求还需要处理的 token。</li>
-        <li>在 KV Cache 容量、token budget 和调度策略允许的范围内，选择下一轮执行内容。</li>
-        <li>构造下一轮模型输入，继续推进运行中的请求。</li>
-      </ol>
-      <p>这样，当 A 完成后，系统可以在后续迭代中把 D 纳入执行，而不必等待 B 完成整个长输出。新请求能否马上加入，仍取决于它需要多少 Prefill token、KV Cache 是否有足够空间，以及当前调度策略如何安排。</p>
-    </section>
+      <div class="outcomes">
+        <h2>读完这一章，你应该能够</h2>
+        <ul>
+          <li>解释固定批次生成为什么容易出现长短请求相互等待。</li>
+          <li>用迭代时间线说明请求何时退出、等待请求何时加入。</li>
+          <li>理解当前 V1 Scheduler 如何用 token budget 安排运行中和等待中的请求。</li>
+          <li>解释 KV Cache 容量不足时的抢占、重算代价，以及吞吐和延迟之间的取舍。</li>
+        </ul>
+      </div>
 
-    <section id="timeline">
-      <h2>5.3 逐轮看一个例子</h2>
-      <p>下面用一个简化的请求集合观察批次如何变化。每个 Step 表示一次调度和模型执行迭代，不代表真实系统中每轮只生成一个 token 或每个请求的工作量完全相同。</p>
-      <div class="table-wrap"><table>
-        <thead><tr><th>迭代</th><th>执行集合</th><th>发生的变化</th></tr></thead>
-        <tbody>
-          <tr><td>Step 1</td><td>A、B、C</td><td>三个请求都在运行</td></tr>
-          <tr><td>Step 2</td><td>B、C、D</td><td>A 已完成并退出；D 在资源允许时加入</td></tr>
-          <tr><td>Step 3</td><td>B、D、E</td><td>C 完成；等待队列中的 E 可能被接纳</td></tr>
-          <tr><td>Step 4</td><td>B、D、E</td><td>长请求 B 继续运行，其他请求也推进</td></tr>
-        </tbody>
-      </table></div>
-      <p>与其说 Continuous Batching “让 GPU 永远不闲”，不如说它减少了因为批次生命周期绑定最长请求而造成的结构性等待。GPU 是否忙碌还取决于请求到达率、模型大小、batch token 数、显存带宽和硬件执行效率。</p>
-    </section>
+      <figure class="diagram">
+        <img src="assets/diagrams/05-iteration-batching.svg" alt="固定批处理等待最长请求完成，而迭代级连续批处理在 A 完成后让等待请求 D 于后续调度轮次加入">
+        <figcaption>图 1：固定批次通常以整个批次为完成边界；迭代级连续批处理则在模型迭代边界重新组织请求。图中只是概念时间线，不代表实测吞吐或延迟。</figcaption>
+      </figure>
 
-    <section id="scheduler">
-      <h2>5.4 Scheduler 如何决定下一轮？</h2>
-      <p>连续批处理需要调度器来做具体决策。当前 vLLM V1 架构文档描述的是 token-budget-based Scheduler：每轮在 <code>max_num_batched_tokens</code> 等约束下，安排运行中的请求和等待中的请求需要处理的 token；它不再把 Prefill 和 Decode 当作两个互不相干的调度循环。</p>
-      <p>可以用下面的教学伪代码理解这个过程：</p>
-      <pre><code>每轮调度（概念伪代码）：
+      <section id="problem">
+        <h2>5.1 固定批次的问题：请求长度不一致</h2>
+        <p>在一个简化的固定批次模型里，A、B、C 同时开始生成。A 很快生成完，C 随后结束，但 B 还需要很多轮 Decode。若执行框架只能在整个批次结束后重新装入下一批请求，那么 A、C 的位置就不能及时交给新请求 D。</p>
+        <p>问题不在于 GPU 一定停止工作，而在于批次的生命周期被最长请求牵制：已经完成的请求不能及时腾出批次槽位，等待队列也无法利用这些空出来的位置。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>请求</th><th>Prompt</th><th>输出长度（教学假设）</th><th>结果</th></tr></thead>
+            <tbody>
+              <tr><td>A：简短问答</td><td>短</td><td>2 tokens</td><td>很早结束</td></tr>
+              <tr><td>B：长文生成</td><td>中等</td><td>8 tokens</td><td>仍在生成</td></tr>
+              <tr><td>C：短翻译</td><td>中等</td><td>4 tokens</td><td>先于 B 结束</td></tr>
+              <tr><td>D：新请求</td><td>短</td><td>未知</td><td>在等待队列中</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><small>表中的 token 数仅用于构造小例子，不能用于推断真实请求耗时或 GPU 利用率。</small></p>
+      </section>
 
-1. 更新已完成请求状态，释放可回收的 KV blocks
-2. 统计当前可用 KV Cache 和本轮 token budget
-3. 按调度策略选择要推进的请求
-4. 为这些请求分配本轮要处理的 token
-5. 生成执行元数据并调用 GPU workers
-6. 收集结果，进入下一轮</code></pre>
-      <p>调度器还要考虑资源不足的情况。KV Cache 不够时，可能无法接纳新的请求；对于已经运行的请求，也可能需要等待或触发抢占与重算。具体策略在第 10 章进一步讨论。</p>
-      <div class="callout"><p><strong>与 Chunked Prefill 的关系：</strong>连续批处理解决“批次成员可以动态变化”；Chunked Prefill 解决“一个很长的 Prompt 是否可以拆成多个调度片段”。两者经常配合，但不是同一件事。</p></div>
-    </section>
+      <section id="continuous">
+        <h2>5.2 迭代级连续批处理：每轮结束后重新看一遍队列</h2>
+        <p>自回归生成会反复执行模型迭代。Continuous Batching 把这个迭代边界作为重新组织请求的机会：已经完成的请求退出，等待中的请求有机会进入，尚未完成的请求继续执行。</p>
+        <ol>
+          <li>本轮迭代开始前，调度器查看当前运行请求和等待请求。</li>
+          <li>为可以执行的请求分配本轮需要处理的 token 和 KV Cache 槽位。</li>
+          <li>GPU 执行本轮模型计算，产生新的 token 或完成状态。</li>
+          <li>下一轮调度时，完成的请求被移出运行集合，等待请求可以补入。</li>
+        </ol>
+        <p>因此，“连续”指的是请求集合可以随着迭代持续变化，而不是一次性固定成一个静态 batch。它也不意味着 GPU 永远不会空闲：如果没有请求、资源不足或某些请求暂时无法被调度，GPU 仍可能没有可执行工作。</p>
+      </section>
 
-    <section id="metrics">
-      <h2>5.5 评价收益不能只看吞吐</h2>
-      <p>连续批处理通常希望提高资源利用效率，但吞吐提升不一定意味着每个用户的体验都变好。把长 Prompt 塞进当前迭代，可能影响正在 Decode 的请求；为了追求高并发而让 KV Cache 过度紧张，也可能造成排队或抢占。</p>
-      <div class="table-wrap"><table>
-        <thead><tr><th>观察维度</th><th>要回答的问题</th><th>建议关注</th></tr></thead>
-        <tbody>
-          <tr><td>吞吐</td><td>单位时间处理多少 token？</td><td>输入与输出 token 吞吐分开统计</td></tr>
-          <tr><td>TTFT</td><td>用户多久看到第一个 token？</td><td>队列等待和 Prefill 时间</td></tr>
-          <tr><td>ITL / TPOT</td><td>生成过程中 token 输出是否稳定？</td><td>平均值与 P95 / P99 尾延迟</td></tr>
-          <tr><td>资源压力</td><td>是不是经常没有可用 KV blocks？</td><td>缓存使用、排队和抢占次数</td></tr>
-        </tbody>
-      </table></div>
-      <p>一个有意义的 benchmark 应固定模型、硬件、输入输出长度分布和并发模式，并同时报告吞吐和延迟。不要用一个“GPU 利用率 90%”来代替完整的服务质量分析。</p>
-    </section>
+      <section id="timeline">
+        <h2>5.3 用一个小时间线看请求如何进出</h2>
+        <p>继续使用 A、B、C、D 的例子。为了突出批次变化，我们暂时假设 A 需要 2 轮、C 需要 4 轮、B 需要 8 轮 Decode；真实系统还会包含 Prefill、不同长度的 token chunk 和模型计算时间。</p>
+        <div class="stepper" data-stepper>
+          <h3>交互观察：下一轮的运行集合</h3>
+          <div class="step-controls" role="group" aria-label="选择连续批处理时间线">
+            <button type="button" data-step-target="batch-one" aria-pressed="true">Step 1</button>
+            <button type="button" data-step-target="batch-two" aria-pressed="false">Step 2</button>
+            <button type="button" data-step-target="batch-three" aria-pressed="false">Step 3</button>
+          </div>
+          <div class="step-panel" data-step-panel="batch-one">
+            <p><strong>运行集合：A + B + C。</strong>三个请求都已进入执行，D 还在等待队列中。</p>
+            <p>A、B、C 会根据当前状态获得本轮计算资源；它们的 Prompt 长度和输出进度不必相同。</p>
+          </div>
+          <div class="step-panel" data-step-panel="batch-two" hidden>
+            <p><strong>运行集合：B + C + D。</strong>A 已经完成并退出，D 在后续调度轮次被接纳。</p>
+            <p>B 和 C 不需要等 D 的 Prompt 处理完才“重新开始”；调度器会在 token budget 内安排本轮可执行工作。</p>
+          </div>
+          <div class="step-panel" data-step-panel="batch-three" hidden>
+            <p><strong>运行集合：B + D + 新到达请求。</strong>C 完成后也可以退出，后续请求继续获得调度机会。</p>
+            <p>是否能接纳新请求，还取决于 token budget、活动序列上限和可用 KV Cache blocks。</p>
+          </div>
+          <noscript><p>交互需要 JavaScript；上方静态 SVG 时间线已经展示请求集合的变化。</p></noscript>
+        </div>
+      </section>
 
-    <section id="limits">
-      <h2>5.6 能力边界：连续批处理不等于无限并发</h2>
-      <ul>
-        <li>KV Cache 容量仍然有限，长上下文和高并发会争用缓存空间。</li>
-        <li>每轮 token budget 限制了一个迭代能够处理多少 token。</li>
-        <li>模型执行、权重读取、通信和 Python 调度开销仍可能成为瓶颈。</li>
-        <li>调度策略需要在吞吐、延迟、公平性和优先级之间取舍。</li>
-      </ul>
-      <p>下一章会从实际运行环境开始，把前面这些概念连接到一次真实的 vLLM 安装、离线推理和在线 API 服务。</p>
-    </section>
+      <section id="v1-scheduler">
+        <h2>5.4 V1 Scheduler 如何决定本轮做什么？</h2>
+        <p>只说“每轮把 Prefill 和 Decode 混起来”还不够准确。当前 vLLM V1 Scheduler 的核心思路更统一：它跟踪每个请求已经计算到多少 token，以及当前请求总共需要处理多少 token，然后在每个调度步骤中给请求分配一段 token 工作。</p>
+        <p>官方架构说明特别指出：V1 Scheduler 内部没有独立的“Prefill 阶段”和“Decode 阶段”两个调度循环。请求记录自己的已计算 token 数；调度器在每一步分配 token，让已计算进度逐渐追上请求当前需要处理的 token 数。这种方式可以覆盖普通 Decode、Chunked Prefill、Prefix Cache 命中和 Speculative Decoding 等场景。</p>
+        <pre><code># 概念伪代码：帮助理解调度目标，不是 vLLM 的可执行源码
+for each engine_step:
+    token_budget = configured_budget
 
-    <section class="sources" id="sources"><h2>参考资料</h2><ol>
-      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — Scheduler</a>，V1 token budget 调度循环。</li>
-      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener noreferrer">Optimization and Tuning — Chunked Prefill</a>，Prefill / Decode 混合调度的取舍。</li>
-      <li>Yu et al., <a href="https://arxiv.org/abs/2308.16369" target="_blank" rel="noopener noreferrer">Orca: A Distributed Serving System for Transformer-Based Generative Models</a>，iteration-level scheduling 的相关研究背景。</li>
-    </ol><p><small>图中的 A、B、C、D 和时间线均为教学示例，不是性能测试结果。</small></p></section>
-    <footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="04.html">← 上一章：PagedAttention 下篇</a><a class="next" href="06.html">下一章：快速上手 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer>
-  </article></main>
+    for request in running_requests:
+        n = choose_tokens_to_process(request, token_budget)
+        schedule(request, n)
+        token_budget -= n
+
+    for request in waiting_requests:
+        if can_admit(request, token_budget, kv_cache):
+            n = choose_prefill_chunk(request, token_budget)
+            schedule(request, n)
+            token_budget -= n
+
+    execute_scheduled_tokens_on_gpu()
+    update_request_states()</code></pre>
+        <p>上面的伪代码只表达调度意图。实际实现还要处理优先级、请求状态、KV Cache 分配、编码器预算、投机 token、异步执行和多种并行模式。对配置参数的准确解释，应以所用版本的 <code>vllm serve --help</code> 和 Scheduler 文档为准。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>资源约束</th><th>它限制什么</th><th>调大时可能带来的代价</th></tr></thead>
+            <tbody>
+              <tr><td><code>max_num_batched_tokens</code></td><td>一轮可处理的 token 工作预算</td><td>单轮工作更大，可能改变延迟和 Prefill / Decode 之间的竞争</td></tr>
+              <tr><td><code>max_num_seqs</code></td><td>可同时处理的序列数量上限</td><td>更多并发请求可能占用更多 KV Cache</td></tr>
+              <tr><td>KV Cache blocks</td><td>请求能否继续保存其注意力状态</td><td>缓存耗尽时可能触发排队、拒绝或抢占路径</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="preemption">
+        <h2>5.5 KV Cache 不够时会怎样？</h2>
+        <p>Continuous Batching 不是只把请求塞进一个越来越大的 batch。每个运行请求都需要 KV Cache 保存上下文；如果缓存块不足，调度器可能无法为新的 token 工作分配空间。</p>
+        <p>当前 V1 的一种处理方式是抢占（preemption）：按调度策略选择一个正在运行的请求，释放它持有的 KV Cache blocks，并把它放回等待队列。该请求再次被接纳时，通常需要重新计算之前的进度，而不是默认把完整 KV Cache 换出到 CPU 后原样恢复。</p>
+        <div class="callout warning">
+          <p><strong>抢占不是免费的。</strong>它可以帮助系统在有限显存下继续调度，但被抢占请求可能需要重算，增加端到端延迟。因此，频繁抢占往往意味着并发、上下文长度、KV Cache 容量或 token budget 的组合需要重新评估。</p>
+        </div>
+        <p>排查时不要只看 GPU 利用率。还应同时观察 KV Cache 使用情况、抢占计数、请求队列长度、TTFT、ITL 和输出吞吐，才能判断瓶颈是计算、缓存容量还是调度竞争。</p>
+      </section>
+
+      <section id="tradeoffs">
+        <h2>5.6 吞吐、延迟与公平性：没有一个参数能同时最大化所有指标</h2>
+        <p>更积极地接纳请求，可能提高单位时间处理的 token 数；但更大的运行集合会消耗更多 KV Cache，也可能让新请求等待更久。较大的 Prefill chunk 可以更快处理长 Prompt，却可能挤占 Decode 请求本轮的 token budget；较小的 chunk 能更频繁地给 Decode 留出机会，却可能增加长 Prompt 完成 Prefill 所需的迭代数。</p>
+        <p>所以调参时应先明确服务目标：</p>
+        <ul>
+          <li><strong>交互式问答：</strong>通常更关注 TTFT、ITL 和 P95 / P99 尾延迟。</li>
+          <li><strong>离线批处理：</strong>通常更关注总吞吐、任务完成时间和资源成本。</li>
+          <li><strong>多租户服务：</strong>还要关注队列公平性、优先级、最大排队请求数和拒绝策略。</li>
+        </ul>
+        <p>不要直接复制网上的 <code>max_num_seqs=256</code>、<code>gpu_memory_utilization=0.95</code> 或某个固定“最佳 GPU 利用率”。合理参数取决于模型、GPU、上下文长度分布、并发、输出长度和服务目标。应该用代表真实流量的 workload 做基准测试，再逐步调整。</p>
+      </section>
+
+      <section id="recap">
+        <h2>本章自检</h2>
+        <ol>
+          <li>为什么一个短请求完成后，迭代级连续批处理可以让等待请求在后续步骤进入？</li>
+          <li>为什么不能把 V1 Scheduler 简单理解成两个完全分离的 Prefill / Decode 调度阶段？</li>
+          <li>当 KV Cache 不足时，为什么抢占后重新计算会增加延迟？</li>
+          <li>为什么提高最大并发数不一定提高真实业务的 Goodput？</li>
+        </ol>
+        <p>下一章将把这些机制落到实际环境：检查硬件和 Python 条件，安装与验证 vLLM，运行一个离线推理示例，再启动 OpenAI 兼容服务。</p>
+      </section>
+
+      <section class="sources" id="sources">
+        <h2>参考资料</h2>
+        <ol>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — Scheduler</a>。说明 V1 的 token-budget scheduling、FCFS / Priority 和 preemption。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/api/vllm/config/scheduler/" target="_blank" rel="noopener noreferrer">Scheduler Configuration Reference</a>。查询批处理 token 预算、序列上限和队列相关配置。</li>
+          <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener noreferrer">Optimization and Tuning</a>。说明 KV Cache 不足时的抢占和重算影响。</li>
+          <li>源码：<a href="https://github.com/vllm-project/vllm/blob/main/vllm/v1/core/sched/scheduler.py" target="_blank" rel="noopener noreferrer">V1 Scheduler</a>，可查看当前调度循环与 preemption 实现。</li>
+        </ol>
+        <p><small>请求长度和 Step 时间线均为教学构造，不是性能测试结果。</small></p>
+      </section>
+
+      <footer class="chapter-footer">
+        <nav class="chapter-nav" aria-label="章节导航"><a href="04.html">← 上一章：PagedAttention 下篇</a><a class="next" href="06.html">下一章：快速上手 →</a></nav>
+        <a class="back-to-top" href="#content">回到顶部 ↑</a>
+      </footer>
+    </article>
+  </main>
 </div>
 </body>
 </html>
