@@ -1,0 +1,1237 @@
+[
+  {
+    "num": "01",
+    "title": "LLM 推理基础",
+    "category": "fundamentals",
+    "slug": "llm-inference-basics",
+    "summary": "从自回归生成、Prefill/Decode 与 KV Cache，建立理解推理引擎的共同语言。",
+    "topics": [
+      "自回归生成",
+      "Prefill 与 Decode",
+      "KV Cache",
+      "显存估算"
+    ],
+    "level": "基础",
+    "minutes": 12,
+    "diagram": {
+      "type": "flow",
+      "title": "LLM 推理基础",
+      "nodes": [
+        "Prompt tokens",
+        "Prefill",
+        "KV Cache",
+        "Decode",
+        "Next token"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "PagedAttention 论文（SOSP 2023）",
+        "https://arxiv.org/abs/2309.06180",
+        "paper",
+        "Abstract；§2"
+      ],
+      [
+        "vLLM 架构概览",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/arch_overview.md",
+        "official-docs",
+        "Entrypoints；V1 Process Architecture"
+      ]
+    ],
+    "path": "posts/fundamentals/01-llm-inference-basics/index.html",
+    "legacyFile": "01.html",
+    "categoryLabel": "基础原理"
+  },
+  {
+    "num": "02",
+    "title": "vLLM 概述",
+    "category": "fundamentals",
+    "slug": "vllm-overview",
+    "summary": "理解 vLLM 要解决的服务问题，以及调度、KV Cache 与在线服务之间的关系。",
+    "topics": [
+      "项目背景",
+      "核心机制",
+      "在线服务",
+      "适用边界"
+    ],
+    "level": "基础",
+    "minutes": 10,
+    "diagram": {
+      "type": "pipeline",
+      "title": "vLLM 概述",
+      "nodes": [
+        "Client",
+        "API Server",
+        "Engine Core",
+        "GPU Workers",
+        "Streamed output"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "PagedAttention 论文（SOSP 2023）",
+        "https://arxiv.org/abs/2309.06180",
+        "paper",
+        "Abstract；Evaluation"
+      ],
+      [
+        "vLLM 架构概览",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/arch_overview.md",
+        "official-docs",
+        "Entrypoints；V1 Process Architecture"
+      ]
+    ],
+    "path": "posts/fundamentals/02-vllm-overview/index.html",
+    "legacyFile": "02.html",
+    "categoryLabel": "基础原理"
+  },
+  {
+    "num": "03",
+    "title": "PagedAttention 上篇：虚拟内存与 Block Table",
+    "category": "core-mechanisms",
+    "slug": "pagedattention-memory-management",
+    "summary": "用操作系统分页作类比，理解逻辑 token 如何映射到非连续的物理 KV Cache blocks。",
+    "topics": [
+      "KV Cache 碎片",
+      "分页思想",
+      "Block Table",
+      "按需分配"
+    ],
+    "level": "进阶",
+    "minutes": 16,
+    "diagram": {
+      "type": "mapping",
+      "title": "PagedAttention 上篇：虚拟内存与 Block Table",
+      "nodes": [
+        "Logical 0",
+        "Logical 1",
+        "Logical 2",
+        "Physical 7",
+        "Physical 3",
+        "Physical 12"
+      ]
+    },
+    "demo": "block-allocator",
+    "sources": [
+      [
+        "PagedAttention 论文（SOSP 2023）",
+        "https://arxiv.org/abs/2309.06180",
+        "paper",
+        "§2；§3"
+      ],
+      [
+        "vLLM PagedAttention 实现",
+        "https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/ops/paged_attn.py",
+        "source-code",
+        "PagedAttention.split_kv_cache；write_to_paged_cache"
+      ]
+    ],
+    "path": "posts/core-mechanisms/03-pagedattention-memory-management/index.html",
+    "legacyFile": "03.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "04",
+    "title": "PagedAttention 下篇：Slot Mapping 与共享",
+    "category": "core-mechanisms",
+    "slug": "pagedattention-kernel-mechanics",
+    "summary": "继续追踪 KV Cache 写入与读取路径，区分 Block Table、slot mapping 和前缀块共享。",
+    "topics": [
+      "Slot Mapping",
+      "KV 写入路径",
+      "Prefix Block Sharing",
+      "Block Size"
+    ],
+    "level": "进阶",
+    "minutes": 15,
+    "diagram": {
+      "type": "mapping",
+      "title": "PagedAttention 下篇：Slot Mapping 与共享",
+      "nodes": [
+        "Token index",
+        "Slot mapping",
+        "Physical slot",
+        "KV cache",
+        "Attention read"
+      ]
+    },
+    "demo": "block-allocator",
+    "sources": [
+      [
+        "vLLM PagedAttention 实现",
+        "https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/ops/paged_attn.py",
+        "source-code",
+        "write_to_paged_cache"
+      ],
+      [
+        "vLLM KV Cache 设计",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/hybrid_kv_cache_manager.md",
+        "official-docs",
+        "Definitions；Allocation"
+      ]
+    ],
+    "path": "posts/core-mechanisms/04-pagedattention-kernel-mechanics/index.html",
+    "legacyFile": "04.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "05",
+    "title": "Continuous Batching：迭代级动态批处理",
+    "category": "core-mechanisms",
+    "slug": "continuous-batching",
+    "summary": "理解请求完成后如何释放资源并接纳新请求，以及调度粒度如何影响吞吐与延迟。",
+    "topics": [
+      "静态批处理",
+      "Iteration-level Scheduling",
+      "请求生命周期",
+      "吞吐与延迟"
+    ],
+    "level": "进阶",
+    "minutes": 13,
+    "diagram": {
+      "type": "timeline",
+      "title": "Continuous Batching：迭代级动态批处理",
+      "nodes": [
+        "A prefill",
+        "A decode",
+        "A finished",
+        "D admitted",
+        "B continues"
+      ]
+    },
+    "demo": "batch-scheduler",
+    "sources": [
+      [
+        "vLLM V1 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/usage/v1_guide.md",
+        "official-docs",
+        "Unified scheduler；Chunked Prefill"
+      ],
+      [
+        "vLLM Scheduler 配置",
+        "https://github.com/vllm-project/vllm/blob/main/vllm/config/scheduler.py",
+        "source-code",
+        "SchedulerConfig"
+      ]
+    ],
+    "path": "posts/core-mechanisms/05-continuous-batching/index.html",
+    "legacyFile": "05.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "06",
+    "title": "快速上手：安装、离线推理与在线服务",
+    "category": "getting-started",
+    "slug": "install-and-serve",
+    "summary": "从环境检查到启动 vLLM 服务，建立一条可复现的最小运行路径。",
+    "topics": [
+      "环境检查",
+      "安装",
+      "LLM Python API",
+      "OpenAI 兼容 API"
+    ],
+    "level": "基础",
+    "minutes": 14,
+    "diagram": {
+      "type": "pipeline",
+      "title": "快速上手：安装、离线推理与在线服务",
+      "nodes": [
+        "Check hardware",
+        "Install vLLM",
+        "Load model",
+        "Start server",
+        "Send request"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM CLI 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/cli/README.md",
+        "official-docs",
+        "serve；bench"
+      ],
+      [
+        "vLLM 在线服务文档",
+        "https://docs.vllm.ai/en/latest/serving/online_serving/",
+        "official-docs",
+        "OpenAI-compatible server"
+      ]
+    ],
+    "path": "posts/getting-started/06-install-and-serve/index.html",
+    "legacyFile": "06.html",
+    "categoryLabel": "入门实践"
+  },
+  {
+    "num": "07",
+    "title": "模型加载与配置",
+    "category": "getting-started",
+    "slug": "model-loading-configuration",
+    "summary": "理解模型来源、权重格式、显存预算和常见启动参数之间的关系。",
+    "topics": [
+      "模型来源",
+      "显存预算",
+      "量化格式",
+      "模型下载与认证"
+    ],
+    "level": "基础",
+    "minutes": 13,
+    "diagram": {
+      "type": "stack",
+      "title": "模型加载与配置",
+      "nodes": [
+        "Model ID / local path",
+        "Tokenizer & config",
+        "Weight loader",
+        "Quantization backend",
+        "GPU memory plan"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM CLI 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/cli/README.md",
+        "official-docs",
+        "serve command"
+      ],
+      [
+        "vLLM 支持模型列表",
+        "https://docs.vllm.ai/en/latest/models/supported_models/",
+        "official-docs",
+        "Supported models"
+      ]
+    ],
+    "path": "posts/getting-started/07-model-loading-configuration/index.html",
+    "legacyFile": "07.html",
+    "categoryLabel": "入门实践"
+  },
+  {
+    "num": "08",
+    "title": "KV Cache 管理与容量估算",
+    "category": "core-mechanisms",
+    "slug": "kv-cache-management",
+    "summary": "从模型层数、KV heads、head dimension 和数据类型估算每 token 的缓存开销。",
+    "topics": [
+      "KV Cache 公式",
+      "GQA 与 MQA",
+      "Block Pool",
+      "KV Cache dtype"
+    ],
+    "level": "进阶",
+    "minutes": 16,
+    "diagram": {
+      "type": "formula",
+      "title": "KV Cache 管理与容量估算",
+      "nodes": [
+        "Layers",
+        "KV heads",
+        "Head dim",
+        "K + V",
+        "Dtype bytes"
+      ]
+    },
+    "demo": "kv-estimator",
+    "sources": [
+      [
+        "vLLM CacheConfig",
+        "https://docs.vllm.ai/en/latest/api/vllm/config/",
+        "official-docs",
+        "CacheConfig attributes"
+      ],
+      [
+        "vLLM Hybrid KV Cache Manager",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/hybrid_kv_cache_manager.md",
+        "official-docs",
+        "Definitions；Allocation"
+      ]
+    ],
+    "path": "posts/core-mechanisms/08-kv-cache-management/index.html",
+    "legacyFile": "08.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "09",
+    "title": "Automatic Prefix Caching：自动前缀缓存",
+    "category": "core-mechanisms",
+    "slug": "automatic-prefix-caching",
+    "summary": "理解共享前缀如何复用 KV Cache，以及缓存命中受 token 前缀、块边界和路由影响的原因。",
+    "topics": [
+      "共享前缀",
+      "Cache Hit",
+      "Hash 与 Block Boundary",
+      "适用场景"
+    ],
+    "level": "进阶",
+    "minutes": 14,
+    "diagram": {
+      "type": "cache",
+      "title": "Automatic Prefix Caching：自动前缀缓存",
+      "nodes": [
+        "Shared prefix",
+        "Cached KV blocks",
+        "Request A suffix",
+        "Request B suffix"
+      ]
+    },
+    "demo": "prefix-cache",
+    "sources": [
+      [
+        "Automatic Prefix Caching",
+        "https://github.com/vllm-project/vllm/blob/main/docs/features/automatic_prefix_caching.md",
+        "official-docs",
+        "Introduction；Enabling APC"
+      ],
+      [
+        "Prefix Caching 设计",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/prefix_caching.md",
+        "official-docs",
+        "Hashing；Block sharing"
+      ]
+    ],
+    "path": "posts/core-mechanisms/09-automatic-prefix-caching/index.html",
+    "legacyFile": "09.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "10",
+    "title": "Scheduler：请求如何进入下一轮计算",
+    "category": "core-mechanisms",
+    "slug": "scheduler",
+    "summary": "拆解 waiting、running、finished 请求状态，以及 FCFS、priority 和资源抢占的边界。",
+    "topics": [
+      "请求状态",
+      "FCFS",
+      "Priority",
+      "Preemption"
+    ],
+    "level": "进阶",
+    "minutes": 14,
+    "diagram": {
+      "type": "timeline",
+      "title": "Scheduler：请求如何进入下一轮计算",
+      "nodes": [
+        "Inspect running",
+        "Budget tokens",
+        "Admit waiting",
+        "Execute step",
+        "Update states"
+      ]
+    },
+    "demo": "batch-scheduler",
+    "sources": [
+      [
+        "vLLM V1 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/usage/v1_guide.md",
+        "official-docs",
+        "Unified scheduler"
+      ],
+      [
+        "vLLM Scheduler 配置",
+        "https://github.com/vllm-project/vllm/blob/main/vllm/config/scheduler.py",
+        "source-code",
+        "Scheduling policy；token budgets"
+      ]
+    ],
+    "path": "posts/core-mechanisms/10-scheduler/index.html",
+    "legacyFile": "10.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "11",
+    "title": "Chunked Prefill：长 Prompt 的分块调度",
+    "category": "core-mechanisms",
+    "slug": "chunked-prefill",
+    "summary": "理解长 Prompt 为什么会影响其他请求的 decode，以及 token budget 如何把 prefill 拆成多个调度步骤。",
+    "topics": [
+      "长 Prompt",
+      "Token Budget",
+      "Decode Interference",
+      "配置权衡"
+    ],
+    "level": "进阶",
+    "minutes": 13,
+    "diagram": {
+      "type": "timeline",
+      "title": "Chunked Prefill：长 Prompt 的分块调度",
+      "nodes": [
+        "Chunk 1",
+        "Decode batch",
+        "Chunk 2",
+        "Decode batch",
+        "Chunk 3"
+      ]
+    },
+    "demo": "chunk-simulator",
+    "sources": [
+      [
+        "vLLM V1 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/usage/v1_guide.md",
+        "official-docs",
+        "Chunked Prefill"
+      ],
+      [
+        "Scheduler 配置",
+        "https://github.com/vllm-project/vllm/blob/main/vllm/config/scheduler.py",
+        "source-code",
+        "max_num_batched_tokens"
+      ]
+    ],
+    "path": "posts/core-mechanisms/11-chunked-prefill/index.html",
+    "legacyFile": "11.html",
+    "categoryLabel": "核心机制"
+  },
+  {
+    "num": "12",
+    "title": "V1 架构：API Server、Engine Core 与 GPU Workers",
+    "category": "architecture",
+    "slug": "vllm-v1-architecture",
+    "summary": "以当前官方进程架构为准，梳理 API Server、Engine Core、GPU Worker 和 DP Coordinator 的职责。",
+    "topics": [
+      "API Server",
+      "Engine Core",
+      "GPU Worker",
+      "DP Coordinator"
+    ],
+    "level": "进阶",
+    "minutes": 16,
+    "diagram": {
+      "type": "architecture",
+      "title": "V1 架构：API Server、Engine Core 与 GPU Workers",
+      "nodes": [
+        "API Server",
+        "Engine Core",
+        "GPU Worker × TP/PP",
+        "DP Coordinator",
+        "GPU execution"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM 架构概览",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/arch_overview.md",
+        "official-docs",
+        "V1 Process Architecture"
+      ],
+      [
+        "vLLM V1 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/usage/v1_guide.md",
+        "official-docs",
+        "Differences from V0"
+      ]
+    ],
+    "path": "posts/architecture/12-vllm-v1-architecture/index.html",
+    "legacyFile": "12.html",
+    "categoryLabel": "架构设计"
+  },
+  {
+    "num": "13",
+    "title": "V1 行为变化与迁移检查",
+    "category": "architecture",
+    "slug": "vllm-v1-migration",
+    "summary": "聚焦 V0 到 V1 的 API 与行为差异，建立升级前必须逐项验证的清单。",
+    "topics": [
+      "V0 弃用",
+      "Sampling 差异",
+      "Logprobs",
+      "Removed Features"
+    ],
+    "level": "进阶",
+    "minutes": 12,
+    "diagram": {
+      "type": "compare",
+      "title": "V1 行为变化与迁移检查",
+      "nodes": [
+        "V0 behavior",
+        "API changes",
+        "Removed features",
+        "V1 behavior"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM V1 指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/usage/v1_guide.md",
+        "official-docs",
+        "Differences from V0；Removed Features"
+      ],
+      [
+        "RFC #18571",
+        "https://github.com/vllm-project/vllm/issues/18571",
+        "rfc",
+        "V1 architecture rework"
+      ]
+    ],
+    "path": "posts/architecture/13-vllm-v1-migration/index.html",
+    "legacyFile": "13.html",
+    "categoryLabel": "架构设计"
+  },
+  {
+    "num": "14",
+    "title": "Sampling 与结构化生成控制",
+    "category": "getting-started",
+    "slug": "sampling-and-structured-output",
+    "summary": "理解 temperature、top-p、停止条件、logprobs 和 Structured Outputs 的实际作用。",
+    "topics": [
+      "Temperature",
+      "Top-p / Top-k",
+      "Logprobs",
+      "Structured Outputs"
+    ],
+    "level": "进阶",
+    "minutes": 13,
+    "diagram": {
+      "type": "flow",
+      "title": "Sampling 与结构化生成控制",
+      "nodes": [
+        "Logits",
+        "Logit processors",
+        "Sampling filters",
+        "Sample token"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Structured Outputs",
+        "https://docs.vllm.ai/en/latest/features/structured_outputs/",
+        "official-docs",
+        "Structured Outputs；Migration"
+      ],
+      [
+        "vLLM Sampling Parameters",
+        "https://docs.vllm.ai/en/latest/api/vllm/sampling_params/",
+        "official-docs",
+        "SamplingParams"
+      ]
+    ],
+    "path": "posts/getting-started/14-sampling-and-structured-output/index.html",
+    "legacyFile": "14.html",
+    "categoryLabel": "入门实践"
+  },
+  {
+    "num": "15",
+    "title": "生产级部署：容器、资源与高可用",
+    "category": "production",
+    "slug": "production-deployment",
+    "summary": "把模型服务放入生产环境时，如何处理镜像版本、资源规划、网络入口与故障恢复。",
+    "topics": [
+      "Docker",
+      "GPU Memory Planning",
+      "Reverse Proxy",
+      "Health Checks"
+    ],
+    "level": "进阶",
+    "minutes": 15,
+    "diagram": {
+      "type": "architecture",
+      "title": "生产级部署：容器、资源与高可用",
+      "nodes": [
+        "Client",
+        "Gateway / Auth",
+        "vLLM replica",
+        "GPU node",
+        "Metrics & logs"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Docker 部署",
+        "https://docs.vllm.ai/en/latest/deployment/docker/",
+        "official-docs",
+        "Docker deployment"
+      ],
+      [
+        "vLLM 在线服务",
+        "https://docs.vllm.ai/en/latest/serving/online_serving/",
+        "official-docs",
+        "Server deployment"
+      ]
+    ],
+    "path": "posts/production/15-production-deployment/index.html",
+    "legacyFile": "15.html",
+    "categoryLabel": "生产运维"
+  },
+  {
+    "num": "16",
+    "title": "Kubernetes 与 vLLM Production Stack",
+    "category": "production",
+    "slug": "kubernetes-production-stack",
+    "summary": "认识官方 Production Stack 的 Serving Engine、Router、Helm 部署和可观测组件。",
+    "topics": [
+      "Helm Chart",
+      "Serving Engine",
+      "Router",
+      "Prometheus / Grafana"
+    ],
+    "level": "进阶",
+    "minutes": 16,
+    "diagram": {
+      "type": "architecture",
+      "title": "Kubernetes 与 vLLM Production Stack",
+      "nodes": [
+        "Ingress",
+        "Router",
+        "Serving engines",
+        "GPU workers",
+        "Prometheus / Grafana"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Production Stack",
+        "https://github.com/vllm-project/production-stack",
+        "official-project",
+        "README；Architecture"
+      ],
+      [
+        "Production Stack Helm Chart",
+        "https://github.com/vllm-project/production-stack/blob/main/helm/README.md",
+        "official-docs",
+        "Values reference"
+      ],
+      [
+        "vLLM Production Stack 集成指南",
+        "https://github.com/vllm-project/vllm/blob/main/docs/deployment/integrations/production-stack.md",
+        "official-docs",
+        "Deployment"
+      ]
+    ],
+    "path": "posts/production/16-kubernetes-production-stack/index.html",
+    "legacyFile": "16.html",
+    "categoryLabel": "生产运维"
+  },
+  {
+    "num": "17",
+    "title": "可观测性：指标、日志与告警",
+    "category": "production",
+    "slug": "observability-metrics",
+    "summary": "从服务延迟、请求队列、KV Cache 与 GPU 资源出发，建立可解释的监控体系。",
+    "topics": [
+      "/metrics",
+      "TTFT / TPOT",
+      "KV Cache",
+      "Alerting"
+    ],
+    "level": "进阶",
+    "minutes": 14,
+    "diagram": {
+      "type": "dashboard",
+      "title": "可观测性：指标、日志与告警",
+      "nodes": [
+        "GPU / host",
+        "Engine metrics",
+        "Request latency",
+        "Service SLO"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Production Metrics",
+        "https://github.com/vllm-project/vllm/blob/main/docs/usage/metrics.md",
+        "official-docs",
+        "Production Metrics"
+      ],
+      [
+        "Production Stack README",
+        "https://github.com/vllm-project/production-stack",
+        "official-project",
+        "Grafana Dashboard"
+      ]
+    ],
+    "path": "posts/production/17-observability-metrics/index.html",
+    "legacyFile": "17.html",
+    "categoryLabel": "生产运维"
+  },
+  {
+    "num": "18",
+    "title": "安全与访问控制",
+    "category": "production",
+    "slug": "security-access-control",
+    "summary": "区分推理引擎、API Gateway 与业务应用的安全职责，避免把模型服务直接暴露给不可信流量。",
+    "topics": [
+      "API Key",
+      "TLS",
+      "Rate Limiting",
+      "Prompt Injection"
+    ],
+    "level": "进阶",
+    "minutes": 13,
+    "diagram": {
+      "type": "layers",
+      "title": "安全与访问控制",
+      "nodes": [
+        "Untrusted clients",
+        "TLS / Gateway",
+        "Authentication & limits",
+        "Private vLLM service",
+        "Model / data boundary"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM 在线服务文档",
+        "https://docs.vllm.ai/en/latest/serving/online_serving/",
+        "official-docs",
+        "API server arguments"
+      ],
+      [
+        "OWASP Top 10 for LLM Applications",
+        "https://genai.owasp.org/llm-top-10/",
+        "security-standard",
+        "Prompt Injection；Sensitive Information Disclosure"
+      ]
+    ],
+    "path": "posts/production/18-security-access-control/index.html",
+    "legacyFile": "18.html",
+    "categoryLabel": "生产运维"
+  },
+  {
+    "num": "19",
+    "title": "张量并行：把单层计算分布到多张 GPU",
+    "category": "advanced",
+    "slug": "tensor-parallelism",
+    "summary": "理解 Tensor Parallel 如何切分权重与计算，以及通信拓扑为何决定实际性能。",
+    "topics": [
+      "Column / Row Parallel",
+      "All-Reduce",
+      "NCCL",
+      "NVLink / PCIe"
+    ],
+    "level": "高级",
+    "minutes": 16,
+    "diagram": {
+      "type": "parallel",
+      "title": "张量并行：把单层计算分布到多张 GPU",
+      "nodes": [
+        "Input",
+        "GPU 0 shard",
+        "GPU 1 shard",
+        "GPU 2 shard",
+        "GPU 3 shard",
+        "Collective"
+      ]
+    },
+    "demo": "parallelism",
+    "sources": [
+      [
+        "vLLM Parallelism and Scaling",
+        "https://github.com/vllm-project/vllm/blob/main/docs/serving/parallelism_scaling.md",
+        "official-docs",
+        "Distributed inference strategies"
+      ],
+      [
+        "Megatron-LM",
+        "https://arxiv.org/abs/1909.08053",
+        "paper",
+        "Tensor Model Parallelism"
+      ]
+    ],
+    "path": "posts/advanced/19-tensor-parallelism/index.html",
+    "legacyFile": "19.html",
+    "categoryLabel": "进阶专题"
+  },
+  {
+    "num": "20",
+    "title": "流水线并行、数据并行与专家并行",
+    "category": "advanced",
+    "slug": "pipeline-data-parallelism",
+    "summary": "比较 TP、PP、DP 与 EP 的切分对象、通信方式和适用条件。",
+    "topics": [
+      "Pipeline Parallel",
+      "Data Parallel",
+      "Expert Parallel",
+      "Hybrid Layout"
+    ],
+    "level": "高级",
+    "minutes": 16,
+    "diagram": {
+      "type": "parallel",
+      "title": "流水线并行、数据并行与专家并行",
+      "nodes": [
+        "Model layers",
+        "TP shards",
+        "PP stages",
+        "DP replicas",
+        "Request router"
+      ]
+    },
+    "demo": "parallelism",
+    "sources": [
+      [
+        "vLLM Parallelism and Scaling",
+        "https://github.com/vllm-project/vllm/blob/main/docs/serving/parallelism_scaling.md",
+        "official-docs",
+        "Distributed inference strategies；MoE"
+      ],
+      [
+        "Megatron-LM",
+        "https://arxiv.org/abs/1909.08053",
+        "paper",
+        "Tensor Model Parallelism"
+      ]
+    ],
+    "path": "posts/advanced/20-pipeline-data-parallelism/index.html",
+    "legacyFile": "20.html",
+    "categoryLabel": "进阶专题"
+  },
+  {
+    "num": "21",
+    "title": "推测解码：用验证换取更少的串行步数",
+    "category": "advanced",
+    "slug": "speculative-decoding",
+    "summary": "理解 draft 与 target 的协作机制，以及不同 speculative 方法在不同负载下的权衡。",
+    "topics": [
+      "Draft / Target",
+      "Acceptance Rate",
+      "N-gram",
+      "EAGLE / MTP"
+    ],
+    "level": "高级",
+    "minutes": 16,
+    "diagram": {
+      "type": "branch",
+      "title": "推测解码：用验证换取更少的串行步数",
+      "nodes": [
+        "Draft tokens",
+        "Target verification",
+        "Accepted prefix",
+        "Correction token"
+      ]
+    },
+    "demo": "speculative",
+    "sources": [
+      [
+        "vLLM Speculative Decoding",
+        "https://github.com/vllm-project/vllm/blob/main/docs/features/speculative_decoding/README.md",
+        "official-docs",
+        "Method Selection at a Glance"
+      ],
+      [
+        "Speculative Decoding",
+        "https://arxiv.org/abs/2302.01318",
+        "paper",
+        "Algorithm；Acceptance"
+      ]
+    ],
+    "path": "posts/advanced/21-speculative-decoding/index.html",
+    "legacyFile": "21.html",
+    "categoryLabel": "进阶专题"
+  },
+  {
+    "num": "22",
+    "title": "多模态推理：图像、视频与音频输入",
+    "category": "advanced",
+    "slug": "multimodal-inference",
+    "summary": "理解多模态输入如何进入模型的处理链路，以及模型、预处理和资源限制为何必须一起核验。",
+    "topics": [
+      "Vision Encoder",
+      "Multimodal Tokens",
+      "Video / Audio",
+      "Model Support"
+    ],
+    "level": "高级",
+    "minutes": 15,
+    "diagram": {
+      "type": "pipeline",
+      "title": "多模态推理：图像、视频与音频输入",
+      "nodes": [
+        "Image / video / audio",
+        "Processor",
+        "Modality embeddings",
+        "LLM backbone",
+        "Output"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Supported Models",
+        "https://docs.vllm.ai/en/latest/models/supported_models/",
+        "official-docs",
+        "Model support"
+      ],
+      [
+        "vLLM Multimodal Inputs",
+        "https://docs.vllm.ai/en/latest/features/multimodal_inputs/",
+        "official-docs",
+        "Multimodal inputs"
+      ]
+    ],
+    "path": "posts/advanced/22-multimodal-inference/index.html",
+    "legacyFile": "22.html",
+    "categoryLabel": "进阶专题"
+  },
+  {
+    "num": "23",
+    "title": "nano-vLLM 源码剖析：构建最小推理引擎",
+    "category": "advanced",
+    "slug": "nano-vllm-source-walkthrough",
+    "summary": "通过独立的小型实现观察请求状态、调度、KV Cache 和模型执行之间的关系。",
+    "topics": [
+      "LLM Engine",
+      "Scheduler",
+      "Block Table",
+      "Triton Kernel"
+    ],
+    "level": "高级",
+    "minutes": 18,
+    "diagram": {
+      "type": "architecture",
+      "title": "nano-vLLM 源码剖析：构建最小推理引擎",
+      "nodes": [
+        "LLM API",
+        "Scheduler",
+        "Block manager",
+        "Model runner",
+        "GPU kernels"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "nano-vLLM 上游仓库",
+        "https://github.com/GeeeekExplorer/nano-vllm",
+        "source-code",
+        "Repository README；pin a commit before code-level claims"
+      ],
+      [
+        "vLLM 架构概览",
+        "https://github.com/vllm-project/vllm/blob/main/docs/design/arch_overview.md",
+        "official-docs",
+        "V1 Process Architecture"
+      ]
+    ],
+    "path": "posts/advanced/23-nano-vllm-source-walkthrough/index.html",
+    "legacyFile": "23.html",
+    "categoryLabel": "进阶专题"
+  },
+  {
+    "num": "24",
+    "title": "调试与问题排查",
+    "category": "production",
+    "slug": "debugging-troubleshooting",
+    "summary": "按症状建立排查顺序：先确认资源与版本，再定位模型加载、通信、缓存和请求路径。",
+    "topics": [
+      "CUDA OOM",
+      "NCCL",
+      "Model Loading",
+      "Performance Regression"
+    ],
+    "level": "进阶",
+    "minutes": 14,
+    "diagram": {
+      "type": "flow",
+      "title": "调试与问题排查",
+      "nodes": [
+        "Symptom",
+        "Collect version & logs",
+        "Check GPU / network",
+        "Isolate config",
+        "Reproduce & fix"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Troubleshooting",
+        "https://docs.vllm.ai/en/latest/usage/troubleshooting/",
+        "official-docs",
+        "Troubleshooting"
+      ],
+      [
+        "vLLM CLI Guide",
+        "https://github.com/vllm-project/vllm/blob/main/docs/cli/README.md",
+        "official-docs",
+        "collect-env"
+      ]
+    ],
+    "path": "posts/production/24-debugging-troubleshooting/index.html",
+    "legacyFile": "24.html",
+    "categoryLabel": "生产运维"
+  },
+  {
+    "num": "25",
+    "title": "性能基准测试：建立可复现的测量",
+    "category": "production",
+    "slug": "benchmarking",
+    "summary": "用固定模型、硬件、请求分布和指标定义建立基线，避免把不同负载下的数字直接比较。",
+    "topics": [
+      "Throughput",
+      "TTFT / TPOT",
+      "vllm bench",
+      "GuideLLM"
+    ],
+    "level": "进阶",
+    "minutes": 16,
+    "diagram": {
+      "type": "dashboard",
+      "title": "性能基准测试：建立可复现的测量",
+      "nodes": [
+        "Model & revision",
+        "Hardware & software",
+        "Workload distribution",
+        "Latency & throughput",
+        "Repeated runs"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Benchmark CLI",
+        "https://github.com/vllm-project/vllm/blob/main/docs/benchmarking/cli.md",
+        "official-docs",
+        "Benchmark CLI"
+      ],
+      [
+        "GuideLLM",
+        "https://github.com/vllm-project/guidellm",
+        "benchmark-tool",
+        "README；Serving benchmarks"
+      ]
+    ],
+    "path": "posts/production/25-benchmarking/index.html",
+    "legacyFile": "25.html",
+    "categoryLabel": "生产运维"
+  },
+  {
+    "num": "26",
+    "title": "技术趋势与持续跟进方法",
+    "category": "advanced",
+    "slug": "roadmap-and-trends",
+    "summary": "把论文、RFC、发布说明和代码变化分层阅读，区分已经发布的能力与仍在讨论的方向。",
+    "topics": [
+      "Release Notes",
+      "RFC",
+      "Research Papers",
+      "Feature Maturity"
+    ],
+    "level": "进阶",
+    "minutes": 10,
+    "diagram": {
+      "type": "timeline",
+      "title": "技术趋势与持续跟进方法",
+      "nodes": [
+        "Research paper",
+        "RFC / proposal",
+        "Merged code",
+        "Released docs",
+        "Measured in production"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Releases",
+        "https://github.com/vllm-project/vllm/releases",
+        "official-project",
+        "Release history"
+      ],
+      [
+        "vLLM RFCs and issues",
+        "https://github.com/vllm-project/vllm/issues",
+        "official-project",
+        "RFC / issue discussions"
+      ]
+    ],
+    "path": "posts/advanced/26-roadmap-and-trends/index.html",
+    "legacyFile": "26.html",
+    "categoryLabel": "进阶专题"
+  },
+  {
+    "num": "27",
+    "title": "实战项目：搭建带缓存意识的 RAG 推理服务",
+    "category": "projects",
+    "slug": "rag-inference-service",
+    "summary": "串联检索、Prompt 构造、vLLM 服务与引用返回，并正确安排可复用的静态前缀。",
+    "topics": [
+      "Embedding",
+      "Vector Search",
+      "Prompt Layout",
+      "Prefix Cache"
+    ],
+    "level": "高级",
+    "minutes": 20,
+    "diagram": {
+      "type": "architecture",
+      "title": "实战项目：搭建带缓存意识的 RAG 推理服务",
+      "nodes": [
+        "User query",
+        "Retriever",
+        "Context builder",
+        "vLLM API",
+        "Answer + sources"
+      ]
+    },
+    "demo": "prefix-cache",
+    "sources": [
+      [
+        "Automatic Prefix Caching",
+        "https://github.com/vllm-project/vllm/blob/main/docs/features/automatic_prefix_caching.md",
+        "official-docs",
+        "Example workloads"
+      ],
+      [
+        "vLLM Online Serving",
+        "https://docs.vllm.ai/en/latest/serving/online_serving/",
+        "official-docs",
+        "Chat Completions API"
+      ]
+    ],
+    "path": "posts/projects/27-rag-inference-service/index.html",
+    "legacyFile": "27.html",
+    "categoryLabel": "实战项目"
+  },
+  {
+    "num": "28",
+    "title": "课程总结与进阶学习路线",
+    "category": "projects",
+    "slug": "learning-roadmap",
+    "summary": "把核心机制串成知识图谱，并给出从原理、源码到生产验证的后续学习顺序。",
+    "topics": [
+      "知识图谱",
+      "核心概念",
+      "源码路线",
+      "进阶资源"
+    ],
+    "level": "基础",
+    "minutes": 9,
+    "diagram": {
+      "type": "map",
+      "title": "课程总结与进阶学习路线",
+      "nodes": [
+        "Foundations",
+        "Memory & scheduling",
+        "Architecture",
+        "Deployment",
+        "Measure & iterate"
+      ]
+    },
+    "demo": null,
+    "sources": [
+      [
+        "vLLM Documentation",
+        "https://docs.vllm.ai/en/latest/",
+        "official-docs",
+        "Documentation index"
+      ],
+      [
+        "vLLM GitHub Repository",
+        "https://github.com/vllm-project/vllm",
+        "official-project",
+        "Source code；releases"
+      ]
+    ],
+    "path": "posts/projects/28-learning-roadmap/index.html",
+    "legacyFile": "28.html",
+    "categoryLabel": "实战项目"
+  }
+]

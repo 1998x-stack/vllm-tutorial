@@ -1,0 +1,3 @@
+# vLLM mechanism review
+
+KV Cache formula: `2 × layers × KV heads × head dimension × bytes per element`, only under stated attention-layout assumptions. PagedAttention: distinguish logical sequence positions, block-table entries, physical block IDs and slot mapping. Scheduler: iteration-level token budget is not a fixed chunk size; FCFS / priority are policies, preemption is resource management. V1: API Server, Engine Core, GPU Workers, conditional DP Coordinator. TP / PP / DP / EP partition different things. Speculative decoding gains depend on draft cost, acceptance, verification, QPS and hardware. Multimodal support is model-specific. Metrics names are version-sensitive.
