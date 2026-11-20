@@ -1,215 +1,101 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第4章 PagedAttention下篇</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="区分 Paged KV Cache 的 slot mapping 写入路径、Block Table 读取路径、Prefix Cache 和 Attention backend。">
+  <title>第 04 章｜PagedAttention 下篇：写入、读取与缓存共享</title>
+  <link rel="stylesheet" href="assets/css/article.css">
 </head>
-<body>
-<div class="double-border">
-<div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li>
-            <li><a href="02.html">第2章 vLLM概述</a></li>
-            <li><a href="03.html">第3章 PagedAttention上篇</a></li>
-            <li><a href="04.html" class="active">第4章 PagedAttention下篇</a></li>
-            <li><a href="05.html">第5章 Continuous Batching</a></li>
-            <li><a href="06.html">第6章 快速上手</a></li>
-            <li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li>
-            <li><a href="09.html">第9章 Prefix Caching</a></li>
-            <li><a href="10.html">第10章 调度器详解</a></li>
-            <li><a href="11.html">第11章 Chunked Prefill</a></li>
-            <li><a href="12.html">第12章 V1架构上篇</a></li>
-            <li><a href="13.html">第13章 V1架构下篇</a></li>
-            <li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li>
-            <li><a href="16.html">第16章 Kubernetes部署</a></li>
-            <li><a href="17.html">第17章 可观测性</a></li>
-            <li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li>
-            <li><a href="20.html">第20章 流水线与数据并行</a></li>
-            <li><a href="21.html">第21章 推测解码</a></li>
-            <li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li>
-            <li><a href="24.html">第24章 调试与问题排查</a></li>
-            <li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li>
-            <li><a href="27.html">第27章 实战项目</a></li>
-            <li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第4章 PagedAttention 下篇：实现细节与优化</h2>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener noreferrer">Prefix Cache 文档 ↗</a></nav></div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol>
+    <li><a href="#two-paths">4.1 写入与读取是两条路径</a></li><li><a href="#slot">4.2 slot mapping：写到哪里</a></li><li><a href="#attention">4.3 Attention backend：如何读取</a></li><li><a href="#prefix">4.4 Prefix Cache：复用完整块</a></li><li><a href="#cow">4.5 Copy-on-Write 与前缀缓存</a></li><li><a href="#tradeoff">4.6 工程取舍与边界</a></li>
+  </ol></nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 04 章 · KV Cache 与内存管理</p>
+      <h1>PagedAttention 下篇：写入、读取与缓存共享</h1>
+      <p class="article-dek">上一章我们已经能用 Block Table 找到一个 token 对应的物理块。本章继续向下追踪：新算出来的 K/V 如何写进缓存？Attention 如何读取分散的块？相同前缀又如何被多个请求复用？</p>
+      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 18 分钟</span><span class="meta-chip">前置章节：03</span></div>
+    </header>
+    <p class="article-lead">最容易混淆的是两个名字：<strong>slot mapping</strong> 和 <strong>Block Table</strong>。它们都参与 KV Cache 的寻址，但回答的问题不同：slot mapping 主要帮助写入新 token 的 K/V；Block Table 则让读取路径根据请求的逻辑块找到物理 KV blocks。</p>
+    <div class="outcomes"><h2>读完这一章，你应该能够</h2><ul>
+      <li>区分 KV Cache 写入槽位映射与请求级 Block Table。</li>
+      <li>解释 Attention backend 如何在分页布局中读取历史 K/V。</li>
+      <li>说明 Prefix Cache 如何利用已计算的完整 KV blocks。</li>
+      <li>区分 Copy-on-Write、前缀缓存和 Attention 计算优化。</li>
+    </ul></div>
+    <figure class="diagram"><img src="assets/diagrams/04-kv-write-read-path.svg" alt="新 token 通过 slot mapping 写入 KV Cache，Attention backend 通过 Block Table 读取历史 K/V 的流程图"><figcaption>图 1：写入路径和读取路径的元数据不同。slot mapping 不是“物理到逻辑”的通用反向表；Block Table 也不是新 token 的写入地址列表。</figcaption></figure>
 
-<p>上一章咱们从思想层面理解了 PagedAttention。这一章咱们钻进实现细节，看看 Block Table 如何在 GPU kernel 中工作，以及 Copy-on-Write、Block Size 选择这些工程问题。</p>
+    <section id="two-paths">
+      <h2>4.1 写入与读取是两条路径</h2>
+      <p>当模型处理一个新 token 时，每层会计算与该 token 对应的 K/V。系统必须知道它们应该写入 KV Cache 的哪个物理槽位。后续做注意力计算时，当前 Query 又需要访问该请求的历史 K/V；此时系统要根据请求的逻辑 token 顺序遍历映射到的物理 blocks。</p>
+      <p>所以要把问题拆成两条：</p>
+      <ul>
+        <li><strong>写入：</strong>当前 token 的 K/V 应该落在哪个物理 slot？</li>
+        <li><strong>读取：</strong>当前请求的上下文由哪些物理 blocks 组成，按什么逻辑顺序读取？</li>
+      </ul>
+      <p>实际实现会根据模型缓存布局、并行方式和 Attention backend 生成相应的元数据。不要把一个简化公式当成所有模型、所有 backend 都完全相同的内存地址计算。</p>
+    </section>
 
-<h3>4.1 Slot Mapping：GPU Kernel 的"翻译官"</h3>
+    <section id="slot">
+      <h2>4.2 slot mapping：新 K/V 应该写到哪里？</h2>
+      <p>可以把 slot mapping 理解成“本轮要写入缓存的 token 槽位清单”。对于每个需要写入缓存的 token，执行器会准备对应的 slot 信息，写入 kernel 根据这些信息把 K/V 放到 KV Cache 的正确位置。</p>
+      <pre><code>概念流程（伪代码，不是某个版本的真实 kernel）：
 
-<p>GPU 上的 Attention kernel（比如 Flash Attention）预期接收<strong>连续</strong>的 K/V 张量。但 PagedAttention 的物理 Block 是分散的。怎么办？加一层映射——<strong>Slot Mapping</strong>。</p>
+for each new_token:
+    k, v = compute_key_value(new_token)
+    destination = slot_mapping[new_token]
+    kv_cache.write(destination, k, v)</code></pre>
+      <p>这里的关键是 <code>destination</code> 指向物理缓存布局中的目标槽位。真实实现还需要处理 block 内偏移、层、head、数据类型、量化 scale，以及不同模型可能采用的 KV layout。</p>
+      <div class="callout warning"><p><strong>纠正常见错误：</strong>slot mapping 不应该被简单描述成“读取 Attention 时，从物理位置反查逻辑 token”。在常见的 KV 写入路径中，它用于确定新计算出的 K/V 写入哪些缓存槽位；读取路径还要结合 Block Table 和 Attention metadata。</p></div>
+    </section>
 
-<pre><code>slot_mapping 数组（大小 = total_physical_tokens）:
+    <section id="attention">
+      <h2>4.3 Attention backend：如何读取分散的 K/V？</h2>
+      <p>有了缓存，当前 Query 需要读取当前请求可见的 Key 和 Value，并完成注意力计算。分页布局意味着历史 K/V 可能位于多个不连续的物理块中，backend 必须能够按请求的上下文顺序访问这些块。</p>
+      <p>这里要区分两个不同层面的优化：</p>
+      <ul>
+        <li><strong>PagedAttention / Paged KV：</strong>关注 KV Cache 的块布局、映射和访问。</li>
+        <li><strong>FlashAttention 一类算法：</strong>关注注意力计算过程中的 IO、分块和中间结果存储。</li>
+      </ul>
+      <p>它们不是同一个算法，也不是非此即彼的关系。vLLM 有多个 Attention backend，不同 backend 对缓存布局、硬件和模型结构有不同支持。不能笼统地说“FlashAttention 一定要求整个 KV Cache 连续”，也不能假设任意 backend 都支持任意分页布局。</p>
+      <p>真正排查性能或兼容性时，应检查当前 vLLM 版本选择了哪个 backend、该模型使用什么注意力结构，以及相应的缓存格式和 kernel 支持情况。</p>
+    </section>
 
-物理位置 (block_id, offset) → 逻辑 token 位置
+    <section id="prefix">
+      <h2>4.4 Prefix Cache：复用已经计算过的完整块</h2>
+      <p>考虑两个请求：</p>
+      <pre><code>请求 A：系统提示词 + “帮我总结这份报告”
+请求 B：系统提示词 + “帮我翻译这段文字”</code></pre>
+      <p>如果两个请求的前缀 token 完全一致，那么前缀对应的 K/V 计算可能不必重复执行。vLLM 的 Automatic Prefix Caching 使用基于哈希的方式识别 KV blocks：一个块的标识不仅考虑块内 token，也会考虑它之前的前缀上下文；多模态输入还可能需要纳入额外的输入哈希信息。</p>
+      <p>当前官方 V1 设计文档描述的缓存管理包含 block pool、block hash、引用计数和空闲队列。请求命中缓存后，会增加相关块的引用计数，避免仍被使用的块被淘汰；当块不再被请求引用时，它才有机会进入可淘汰队列。缓存空间紧张时，系统会按淘汰策略回收可复用块。</p>
+      <p>需要注意：缓存命中不是“只要两个 Prompt 看起来相似就能复用”。token 序列、块边界、前缀上下文、模型/适配器和多模态内容都会影响缓存键。只匹配到一个未完成的部分块，也不意味着它一定可以作为完整缓存块复用。</p>
+    </section>
 
-示例:
-block_7[0]:  → slot_mapping[7*16+0] = 0    (request A, token 0)
-block_7[1]:  → slot_mapping[7*16+1] = 1    (request A, token 1)
-...
-block_3[0]:  → slot_mapping[3*16+0] = 16   (request A, token 16)
-block_3[1]:  → slot_mapping[3*16+1] = 17   (request A, token 17)
-</code></pre>
+    <section id="cow">
+      <h2>4.5 Copy-on-Write 与前缀缓存：不要混为一谈</h2>
+      <p>Copy-on-Write（写时复制）是共享数据的一种通用策略：多个使用者先共享同一份只读数据，只有某个使用者需要修改共享部分时，才为它复制出独立副本。</p>
+      <p>它可以帮助理解“为什么共享 KV blocks 时需要考虑引用关系和写入边界”，但不能把当前 vLLM Prefix Cache 简化成“多个请求共享指针，写入时一定触发 COW”。当前 V1 Prefix Cache 的关键流程是对已计算的完整块进行哈希识别、引用计数管理、释放和淘汰；具体行为应以对应版本的设计文档和实现为准。</p>
+      <div class="callout"><p><strong>记住三个层次：</strong>Block Table 描述请求如何找到块；slot mapping 帮助新 K/V 写入缓存；Prefix Cache 决定已计算的块能否被其他请求复用。它们共同管理缓存，但职责不同。</p></div>
+    </section>
 
-<p>vLLM 的 Triton kernel 在读取 KV cache 时，先查 slot_mapping 找到这个物理位置对应的逻辑位置，再确定该读取哪些 K/V 值。</p>
+    <section id="tradeoff">
+      <h2>4.6 工程取舍与边界</h2>
+      <p>Block Size 会影响映射元数据数量、尾部未使用槽位和 kernel 的访问组织。块较小通常意味着更细粒度的分配，但需要管理更多块；块较大可以减少块数量，却可能增加最后一块的空闲槽位。实际支持值和默认值会随 vLLM 版本、硬件和 backend 变化。</p>
+      <p>Paged KV Cache 也不会自动解决所有容量问题。缓存池仍然有上限；当可用块不足时，Scheduler 可能让请求等待或触发抢占与重算。生产环境要观察缓存使用、请求排队和抢占情况，而不是只盯着一个“显存利用率”数字。</p>
+      <p>下一章转向执行侧：当请求长度不一致时，Continuous Batching 如何在迭代之间重新安排执行批次？</p>
+    </section>
 
-<pre><code># 简化版 Triton kernel
-@triton.jit
-def paged_attention_kernel(
-    key_cache, value_cache,    # 物理散布的 KV cache
-    slot_mapping,              # 物理→逻辑映射
-    block_tables,              # 每个请求的 block table
-    output,                    # Attention 输出
-    ...
-):
-    pid = tl.program_id(0)
-    # 通过 slot_mapping 和 block_tables 找到正确的 K/V
-    block_id = block_tables[request_id][logical_pos // BLOCK_SIZE]
-    offset = logical_pos % BLOCK_SIZE
-    k = key_cache[block_id, offset]
-    v = value_cache[block_id, offset]
-    # 正常计算 attention...
-</code></pre>
-
-<h3>4.2 Copy-on-Write：零拷贝前缀共享</h3>
-
-<p>这是 PagedAttention 的另一大亮点。当多个请求共享同一个前缀（比如相同的 system prompt），它们的 Block Table 可以<strong>指向相同的物理 Block</strong>：</p>
-
-<pre><code>请求 A 的 system prompt (1024 tokens = 64 blocks):
-  Block Table: [7, 3, 12, 5, ..., 88, 42]  (64 个物理 block)
-
-请求 B 共享同样的 system prompt:
-  Block Table: [7, 3, 12, 5, ..., 88, 42, ...（后续独有 block）]
-               ↑ 前 64 个指向相同物理 block，不复制数据！
-
-只有当请求 B 的生成覆盖了前缀内容时，才触发 Copy-on-Write:
-  Block Table: [7, 3, 12, 5, ..., 88, 99]  ← 最后一个变为新 block_99</code></pre>
-
-<p>这意味着：</p>
-<ul>
-  <li>10 个请求共享同样的 1024 token system prompt → 只存一份 KV cache</li>
-  <li>节省显存 = 10 × (1024 个 token 的 KV cache 大小) ≈ 10 × 0.5 GB = 5 GB</li>
-  <li>而且没有数据拷贝——只有 Block Table 的指针复制</li>
-</ul>
-
-<div class="highlight">
-  <p><strong>V1 改进</strong>：V0 的前缀缓存需要拷贝 KV 数据；V1 改成纯指针重定向，CPU 开销降低 90%。这是 V1 架构升级带来最显著的优化之一。</p>
-</div>
-
-<h3>4.3 Block Size 的权衡</h3>
-
-<p>Block 越大还是越小好？这是一个经典的工程权衡：</p>
-
-<table>
-  <tr><th>Block Size</th><th>优势</th><th>劣势</th><th>适用场景</th></tr>
-  <tr><td>8 tokens</td><td>更细粒度，内部碎片最少（&lt;2%）</td><td>Block 数量翻倍 → Block Table 内存开销大</td><td>长短 prompt 混合严重</td></tr>
-  <tr><td>16 tokens（默认）</td><td>内部碎片 ~4%，Block Table 开销适中</td><td>平衡方案</td><td>绝大多数场景</td></tr>
-  <tr><td>32 tokens</td><td>Block Table 开销小</td><td>内部碎片增大（~12%）</td><td>长 prompt 为主、显存充裕</td></tr>
-</table>
-
-<p>vLLM 默认选 16 有它的道理：它是 2 的幂，GPU 内存对齐好；兼顾碎片和开销；而且 16 个 token 的 KV 数据正好适合常见的 GPU cache line 大小。</p>
-
-<h3>4.4 PagedAttention 与 Flash Attention 的配合</h3>
-
-<p>PagedAttention 负责<strong>显存管理</strong>，Flash Attention 负责<strong>计算优化</strong>。两者并非竞争关系，而是互补：</p>
-
-<ul>
-  <li><strong>Flash Attention V2</strong>：将 Attention 计算分块，减少 HBM 读写。但它要求 K/V 连续存储。</li>
-  <li><strong>PagedAttention kernel</strong>：在 Flash Attention 读取 K/V 之前，先通过 Block Table 找到正确的物理位置，然后在 block 内部做连续的 Flash Attention。</li>
-</ul>
-
-<p>vLLM 的 PagedAttention kernel 实际上是 Flash Attention 的"分页版本"——每个 block 内部是连续的，block 之间通过 Block Table 跳转。</p>
-
-<h3>4.5 一个完整的分配-使用-回收流程</h3>
-
-<pre><code># 1. 新请求到达
-request = Sequence(id="req-001", prompt_tokens=[...])
-
-# 2. 调度器计算需要多少 block
-num_blocks = ceil(len(prompt_tokens) / BLOCK_SIZE)
-
-# 3. 从 free pool 取 block
-blocks = free_pool.allocate(num_blocks)
-block_tables["req-001"] = blocks  # e.g., [7, 3, 12]
-
-# 4. GPU 推理（prefill 阶段）
-# Attention kernel 遍历 block_tables["req-001"]，找到物理 K/V 并计算
-
-# 5. Decode 阶段逐步分配新 block
-for step in range(max_tokens):
-    output_token = model.forward(...)
-    if current_block.is_full():
-        new_block = free_pool.allocate(1)[0]
-        block_tables["req-001"].append(new_block)
-
-# 6. 请求完成，归还所有 block
-free_pool.free(block_tables["req-001"])</code></pre>
-
-<div class="warning">
-  <p><strong>踩坑提醒</strong>：PagedAttention 虽然解决了碎片问题，但如果 free block pool 耗尽（所有物理 block 都被占满），新请求仍然会排队。生产环境要监控 <code>num_blocks_free</code> 指标，确保有足够的空闲 block。</p>
-</div>
-
-<h3>4.6 变体：vAttention 和 RadixAttention</h3>
-
-<p>PagedAttention 发表后，陆续出现了一些变体和改进：</p>
-
-<p><strong>vAttention（Microsoft）</strong>：直接使用 CUDA 驱动层的虚拟内存 API（<code>cuMemCreate</code>），让 GPU 页表自动处理映射，不需要应用层 Block Table。好处是兼容现有 Attention kernel，不足是细粒度共享不如 PagedAttention。</p>
-
-<p><strong>RadixAttention（SGLang）</strong>：在 PagedAttention 基础上，用 Radix Tree（基数树）自动检测共享前缀。多个请求的系统 prompt 即使不完全相同，也能复用公共部分。</p>
-
-<p>好了，PagedAttention 的两章结束。下一章咱们看 Continuous Batching——PagedAttention 的最佳搭档，怎么让 GPU 永远不闲着。</p>
-
-        <div class="footer-nav">
-            <a href="03.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="05.html">下一章 →</a>
-        </div>
-    </div>
-</div>
+    <section class="sources" id="sources"><h2>参考资料</h2><ol>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/paged_attention/" target="_blank" rel="noopener noreferrer">Paged Attention Design</a>，分页注意力的数据布局和 kernel 访问方式。</li>
+      <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener noreferrer">Automatic Prefix Caching</a>，V1 block hash、引用计数、分配和淘汰流程。</li>
+      <li>vLLM source, <a href="https://github.com/vllm-project/vllm/blob/main/vllm/v1/kv_cache_interface.py" target="_blank" rel="noopener noreferrer">KV Cache Interface</a>，当前实现中缓存 slot mapping 的接口说明。</li>
+    </ol><p><small>本文的伪代码用于解释职责边界，不代表某个特定 commit 的可直接运行实现。</small></p></section>
+    <footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="03.html">← 上一章：PagedAttention 上篇</a><a class="next" href="05.html">下一章：Continuous Batching →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer>
+  </article></main>
 </div>
 </body>
 </html>
