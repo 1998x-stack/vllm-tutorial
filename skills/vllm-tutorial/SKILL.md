@@ -103,7 +103,10 @@ Check especially:
 - Quantization: distinguish method, numeric scheme, and execution kernel. Keep weight quantization separate from KV Cache dtype; verify the actual hardware/backend path rather than only the checkpoint label.
 - Paged KV: distinguish logical block tables, physical blocks, write-slot mapping, and attention backend responsibilities.
 - Prefix caching: explain exact token/block matching, parent-hash inputs, extra keys, reference counts, eviction, and version-specific behavior. Distinguish physical block size, hash block size, and cache-hit alignment. Fine-grained / partial hits are model-path-specific (for example, hybrid Mamba shared-prefix checkpoints), not a universal token-granularity guarantee. Do not describe APC as an unqualified pointer-copy trick.
-- Continuous batching and scheduling: distinguish iteration-level batching, token budgets, preemption, and chunked prefill.
+- Continuous batching and scheduling: distinguish iteration-level batching, per-step token budgets, request-count limits, Running / Waiting admission order, FCFS / Priority, KV allocation and preemption. PREEMPTED is resumable, not a terminal finish state.
+- Chunked prefill: describe the chunk length as dynamically bounded by the remaining token budget, not as a universal fixed chunk size. Explain the TTFT / ITL trade-off and preserve multimodal item boundaries where required.
+- V1 process architecture: separate API Server, Engine Core, GPU Worker / Model Runner and conditional DP Coordinator. Process counts depend on DP / TP / PP, API server settings and executor mode; do not present a typical topology as universal.
+- Request lifecycle: trace input preprocessing, EngineCore admission, scheduler state, worker execution, OutputProcessor detokenization / streaming and cleanup. Distinguish WAITING, RUNNING, PREEMPTED and terminal states; note that asynchronous KV transfer or in-flight execution can delay resource reuse.
 - Parallelism: show the split dimension and communication collective; do not treat TP, PP, DP, CP, and EP as interchangeable.
 - Performance: do not promise that one parameter value or GPU-utilization percentage is optimal for all workloads.
 
