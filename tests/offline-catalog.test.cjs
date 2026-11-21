@@ -54,7 +54,7 @@ test("all chapter links remain local and resolve to files", () => {
   assert.doesNotMatch(index, /fetch\s*\(/, "offline index must not fetch remote data");
 });
 
-test("the first nine upgraded chapters use semantic HTML and unique SVGs", () => {
+test("the first eighteen upgraded chapters use semantic HTML and unique SVGs", () => {
   for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
@@ -99,7 +99,7 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     assert.match(svg, /<desc\b/);
     assert.match(svg, /viewBox=/);
   }
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18"]) {
     const evidence = JSON.parse(fs.readFileSync(path.join(root, "evidence", number + ".json"), "utf8"));
     assert.equal(evidence.chapter, number);
     assert.ok(evidence.claims.length >= 2);
