@@ -328,3 +328,69 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
   .kv-calc-grid,
   .kv-calc-results { grid-template-columns: 1fr; }
 }
+
+
+/* Chapter 11: offline chunked-prefill budget explorer */
+.chunk-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.chunk-lab-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: .88rem;
+  font-weight: 650;
+}
+.chunk-lab-grid input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #c8d5d0;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: .92rem;
+}
+.chunk-lab-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0 12px;
+}
+.chunk-lab-results div {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.chunk-lab-results span {
+  color: var(--muted);
+  font-size: .8rem;
+}
+.chunk-lab-results strong {
+  color: var(--accent-dark);
+  font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+  font-variant-numeric: tabular-nums;
+}
+.chunk-lab-note {
+  margin: 10px 0 14px;
+  color: var(--muted);
+  font-size: .84rem;
+}
+.chunk-lab-list {
+  margin-bottom: 0;
+  padding: 14px 16px 14px 2.4rem;
+  border-radius: 12px;
+  background: #fff;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) {
+  .chunk-lab-grid,
+  .chunk-lab-results { grid-template-columns: 1fr; }
+}
