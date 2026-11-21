@@ -122,7 +122,7 @@ vllm serve &lt;hybrid-model&gt; \\
   --enable-prefix-caching \\
   --prefix-match-unit 64 \\
   --enable-mamba-shared-prefix-checkpoint</code></pre>
-      <p>在这类特定路径中，当前代码可以为一个已有物理 block 注册 partial cache entry，让细粒度前缀边界能够定位到该物理块；这份 partial entry 是查找元数据，不是再分配或复制一个新的物理 KVCacheBlock。普通整块缓存与这种特殊的 sub-block 共享前缀检查点必须分开讲。</p>
+      <p>在这类特定路径中，当前代码可以为一个已有物理 block 注册 partial cache entry，让细粒度前缀边界能够定位到该物理块；这份 partial entry 是查找元数据，不是再分配或复制一个新的物理 KVCacheBlock。当前 FullAttentionManager 的 partial-tail 路径只注册 Prompt 最终边界落在物理块内部的那个入口，不会把同一物理块中的每一个内部 hash 边界都注册成可复用检查点。普通整块缓存与这种特殊的 sub-block 共享前缀检查点必须分开讲。</p>
       <p>另一个边界：当整个 Prompt 都命中缓存时，模型仍然需要重新计算最后一个 token 来得到 logits。当前分配路径还要求计算进度满足 block 对齐，因此某些情况下可能需要重算最后一个完整 block，而不只是一个 token。</p>
     </section>
 
