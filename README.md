@@ -27,9 +27,9 @@
 | 推理基础与系统认知 | 01–02 | 自回归生成、Prefill / Decode、vLLM 的设计目标 |
 | KV Cache 与内存管理 | 03–04、08–09 | PagedAttention、Block Table、KV 生命周期、前缀缓存 |
 | 调度、批处理与运行时 | 05、10–13 | Continuous Batching、Scheduler、Chunked Prefill、V1 |
-| 安装、模型接入与生成控制 | 06–07、14 | 安装、模型加载、量化、Sampling |
+| 安装、模型接入与生成控制 | 06–07、14 | 安装、模型加载、量化、Sampling、Structured Outputs |
 | 并行计算与高级推理 | 19–22 | TP / PP / DP / EP、推测解码、多模态 |
-| 生产部署、观测与可靠性 | 15–18、24–25 | Docker、Kubernetes、安全、监控、排障与基准测试 |
+| 生产部署、观测与可靠性 | 15–18、24–25 | Docker、Kubernetes、TTFT / ITL、Prometheus、Tracing、安全与排障 |
 | 源码阅读与系统实践 | 23、27 | nano-vLLM、RAG 推理服务 |
 | 趋势判断与学习路径 | 26、28 | 技术成熟度、知识图谱、后续学习路线 |
 
@@ -82,7 +82,7 @@ python3 scripts/validate_articles.py
 
 ## 内容升级进度
 
-仓库采用逐章审校，不以一次性换肤代替内容改造。当前升级分支已完成 01–13 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验。14–28 章仍按后续批次推进。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
+仓库采用逐章审校，不以一次性换肤代替内容改造。当前升级分支已完成 01–18 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验，14 章提供 Sampling 分布实验。15–18 章覆盖生产部署、Kubernetes、可观测性与安全。19–28 章仍按后续批次推进。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
 
 ## 权威参考入口
 
