@@ -1,147 +1,201 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第11章 Chunked Prefill</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="理解 vLLM V1 Chunked Prefill 如何把长 Prompt 切成动态 token chunks，与 Decode 请求共享每轮预算，并权衡 TTFT、ITL 和吞吐。">
+  <title>第 11 章｜Chunked Prefill：让长 Prompt 与 Decode 协同执行</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/chunked-prefill-lab.js"></script>
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html" class="active">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/configuration/optimization/#chunked-prefill" target="_blank" rel="noopener noreferrer">Chunked Prefill ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#problem">11.1 为什么长 Prefill 会拖慢 Decode</a></li>
+      <li><a href="#mechanism">11.2 Chunked Prefill 如何工作</a></li>
+      <li><a href="#example">11.3 用 16-token budget 走一遍</a></li>
+      <li><a href="#lab">11.4 交互式预算实验</a></li>
+      <li><a href="#tuning">11.5 TTFT、ITL 与吞吐的权衡</a></li>
+      <li><a href="#boundaries">11.6 多模态边界与常见误区</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 11 章 · 调度、批处理与运行时</p>
+      <h1>Chunked Prefill：让长 Prompt 与 Decode 协同执行</h1>
+      <p class="article-dek">Prefill 一次处理很多 Prompt tokens，Decode 则持续为活跃请求生成新 token。Chunked Prefill 把长 Prefill 拆成多个较小的调度片段，让它可以与 Decode 工作共享每轮 token budget。</p>
+      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 21 分钟</span><span class="meta-chip">前置章节：05、10</span><span class="meta-chip">源码审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">想象 GPU 正在为 20 个用户逐 token 生成答案。这时，一个新用户提交了 30,000-token 的长文档。如果系统必须先把这份长 Prompt 一口气 Prefill 完成，原本正在 Decode 的请求就可能等待一段时间。Chunked Prefill 的思路是：把这份长 Prompt 切成若干调度片段，在每轮先安排已有 Decode 工作，再用剩余预算推进 Prefill，让两种不同特征的工作交错进行。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>解释长 Prefill 为什么可能拉高其他请求的 Inter-Token Latency。</li>
+        <li>说明 Chunked Prefill 如何复用 <code>max_num_batched_tokens</code> 的剩余预算。</li>
+        <li>区分动态 chunk 长度、每轮 token budget 与请求数上限。</li>
+        <li>理解较小与较大 token budget 对 TTFT、ITL 和吞吐的不同影响。</li>
+        <li>识别多模态输入不可随意切开、以及 Prefix Cache 命中会改变实际 Prefill 工作量等边界。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第11章 Chunked Prefill</h2>
 
-<p>上一章说到长请求会霸占调度器。Chunked Prefill 是 vLLM 解决"长 prompt 阻塞所有请求"的关键机制。它把一个大 prefill 拆成多个小 chunk，穿插在 decode 步骤之间处理。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/11-chunked-prefill-timeline.svg" alt="三个 Decode 请求每轮各使用一个 token，长 Prompt 在每轮剩余 token budget 中推进一段；长 Prompt 从一个完整大块变成多个动态 chunk，与 Decode 交错">
+      <figcaption>图 1：Chunked Prefill 不要求长 Prompt 一次性占满一轮；在 Decode 工作之后，剩余 token budget 可以用于推进 Prefill。</figcaption>
+    </figure>
 
-<h3>11.1 一个长 Prompt 引发的血案</h3>
+    <section id="problem">
+      <h2>11.1 为什么长 Prefill 会拖慢 Decode？</h2>
+      <p>Prefill 与 Decode 的计算形态不同：</p>
+      <ul>
+        <li><strong>Prefill：</strong>模型同时处理一段已知 Prompt，通常能形成较大的矩阵计算，计算密集度相对更高。</li>
+        <li><strong>Decode：</strong>每条普通自回归请求每轮通常只需要处理新 token，但要读取已有 KV Cache；多请求一起执行时，常受显存带宽和 KV 访问影响。</li>
+      </ul>
+      <p>这不是说 Prefill 永远 compute-bound、Decode 永远 memory-bound——模型、Kernel、Batch Size、硬件和 Attention backend 都会改变实际瓶颈。关键是：如果一次长 Prefill 独占过多单轮计算预算，已经在生成的请求可能无法及时得到下一 token，用户看到的 ITL 就会变大。</p>
+      <p>反过来，如果系统只顾着 Decode，而长 Prompt 一直排不上队，那么新请求的首 token 延迟 TTFT 会变差。Chunked Prefill 是一种调度折中：让 Decode 保持响应，同时让长 Prompt 持续取得进展。</p>
+    </section>
 
-<pre><code>假设你有一个 8192 token 的 prompt（比如 RAG 检索回来一堆文档），
-在传统模式下：
+    <section id="mechanism">
+      <h2>11.2 Chunked Prefill 如何工作？</h2>
+      <p>在 V1 中，Scheduler 使用统一的 token budget。它先计算当前 Running 请求本轮需要推进多少 token，再尝试接纳 Waiting 请求；在支持 Chunked Prefill 的路径中，长 Prompt 可以按本轮剩余预算被切分。</p>
+      <div class="math-display"><code>Prefill 本轮可用 token ≈ max_num_batched_tokens − 本轮已安排的其他 token</code></div>
+      <p>这个表达式是理解机制的简化模型。实际调度还会受到 <code>max_num_scheduled_tokens</code>、请求数上限、KV Cache blocks、Speculative Decoding、Encoder Budget、模型最大长度和多模态边界等限制。</p>
+      <p>有三个容易混淆的概念：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>概念</th><th>含义</th><th>是否等于固定 Chunk Size</th></tr></thead>
+          <tbody>
+            <tr><td><code>max_num_batched_tokens</code></td><td>每轮可容纳的 token 工作量上限</td><td>不是；它是整个迭代的预算</td></tr>
+            <tr><td>剩余 token budget</td><td>扣除本轮已安排请求后可继续使用的容量</td><td>不是；每轮都会变化</td></tr>
+            <tr><td>本轮 Prefill chunk</td><td>Scheduler 实际给某个长 Prompt 分配的 token 数</td><td>动态决定，受剩余预算和其他约束影响</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>当前官方优化文档描述的 V1 Chunked Prefill 策略，会优先安排待处理的 Decode 请求，然后用剩余的 <code>max_num_batched_tokens</code> 预算安排 Prefill；如果某条 Prefill 无法一次装入预算，就会自动分块。要注意，源码还会先处理已经 Running 的请求，因此不能把整个 Scheduler 误读为一个没有 Running 队列状态的简单“Decode 队列先于 Prefill 队列”。</p>
+    </section>
 
-Step 1: Prefill 处理全部 8192 tokens → 耗时 200ms
-  在此期间，其他所有请求的 decode 全部暂停！
-  200ms 对于 decode 来说是很长的延迟——本来每步 decode 只要 10ms。
+    <section id="example">
+      <h2>11.3 用 16-token budget 走一遍</h2>
+      <p>假设有 3 条已经活跃的 Decode 请求，每条本轮需要 1 个 token；另有一条新到达的 Prompt，需要处理 40 个 token。为了只观察预算切分，我们暂时忽略 Speculative Decoding、Prefix Cache、Encoder Budget、KV 分配失败和其他额外限制。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>调度轮次</th><th>Decode</th><th>Prefill</th><th>本轮总量</th><th>Prompt 剩余</th></tr></thead>
+          <tbody>
+            <tr><td>Step 1</td><td>3</td><td>13</td><td>16</td><td>27</td></tr>
+            <tr><td>Step 2</td><td>3</td><td>13</td><td>16</td><td>14</td></tr>
+            <tr><td>Step 3</td><td>3</td><td>13</td><td>16</td><td>1</td></tr>
+            <tr><td>Step 4</td><td>3</td><td>1</td><td>4</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>如果不做 Chunked Prefill，系统可能需要等待完整 Prompt 能够进入一次调度；在这个简化例子中，Chunked Prefill 让 40 个 Prompt tokens 分散到四轮，同时 Decode 请求每轮都有机会继续推进。</p>
+      <div class="callout warning">
+        <p><strong>这是预算示例，不是对 Scheduler 的逐行模拟。</strong>它假设 3 条 Decode 请求每轮都各占 1 token，且长 Prompt 是等待队列中的新请求。真实 V1 还会优先处理 Running 请求，并结合 KV blocks、Prefix Cache、Speculative Decoding、模型长度和多模态输入限制决定最终计划。</p>
+      </div>
+    </section>
 
-结果：TTFT（首 token 延迟）直接飙升到 200ms+，所有并发请求都被拖累。</code></pre>
-
-<h3>11.2 Chunked Prefill 的解法</h3>
-
-<p>把 8192 token 拆成 4 个 2048 token 的 chunk，分 4 步处理：</p>
-
-<pre><code>Step 1: Prefill chunk [0:2048]   + Decode 其他 9 个请求
-Step 2: Prefill chunk [2048:4096] + Decode 其他 9 个请求
-Step 3: Prefill chunk [4096:6144] + Decode 其他 9 个请求
-Step 4: Prefill chunk [6144:8192] + Decode 其他 9 个请求 → Prefill 完成，进入 Decode
-Step 5: Decode（已和其他请求一起正常 Decode）
-
-TTFT 从 200ms → 50ms × 4 = 200ms（总时长不变，但每步不阻塞其他人）
-其他请求的 Decode 延迟几乎不受影响</code></pre>
-
-<div class="highlight">
-  <p><strong>核心思想</strong>：不减少总时间，但把一个大块的阻塞拆成多个小块，让其他请求能穿插执行。就像高速公路——不放一辆超长卡车堵住所有车道，而是让它分段通过，其他车交替穿插。</p>
-</div>
-
-<h3>11.3 Chunk Size 的权衡</h3>
-
-<table>
-  <tr><th>Chunk Size</th><th>优势</th><th>劣势</th></tr>
-  <tr><td>小（256-512 token）</td><td>对其他请求干扰最小</td><td>总 prefill 时间长（要更多步），每个 chunk 有调度开销</td></tr>
-  <tr><td>中（2048 token，vLLM 默认）</td><td>平衡吞吐和延迟</td><td>—</td></tr>
-  <tr><td>大（4096+ token）</td><td>总 prefill 更快（少步数）</td><td>单步对其他请求干扰大</td></tr>
-</table>
-
-<h3>11.4 配置 Chunked Prefill</h3>
-
-<pre><code># V1 中 Chunked Prefill 默认启用，无需额外配置
-vllm serve model
-
-# 控制每 batch 最大 token 数（间接影响 chunk 大小）
-vllm serve model --max-num-batched-tokens 4096
-
-# 如果 max-num-batched-tokens=4096，一个 8192 token 的 prompt
-# 至少被拆成 2 个 chunk（每个最多 4096 token）
-
-# 如果想禁用 Chunked Prefill（不推荐）：
-# V1 目前无法完全禁用，但可以设置非常大的 max-num-batched-tokens 来模拟</code></pre>
-
-<h3>11.5 Chunked Prefill 与 Prefix Caching 的配合</h3>
-
-<p>两个特性搭配使用时有个微妙之处：</p>
-
-<pre><code>请求 A: [Shared Prefix 1000 tokens] + [Unique Suffix 100 tokens]
-请求 B: [Shared Prefix 1000 tokens] + [Unique Suffix 7000 tokens]
-
-Step 1: A 的 Prefix 被计算并缓存
-Step 2: B 的 Prefix 命中缓存（零计算！）
-Step 3: B 的 Unique Suffix 被 Chunked Prefill 拆成多个 chunk
-
-两个特性叠加：
-- Prefix Caching 省了 1000 token 的重复计算
-- Chunked Prefill 确保 B 的长 suffix 不阻塞 A 的 decode</code></pre>
-
-<div class="tip">
-  <p><strong>最佳实践</strong>：如果大部分请求有长 shared prefix（如 RAG 场景），同时启用 Prefix Caching 和 Chunked Prefill。前缀命中后，prefill 只处理 unique 部分，即使 unique 部分很长也不会阻塞其他请求。</p>
-</div>
-
-<h3>11.6 什么时候 Chunked Prefill 效果不明显</h3>
-
-<ul>
-  <li>所有请求的 prompt 都很短（&lt;512 token）：分了 chunk 也没什么区别</li>
-  <li>并发数很低（&lt;5）：没有"其他请求"需要照顾</li>
-  <li>极致追求 TTFT：如果你对首 token 延迟极度敏感（如实时语音），chunk 机制会让首 token 晚出现（因为 prompt 被拆开了）。可以考虑提高 chunk size 或用 speculative decoding 补偿</li>
-</ul>
-
-<p>Chunked Prefill 在 V1 中默认开启且做得很好——大多数用户不需要操心。下一章咱们看 V1 的整体架构设计，理解为什么 vLLM 要从 V0 重写。</p>
-
-        <div class="footer-nav">
-            <a href="10.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="12.html">下一章 →</a>
+    <section id="lab">
+      <h2>11.4 交互式预算实验：改变 budget，看看 Prefill 会被切成几段</h2>
+      <p>下面的教学模拟器假设每条活跃 Decode 请求每轮占用 1 token，并把剩余预算给一条长 Prompt。它不是 vLLM 的完整调度器，但可以帮助你建立“每轮预算共享”的数量直觉。</p>
+      <div class="lab chunk-lab" data-chunk-lab>
+        <h3>Chunked Prefill Budget Explorer</h3>
+        <div class="chunk-lab-grid">
+          <label>每轮 token budget
+            <input type="number" min="1" max="100000" step="1" value="16" data-chunk-field="budget">
+          </label>
+          <label>活跃 Decode 请求数
+            <input type="number" min="0" max="10000" step="1" value="3" data-chunk-field="decode">
+          </label>
+          <label>待 Prefill Prompt tokens
+            <input type="number" min="1" max="1000000" step="1" value="40" data-chunk-field="prompt">
+          </label>
         </div>
-    </div>
-</div></div>
+        <div class="chunk-lab-results" aria-live="polite">
+          <div><span>Decode 本轮占用</span><strong data-chunk-output="decode">3 tokens</strong></div>
+          <div><span>Prefill 每轮可用</span><strong data-chunk-output="prefill">13 tokens</strong></div>
+          <div><span>预计 Prefill 轮数</span><strong data-chunk-output="steps">4</strong></div>
+        </div>
+        <p class="chunk-lab-note" data-chunk-output="note">教学简化模型：每轮先为活跃 Decode 请求各安排 1 token，再把剩余预算用于一条 Prompt。</p>
+        <ol class="chunk-lab-list" data-chunk-output="schedule">
+          <li>Step 1：Decode 3 + Prefill 13 = 16；Prompt 剩余 27</li>
+          <li>Step 2：Decode 3 + Prefill 13 = 16；Prompt 剩余 14</li>
+          <li>Step 3：Decode 3 + Prefill 13 = 16；Prompt 剩余 1</li>
+          <li>Step 4：Decode 3 + Prefill 1 = 4；Prompt 剩余 0</li>
+        </ol>
+        <noscript><p>JavaScript 未启用时，默认算例仍可阅读：budget=16、Decode=3、Prompt=40，需要 4 轮 Prefill。</p></noscript>
+      </div>
+    </section>
+
+    <section id="tuning">
+      <h2>11.5 TTFT、ITL 与吞吐的权衡</h2>
+      <p><code>max_num_batched_tokens</code> 是最直接的调节旋钮之一，但它不是越大越好，也不是越小越好：</p>
+      <ul>
+        <li><strong>较小预算：</strong>每轮 Prefill 可使用的空间更少，Decode 更容易及时获得执行机会，通常有利于 ITL；但长 Prompt 需要更多轮才能处理完，TTFT 可能变长。</li>
+        <li><strong>较大预算：</strong>单轮能够处理更多 Prefill tokens，可能改善 TTFT 和吞吐；但如果 Prefill 工作占据太多执行时间，Decode 的 ITL 可能受到影响。</li>
+      </ul>
+      <p>官方优化文档给出了针对不同目标的调参方向，并提到在较小模型、大 GPU 的特定场景中，提高 token budget 可能有助于吞吐。这个建议依赖硬件和工作负载，不能作为所有部署的固定最优值。</p>
+      <p>如果启用了 <code>long_prefill_token_threshold</code>，Scheduler 还可以对长 Prefill 的单轮推进长度增加上限，避免一个长请求在多请求并发时长期占据过多 token budget。当前配置中的 adaptive 选项可以把有效阈值下限提高到 token budget 按可参与请求数计算的公平份额；这些控制只有在 Chunked Prefill 启用时才有意义。</p>
+      <p>推荐做法是先固定模型、硬件和请求分布，再扫描少量预算配置，同时记录：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>指标</th><th>回答的问题</th></tr></thead>
+          <tbody>
+            <tr><td>TTFT p50 / p95</td><td>新请求多久能看到第一个 token？</td></tr>
+            <tr><td>ITL / TPOT p50 / p95</td><td>已开始生成的请求能否稳定输出？</td></tr>
+            <tr><td>Prompt token throughput</td><td>长 Prompt 是否能及时消化？</td></tr>
+            <tr><td>Generation token throughput</td><td>Decode 总吞吐是否改善？</td></tr>
+            <tr><td>Queueing / preemption</td><td>延迟变化是否来自排队或 KV Cache 压力？</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="boundaries">
+      <h2>11.6 多模态边界与常见误区</h2>
+      <h3>多模态 Prompt 不是任意可切开的 token 列表</h3>
+      <p>图像、视频或音频输入在内部可能对应一组相关的 multimodal features。当前 V1 的 <code>disable_chunked_mm_input</code> 可以在启用 Chunked Prefill 时避免把一个多模态 item 切成不完整的片段。例如文本 token 可以在一个调度轮处理，而一个完整图像输入单元留到下一轮整体安排。</p>
+      <h3>Prefix Cache 和 Chunked Prefill 解决不同问题</h3>
+      <p>Prefix Cache 减少需要重新计算的前缀 token；Chunked Prefill 控制剩余 Prefill 工作如何分配到不同迭代。两者可以配合：缓存命中越长，真正需要分块计算的剩余 Prompt 工作就可能越少。但缓存命中仍受精确前缀、块边界、驻留情况和路由影响。</p>
+      <h3>Chunked Prefill 不会让 Prompt token 消失</h3>
+      <p>分块改变的是计算工作的时间分布，不是模型要理解的 Prompt 内容，也不意味着整个 Prompt 的总计算成本一定降低。它主要帮助调度器在不同请求之间安排更细的工作片段。</p>
+    </section>
+
+    <section id="recap">
+      <h2>本章自检</h2>
+      <ol>
+        <li>为什么长 Prefill 可能增加其他请求的 ITL？</li>
+        <li><code>max_num_batched_tokens</code> 为什么不是固定 Prefill chunk size？</li>
+        <li>在 16-token budget、3 条 Decode 请求的简化例子中，Prefill 每轮最多能使用多少 token？</li>
+        <li>为什么增大 token budget 可能改善 TTFT，却不一定改善 ITL？</li>
+        <li>为什么多模态 item 可能需要保持完整，不能像普通文本 token 一样任意切分？</li>
+      </ol>
+      <p>下一章从调度循环走向进程拓扑：API Server、Engine Core、GPU Worker 和 Data Parallel Coordinator 分别运行在哪里，又如何通过消息与执行结果协作。</p>
+    </section>
+
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/#chunked-prefill" target="_blank" rel="noopener noreferrer">Optimization — Chunked Prefill</a>：V1 Chunked Prefill 的调度策略和 TTFT / ITL 调参方向。</li>
+        <li>vLLM, <a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py" target="_blank" rel="noopener noreferrer">SchedulerConfig</a>：token budget、long prefill threshold、enable_chunked_prefill 和多模态切分约束。</li>
+        <li>vLLM, <a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py" target="_blank" rel="noopener noreferrer">V1 Scheduler.schedule()</a>：Running / Waiting 请求、token budget 与动态 Prefill 分块。</li>
+        <li>相关研究：<a href="https://arxiv.org/abs/2403.02310" target="_blank" rel="noopener noreferrer">Sarathi-Serve: Efficient LLM Serving with Stall-Free Scheduling</a>：理解 Prefill / Decode 混合批处理与 chunked prefill 的研究背景。</li>
+      </ol>
+      <p><small>源码审校基线：vLLM commit <code>c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf</code>。交互预算实验是简化教学模型，不是对 vLLM Scheduler 的完整仿真，也不构成生产参数建议。</small></p>
+    </section>
+
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="10.html">← 上一章：Scheduler</a><a class="next" href="12.html">下一章：V1 Process Architecture →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
+</div>
 </body>
 </html>
