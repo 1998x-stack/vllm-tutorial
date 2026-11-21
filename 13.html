@@ -80,7 +80,7 @@
             <tr><td><code>WAITING_FOR_REMOTE_KVS</code></td><td>等待远端 KV Cache 加载或传输完成</td><td>否</td></tr>
             <tr><td><code>WAITING_FOR_STREAMING_REQ</code></td><td>可恢复输入流会话暂时等待下一段输入</td><td>否</td></tr>
             <tr><td><code>RUNNING</code></td><td>已经被接纳，处于运行队列</td><td>否</td></tr>
-            <tr><td><code>PREEMPTED</code></td><td>曾经运行，但因资源压力被抢占并放回等待队列</td><td><badge color="warning">不是终态</badge></td></tr>
+            <tr><td><code>PREEMPTED</code></td><td>曾经运行，但因资源压力被抢占并放回等待队列</td><td><span class="meta-chip">不是终态</span></td></tr>
             <tr><td><code>FINISHED_STOPPED</code></td><td>命中 stop 条件并结束</td><td>是</td></tr>
             <tr><td><code>FINISHED_LENGTH_CAPPED</code></td><td>达到长度限制</td><td>是</td></tr>
             <tr><td><code>FINISHED_ABORTED</code> / <code>FINISHED_ERROR</code></td><td>用户中止或执行错误</td><td>是</td></tr>
