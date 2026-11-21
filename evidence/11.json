@@ -57,6 +57,15 @@
       "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
       "locator": "Scheduler.schedule token-budget and request scheduling logic",
       "notes": "The toy model deliberately omits KV block allocation, Prefix Cache, speculative decode, multimodal input and scheduling order nuances."
+    },
+    {
+      "id": "chunked-prefill-v1-default-when-possible",
+      "claim": "The V1 optimization guide states that Chunked Prefill is enabled by default whenever possible.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/optimization/#chunked-prefill",
+      "locator": "Chunked Prefill",
+      "notes": "Model architecture and runtime constraints can disable the feature; inspect the resolved configuration rather than assuming every deployment uses it."
     }
   ]
 }
