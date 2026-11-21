@@ -73,7 +73,7 @@
       <ul>
         <li>部分推理 API，例如 <code>/invocations</code>、<code>/pooling</code>、<code>/classify</code>、<code>/score</code> 和 <code>/rerank</code>。</li>
         <li>运维控制，例如 <code>/pause</code>、<code>/resume</code>、<code>/abort_requests</code>、<code>/update_weights</code>，以及按配置启用的其他控制接口。</li>
-        <li>工具端点，例如 <code>/metrics</code>、<code>/health</code>、<code>/version</code>、<code>/tokenize</code> 等。</li>
+        <li>实用与健康检查端点，例如 <code>/metrics</code>、<code>/health</code>、<code>/version</code>、<code>/tokenize</code> 等。</li>
         <li>仅在开发或特定功能开启时暴露的调试、Profiler、Tokenizer 信息等端点。</li>
       </ul>
       <p>因此，生产环境应把 vLLM 放在受控私网中，并在 Nginx、Envoy 或 Kubernetes Gateway 上实施显式 endpoint allowlist：只开放业务真正需要的 API，拒绝其余推理与运维路径。Prometheus 抓取 <code>/metrics</code> 应来自受信任的监控网络，而不是公网。</p>
