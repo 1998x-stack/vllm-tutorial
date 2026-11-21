@@ -55,7 +55,7 @@ test("all chapter links remain local and resolve to files", () => {
 });
 
 test("the first nine upgraded chapters use semantic HTML and unique SVGs", () => {
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
     assert.match(html, /<main\b/);
@@ -87,6 +87,11 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "12-v1-process-topology.svg",
     "12-enginecore-step-loop.svg",
     "13-request-lifecycle.svg",
+    "14-sampling-pipeline.svg",
+    "15-production-serving-topology.svg",
+    "16-kubernetes-gpu-scheduling.svg",
+    "17-latency-waterfall.svg",
+    "18-security-trust-boundaries.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
@@ -143,4 +148,48 @@ test("chapters 10–13 expose their intended runtime concepts and progressive in
   assert.match(lifecycle, /WAITING_FOR_REMOTE_KVS/);
   assert.match(lifecycle, /PREEMPTED/);
   assert.match(lifecycle, /data-stepper/);
+});
+
+test("chapter 14 sampling lab is offline, normalized, and greedy-aware", () => {
+  const html = fs.readFileSync(path.join(root, "14.html"), "utf8");
+  const script = fs.readFileSync(path.join(root, "assets", "js", "sampling-lab.js"), "utf8");
+  assert.match(html, /assets\/js\/sampling-lab\.js/);
+  assert.match(html, /data-sampling-lab/);
+  for (const field of ["temperature", "topK", "topP", "minP"]) {
+    assert.match(html, new RegExp('data-sampling-field="' + field + '"'));
+  }
+  const sandbox = {
+    window: {},
+    document: { readyState: "complete", querySelectorAll: () => [] },
+  };
+  vm.runInNewContext(script, sandbox);
+  const calculate = sandbox.window.vllmSamplingLab.calculate;
+  const greedy = calculate({ temperature: 0, topK: 6, topP: 0.1, minP: 0.5 });
+  assert.equal(greedy.greedy, true);
+  assert.equal(greedy.retainedCount, 1);
+  assert.equal(greedy.winner, "猫");
+  const filtered = calculate({ temperature: 0.8, topK: 2, topP: 0.9, minP: 0 });
+  assert.equal(filtered.retainedCount, 2);
+  const sum = filtered.rows.reduce((total, row) => total + row.probability, 0);
+  assert.ok(Math.abs(sum - 1) < 1e-9);
+  assert.doesNotMatch(html, /https?:\/\/[^"]+\.js/);
+});
+
+test("chapters 14–18 cover production, Kubernetes, observability and security boundaries", () => {
+  const sampling = fs.readFileSync(path.join(root, "14.html"), "utf8");
+  const production = fs.readFileSync(path.join(root, "15.html"), "utf8");
+  const kubernetes = fs.readFileSync(path.join(root, "16.html"), "utf8");
+  const observability = fs.readFileSync(path.join(root, "17.html"), "utf8");
+  const security = fs.readFileSync(path.join(root, "18.html"), "utf8");
+  assert.match(sampling, /structured_outputs/);
+  assert.match(sampling, /min_p/);
+  assert.match(production, /image-digest/);
+  assert.match(production, /Readiness/);
+  assert.match(kubernetes, /nvidia\.com\/gpu/);
+  assert.match(kubernetes, /PodDisruptionBudget/);
+  assert.match(observability, /vllm:time_to_first_token_seconds/);
+  assert.match(observability, /histogram_quantile/);
+  assert.match(security, /API Key/);
+  assert.match(security, /cache_salt/);
+  assert.match(security, /Multi-Tenant/);
 });
