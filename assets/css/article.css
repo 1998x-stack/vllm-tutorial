@@ -505,3 +505,12 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
   .sampling-lab-summary { grid-template-columns: 1fr; }
   .sampling-bar-row { grid-template-columns: 42px minmax(0, 1fr) 62px; gap: 7px; }
 }
+
+
+/* Chapter 14: no-JavaScript default bar widths for the sampling lab */
+.sampling-bar-track .w-50 { width: 50%; }
+.sampling-bar-track .w-27 { width: 27%; }
+.sampling-bar-track .w-13 { width: 13%; }
+.sampling-bar-track .w-7 { width: 7%; }
+.sampling-bar-track .w-3 { width: 3%; }
+.sampling-bar-track .w-1 { width: 1%; }
