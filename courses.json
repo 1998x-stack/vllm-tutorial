@@ -434,146 +434,193 @@
     },
     {
       "num": "14",
-      "title": "Sampling与生成控制",
+      "title": "Sampling & Decoding：生成控制",
       "topics": [
-        "采样参数全解",
+        "Logits 与 Softmax",
         "Temperature",
-        "结构化输出",
+        "Top-k / Top-p / Min-p",
+        "Penalty / Seed / Stop",
+        "Structured Outputs",
         "Logprobs"
       ],
       "file": "14.html",
       "category": "getting-started",
       "level": "进阶",
-      "durationMinutes": 16,
+      "durationMinutes": 23,
       "prerequisites": [
         "01",
         "06"
       ],
-      "summary": "理解采样参数如何改变 token 分布，并掌握结构化输出与 logprobs 的基本使用。",
+      "summary": "从 logits 与概率分布出发，解释温度、候选过滤、惩罚项、结构化输出和 logprobs，建立可验证的生成控制心智模型。",
       "learningObjectives": [
-        "解释 temperature、top-p 等参数的作用",
-        "区分采样控制与模型能力",
-        "选择适合任务的生成配置并验证输出"
+        "从 logits 推导 softmax 与 temperature 分布",
+        "区分 Top-k、Top-p、Min-p 的候选过滤规则",
+        "使用当前 structured_outputs API 并解释 logprobs 的边界",
+        "通过离线实验观察采样参数如何改变候选集合"
       ],
       "tags": [
         "sampling",
+        "decoding",
         "temperature",
-        "structured-output",
+        "top-k",
+        "top-p",
+        "min-p",
+        "structured-outputs",
         "logprobs"
       ]
     },
     {
       "num": "15",
-      "title": "生产级部署",
+      "title": "Production Deployment：生产服务设计",
       "topics": [
-        "Docker部署",
-        "显存规划",
-        "反向代理",
-        "高可用架构"
+        "服务分层与副本拓扑",
+        "Docker 与制品固定",
+        "GPU / KV Cache 容量预算",
+        "请求路由与缓存局部性",
+        "Readiness / Rollout / Recovery"
       ],
       "file": "15.html",
       "category": "production",
-      "level": "进阶",
-      "durationMinutes": 18,
+      "level": "高级",
+      "durationMinutes": 24,
       "prerequisites": [
         "06",
-        "07"
+        "07",
+        "08",
+        "12",
+        "13"
       ],
-      "summary": "将本地推理服务转化为可运行的生产服务，覆盖容器、资源、健康检查和网络入口。",
+      "summary": "把单个 vLLM Engine 放进完整生产服务链路，覆盖容器可复现性、容量预算、路由、健康检查、发布和故障恢复。",
       "learningObjectives": [
-        "设计最小生产部署拓扑",
-        "配置模型缓存、GPU 资源和服务探针",
-        "识别单实例部署的可用性风险"
+        "设计 Gateway、Router 与 vLLM replica 的职责边界",
+        "固定镜像、模型 revision、Tokenizer 和运行配置",
+        "解释 GPU 权重、运行时与 KV Cache 的容量竞争",
+        "设计摘流、滚动发布、重试和回滚流程"
       ],
       "tags": [
+        "production-deployment",
         "docker",
-        "deployment",
-        "health-check"
+        "capacity-planning",
+        "routing",
+        "health-check",
+        "high-availability"
       ]
     },
     {
       "num": "16",
-      "title": "Kubernetes部署",
+      "title": "Kubernetes GPU Serving：集群部署",
       "topics": [
-        "Production Stack",
-        "Helm Chart",
-        "前缀感知路由",
-        "GPU资源管理"
+        "GPU Device Plugin",
+        "Deployment / Service",
+        "Pod 探针与安全上下文",
+        "RollingUpdate / PDB",
+        "Production Stack / Helm / CRD",
+        "Cache-aware Routing"
       ],
       "file": "16.html",
       "category": "production",
       "level": "高级",
-      "durationMinutes": 20,
+      "durationMinutes": 25,
       "prerequisites": [
+        "12",
         "15"
       ],
-      "summary": "理解 Kubernetes 上的 GPU 调度、模型服务编排、探针、扩缩容和生产栈组件。",
+      "summary": "理解 Kubernetes 如何通过 Device Plugin 调度 GPU，如何部署 vLLM Pod、配置探针和滚动更新，并评估 Production Stack 的编排与路由能力。",
       "learningObjectives": [
-        "解释 GPU 资源请求与节点调度",
-        "理解 Deployment、Service 和探针的职责",
-        "评估多副本服务中的模型缓存与路由问题"
+        "解释 NVIDIA GPU 扩展资源的注册与申请规则",
+        "编写包含 GPU limit、Secret、PVC 和探针的 Pod 模板",
+        "区分 Deployment 滚动更新与 PodDisruptionBudget",
+        "比较 Helm、CRD、Gateway API Inference Extension 与路由策略"
       ],
       "tags": [
         "kubernetes",
-        "gpu-scheduling",
-        "helm"
+        "gpu-device-plugin",
+        "deployment",
+        "probes",
+        "rolling-update",
+        "pdb",
+        "helm",
+        "production-stack"
       ]
     },
     {
       "num": "17",
-      "title": "可观测性",
+      "title": "Observability：推理服务可观测性",
       "topics": [
-        "三层监控体系",
-        "Prometheus指标",
-        "Grafana告警",
-        "链路追踪"
+        "业务 / Engine / Hardware 三层观测",
+        "TTFT / ITL / TPOT / E2E",
+        "vLLM Prometheus 指标",
+        "Histogram / PromQL",
+        "OpenTelemetry Tracing",
+        "排障决策树"
       ],
       "file": "17.html",
       "category": "production",
-      "level": "进阶",
-      "durationMinutes": 17,
+      "level": "高级",
+      "durationMinutes": 24,
       "prerequisites": [
+        "12",
+        "13",
         "15"
       ],
-      "summary": "建立从请求延迟到 GPU 与 KV Cache 的可观测体系，学会用指标定位瓶颈。",
+      "summary": "将用户感知延迟拆解为排队、Prefill、Decode 和网络阶段，使用 vLLM 指标、PromQL、日志与 Trace 定位瓶颈。",
       "learningObjectives": [
-        "区分 TTFT、ITL、TPOT 与吞吐指标",
-        "选择服务端与 GPU 侧观测信号",
-        "设计能关联请求和资源状态的排障路径"
+        "区分 TTFT、ITL、TPOT、Queue Time 与 E2E",
+        "识别 V1 的关键 Histogram 和 Gauge 指标",
+        "使用 histogram_quantile 编写 P95 / P99 PromQL",
+        "根据队列、KV Cache 和 GPU 信号建立可证伪的排障假设"
       ],
       "tags": [
         "observability",
         "prometheus",
-        "metrics",
+        "grafana",
+        "ttft",
+        "itl",
+        "tpot",
+        "promql",
+        "opentelemetry",
         "tracing"
       ]
     },
     {
       "num": "18",
-      "title": "安全与访问控制",
+      "title": "Security & Multi-tenancy：推理服务安全",
       "topics": [
-        "API鉴权",
-        "Rate Limiting",
-        "Prompt Injection",
-        "网络安全"
+        "Threat Model / Trust Boundaries",
+        "API Key 与 Endpoint Allowlist",
+        "分布式网络隔离",
+        "多租户与 Prefix Cache Side-channel",
+        "请求资源限制",
+        "Prompt Injection / Tool Authorization",
+        "供应链与日志治理"
       ],
       "file": "18.html",
       "category": "production",
-      "level": "进阶",
-      "durationMinutes": 17,
+      "level": "高级",
+      "durationMinutes": 25,
       "prerequisites": [
-        "15"
+        "07",
+        "12",
+        "13",
+        "15",
+        "17"
       ],
-      "summary": "把 API 鉴权、速率限制、网络隔离和 Prompt Injection 风险放进推理服务的威胁模型。",
+      "summary": "审视 vLLM HTTP 端点、分布式通信、共享缓存与模型工具链的安全边界，建立认证、网络隔离、多租户、资源限制和应用授权策略。",
       "learningObjectives": [
-        "区分模型行为风险与服务边界风险",
-        "设计 API key、配额和网络隔离",
-        "识别日志、缓存与多租户场景中的数据泄露风险"
+        "解释 --api-key 的端点覆盖边界与 allowlist 需求",
+        "设计 API、GPU 分布式通信和运维网络的隔离策略",
+        "区分 cache_salt 的侧信道缓解与真正租户隔离",
+        "把 Prompt Injection 防护落实到工具、数据 ACL 和执行授权"
       ],
       "tags": [
         "security",
-        "authentication",
-        "rate-limiting"
+        "api-authentication",
+        "network-policy",
+        "multi-tenancy",
+        "cache-salt",
+        "prompt-injection",
+        "tool-authorization",
+        "supply-chain"
       ]
     },
     {
