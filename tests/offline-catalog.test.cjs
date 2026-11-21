@@ -55,7 +55,7 @@ test("all chapter links remain local and resolve to files", () => {
 });
 
 test("the first nine upgraded chapters use semantic HTML and unique SVGs", () => {
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
     assert.match(html, /<main\b/);
@@ -81,6 +81,12 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "07-model-config-map.svg",
     "08-kv-memory-budget.svg",
     "09-prefix-cache-hash.svg",
+    "10-scheduler-decision-loop.svg",
+    "10-preemption-recompute.svg",
+    "11-chunked-prefill-timeline.svg",
+    "12-v1-process-topology.svg",
+    "12-enginecore-step-loop.svg",
+    "13-request-lifecycle.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
@@ -88,7 +94,7 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     assert.match(svg, /<desc\b/);
     assert.match(svg, /viewBox=/);
   }
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"]) {
     const evidence = JSON.parse(fs.readFileSync(path.join(root, "evidence", number + ".json"), "utf8"));
     assert.equal(evidence.chapter, number);
     assert.ok(evidence.claims.length >= 2);
@@ -109,4 +115,32 @@ test("chapter 08 calculator is offline, accessible, and wired to its formula", (
   }
   assert.match(script, /2 \* values\.layers/);
   assert.match(script, /addEventListener\("input"/);
+});
+
+test("chapter 11 chunked-prefill lab is offline and follows the budget model", () => {
+  const html = fs.readFileSync(path.join(root, "11.html"), "utf8");
+  const script = fs.readFileSync(path.join(root, "assets", "js", "chunked-prefill-lab.js"), "utf8");
+  assert.match(html, /assets\/js\/chunked-prefill-lab\.js/);
+  assert.match(html, /data-chunk-lab/);
+  for (const field of ["budget", "decode", "prompt"]) {
+    assert.match(html, new RegExp('data-chunk-field="' + field + '"'));
+  }
+  assert.match(script, /const perStepPrefill = budget - scheduledDecode/);
+  assert.match(script, /Math\.ceil\(promptTokens \/ perStepPrefill\)/);
+  assert.match(script, /addEventListener\("input"/);
+  assert.doesNotMatch(html, /https?:\/\/[^"]+\.js/);
+});
+
+test("chapters 10–13 expose their intended runtime concepts and progressive interactions", () => {
+  const scheduler = fs.readFileSync(path.join(root, "10.html"), "utf8");
+  const architecture = fs.readFileSync(path.join(root, "12.html"), "utf8");
+  const lifecycle = fs.readFileSync(path.join(root, "13.html"), "utf8");
+  assert.match(scheduler, /max_num_scheduled_tokens/);
+  assert.match(scheduler, /_preempt_request/);
+  assert.match(scheduler, /data-stepper/);
+  assert.match(architecture, /EngineCore\.step/);
+  assert.match(architecture, /DP Coordinator/);
+  assert.match(lifecycle, /WAITING_FOR_REMOTE_KVS/);
+  assert.match(lifecycle, /PREEMPTED/);
+  assert.match(lifecycle, /data-stepper/);
 });
