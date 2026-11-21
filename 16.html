@@ -1,185 +1,231 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第16章 Kubernetes部署</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="掌握 Kubernetes GPU Device Plugin、vLLM Pod 部署、探针、滚动更新、PodDisruptionBudget、Helm 与 Production Stack。">
+  <title>第 16 章｜Kubernetes GPU Serving：让集群调度模型服务</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html" class="active">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/deployment/integrations/production-stack/" target="_blank" rel="noopener noreferrer">Production Stack ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#architecture">16.1 Kubernetes 中的推理服务拓扑</a></li>
+      <li><a href="#gpu">16.2 GPU 如何成为可调度资源</a></li>
+      <li><a href="#manifest">16.3 一个 Pod 的部署骨架</a></li>
+      <li><a href="#probes">16.4 探针、滚动更新与 PDB</a></li>
+      <li><a href="#stack">16.5 vLLM Production Stack 的三种入口</a></li>
+      <li><a href="#routing">16.6 路由、扩缩容与缓存局部性</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 16 章 · 生产部署、观测与可靠性</p>
+      <h1>Kubernetes GPU Serving：让集群调度模型服务</h1>
+      <p class="article-dek">Kubernetes 不会自动理解模型显存、KV Cache 或张量并行。它负责 Pod 编排与资源调度；GPU Device Plugin 把设备暴露为可分配资源；vLLM 在容器内部管理模型推理。把这些层次接好，才形成可运维的 GPU 服务。</p>
+      <div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">约 25 分钟</span><span class="meta-chip">前置章节：12、15</span><span class="meta-chip">源码审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">在 Kubernetes 中，调度器首先要决定“哪个节点有足够的 CPU、内存和 GPU 资源，可以放置这个 Pod”。它不会自动判断“这张 GPU 是否有足够 KV Cache 容量”或“这个模型的 TP 通信拓扑是否理想”。因此，GPU 资源声明、节点标签、驱动和设备插件、模型启动参数与服务探针必须协同设计。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>解释 NVIDIA Device Plugin 如何向 Kubernetes 注册 GPU 资源。</li>
+        <li>写出包含 GPU limit、模型 Secret、启动探针和就绪探针的 Deployment 骨架。</li>
+        <li>区分 Deployment RollingUpdate 与 PodDisruptionBudget 的职责。</li>
+        <li>理解 vLLM Production Stack 的 Helm、CRD 与 Gateway API Inference Extension 入口。</li>
+        <li>评估 Prefix-aware 与 Load-aware routing 对 KV Cache 和负载分布的影响。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第16章 Kubernetes 部署</h2>
 
-<p>单机部署够简单，但生产级大规模的推理服务还是要上 Kubernetes。vLLM 官方提供了 Production Stack——一套 Helm Chart，几分钟就能搭起一个完整的推理集群。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/16-kubernetes-gpu-scheduling.svg" alt="Kubernetes API Server 和 Scheduler 读取 GPU 资源请求，将 vLLM Deployment Pod 放置到有 NVIDIA Device Plugin GPU 资源的节点；节点上的 kubelet 和 container runtime 启动容器，Pod 通过 Service 和 Router 接收流量">
+      <figcaption>图 1：Kubernetes GPU 调度链路。Kubernetes 负责资源分配和容器编排；GPU 驱动、Device Plugin 与容器运行时负责把设备交给工作负载。</figcaption>
+    </figure>
 
-<h3>16.1 Production Stack 概述</h3>
+    <section id="architecture">
+      <h2>16.1 Kubernetes 中的推理服务拓扑</h2>
+      <p>典型拓扑可以分成：</p>
+      <ul>
+        <li><strong>Ingress / Gateway：</strong>入口 TLS、身份认证、请求限制和 API 路由。</li>
+        <li><strong>Router / Service：</strong>发现可用后端，选择模型副本，按负载或缓存亲和性分发请求。</li>
+        <li><strong>vLLM Deployment：</strong>一个或多个推理副本，每个 Pod 绑定它所需的 GPU 资源与模型配置。</li>
+        <li><strong>Model storage / cache：</strong>模型权重、Tokenizer、Hugging Face 缓存和编译缓存的持久化或预热方案。</li>
+        <li><strong>Observability：</strong>Prometheus、Grafana、日志与 Tracing，关联 Pod 状态、请求延迟和 GPU 资源。</li>
+      </ul>
+      <p>一个 Service 只解决网络发现与负载转发，不理解模型缓存亲和性；如果需要 prefix-aware routing 或 KV Cache aware routing，需要额外 Router 或 Production Stack 组件。</p>
+    </section>
 
-<p>vLLM Production Stack 是官方维护的 K8s 原生部署方案：</p>
+    <section id="gpu">
+      <h2>16.2 GPU 如何成为可调度资源</h2>
+      <p>Kubernetes 通过 Device Plugin 管理 GPU 等专用设备。管理员需要先在节点安装 GPU 驱动，再部署对应厂商的 Device Plugin。插件向 kubelet 注册可分配资源，例如 NVIDIA 环境中的 <code>nvidia.com/gpu</code>。</p>
+      <p>Pod 可以像申请 CPU 和内存一样申请扩展资源，但 GPU 有专门规则：</p>
+      <ul>
+        <li>GPU 通常写在 <code>resources.limits</code> 中；可以只写 limit，Kubernetes 会把它作为 request。</li>
+        <li>如果同时写 GPU requests 和 limits，两者必须相等。</li>
+        <li>不能只写 GPU request 而不写 limit。</li>
+        <li>MIG、时间切片或第三方 GPU 共享方案可能暴露不同资源名和语义，不能把它们当作普通整卡资源处理。</li>
+      </ul>
+      <p>多 GPU vLLM Pod 还需要考虑节点拓扑、GPU 互联、NCCL、网络与执行器配置。TP=2 不意味着任意两张 GPU 组合都能获得相同通信性能；多节点并行还需要额外的分布式网络与故障配置。</p>
+    </section>
 
-<pre><code>Production Stack 核心组件:
-├── vLLM Engine Pods       ← 模型推理实例（每个 Pod 一个 vLLM 进程）
-├── Router (可选)          ← 前缀感知路由，同 system prompt 去同一 Pod
-├── LMCache               ← 跨 Pod 共享 KV Cache（减少冷启动）
-├── Prometheus + Grafana  ← 可观测性（指标采集 + 仪表板）
-└── Helm Chart            ← 一键部署/<升级/卸载</code></pre>
+    <section id="manifest">
+      <h2>16.3 一个 Pod 的部署骨架</h2>
+      <p>下面是一个教学骨架，展示 GPU 资源、Secret、模型缓存卷与探针如何组合。镜像版本、PVC、GPU 资源名、模型 revision 和资源请求都应替换为实际集群中已验证的值。</p>
+      <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-qwen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-qwen
+  template:
+    metadata:
+      labels:
+        app: vllm-qwen
+    spec:
+      terminationGracePeriodSeconds: 180
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:&lt;tested-release-tag&gt;
+          args:
+            - --model
+            - Qwen/Qwen3-0.6B
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: token
+          resources:
+            requests:
+              cpu: "6"
+              memory: 16Gi
+            limits:
+              cpu: "8"
+              memory: 32Gi
+              nvidia.com/gpu: "1"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 6
+          volumeMounts:
+            - name: model-cache
+              mountPath: /root/.cache/huggingface
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: hf-model-cache</code></pre>
+      <p><strong>关于探针：</strong>示例使用 <code>/health</code> 作为启动与就绪检查，TCP 探针仅作为轻量存活信号示意。真实部署需要验证所用 vLLM 版本的 endpoint 行为、模型加载时长和失败模式；探针阈值不能照抄。容器镜像以 root 运行时可使用 root 路径；若采用官方支持的 non-root 方式，需要同步修改挂载目录和安全上下文。</p>
+      <p><strong>关于 GPU limit：</strong>这里的 <code>nvidia.com/gpu</code> 依赖节点已经安装 NVIDIA 驱动与 Device Plugin。若集群使用 MIG 或 GPU 共享插件，资源名称与申请方式要以集群管理员提供的资源清单为准。</p>
+    </section>
 
-<h3>16.2 安装与配置</h3>
+    <section id="probes">
+      <h2>16.4 探针、滚动更新与 PDB</h2>
+      <p>三个探针回答不同问题：Startup 允许模型有足够的加载时间；Readiness 决定 Pod 是否接收 Service 流量；Liveness 判断容器是否需要重启。把“GPU 正在忙”误当成“进程已经死锁”，可能引发重启风暴。</p>
+      <p>Deployment 的 RollingUpdate 使用 <code>maxUnavailable</code> 和 <code>maxSurge</code> 控制更新过程中的不可用 Pod 数量和额外 Pod 数量：</p>
+      <pre><code>strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1</code></pre>
+      <p>上面的设置希望在新 Pod Ready 后再减少旧 Pod，但它要求集群有额外 GPU 资源容纳新副本。若 GPU 已全部分配，surge Pod 可能长期 Pending；在没有额外容量时，需要选择分批维护、临时扩容或接受受控的服务容量下降。</p>
+      <p>PodDisruptionBudget 用于限制节点 drain 等自愿中断期间同时不可用的副本数量。它不能阻止节点硬故障，也不是 Deployment RollingUpdate 的替代品；滚动升级的可用性由 Deployment strategy 控制。</p>
+    </section>
 
-<pre><code># 1. 添加 Helm 仓库
-helm repo add vllm https://vllm-project.github.io/production-stack
+    <section id="stack">
+      <h2>16.5 vLLM Production Stack 的三种入口</h2>
+      <p>vLLM Production Stack 是 vLLM 项目下的参考生产部署栈，提供推理引擎编排、请求路由和观测集成。当前官方文档列出三种主要部署入口：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>入口</th><th>适用场景</th><th>需要理解的边界</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Helm Chart</strong></td><td>标准 Kubernetes 部署与参数化配置</td><td>Values 与 Chart 版本需要固定并审查</td></tr>
+            <tr><td><strong>CRD Deployment</strong></td><td>更偏 Kubernetes 原生资源和 Operator 工作流</td><td>CRD 版本、Controller 和升级路径需要管理</td></tr>
+            <tr><td><strong>Gateway API Inference Extension</strong></td><td>通过 Gateway API 与 Router 管理模型服务池</td><td>涉及 Gateway、Inference Extension 与 Router 组件的兼容性</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>标准 Helm Chart 的基本安装流程如下，正式环境还需要按目标版本固定 Chart、values 文件和镜像：</p>
+      <pre><code>helm repo add vllm https://vllm-project.github.io/production-stack
 helm repo update
 
-# 2. 配置文件 values.yaml
-cat > values.yaml << 'EOF'
-servingEngineSpec:
-  modelSpec:
-    - name: "llama-8b"
-      repository: "vllm/vllm-openai"
-      tag: "latest"
-      modelURL: "meta-llama/Llama-3-8B"
-      replicaCount: 2          # 2 个实例
-      requestGPU: 1
-      args:
-        - --enable-prefix-caching
-        - --kv-cache-dtype fp8
-        - --max-model-len 8192
+helm install vllm vllm/vllm-stack \
+  -f values.yaml</code></pre>
+      <p>Production Stack 的能力还包括多模型部署、模型感知 / 前缀感知路由，以及通过 LMCache 等组件扩展 KV Cache offloading。它是一个可选的参考栈，不是 Kubernetes 部署 vLLM 的唯一方式。</p>
+    </section>
 
-routerSpec:
-  enabled: true                # 开启前缀感知路由
-  replicaCount: 1
+    <section id="routing">
+      <h2>16.6 路由、扩缩容与缓存局部性</h2>
+      <p>多副本系统面临两个相互拉扯的目标：</p>
+      <ul>
+        <li><strong>缓存命中：</strong>相同前缀尽量到达持有对应 KV Cache 的实例。</li>
+        <li><strong>负载均衡：</strong>避免所有热门前缀都挤在同一个实例，造成队列积压。</li>
+      </ul>
+      <p>Production Stack 的 Load-aware Routing 给出一种示例评分形式：</p>
+      <div class="math-display"><code>score(i) = matched_tokens(i) / prompt_tokens − β × relative_load(i)</code></div>
+      <p>其中缓存匹配比例代表潜在复用收益，relative_load 表示当前实例相对负载，β 控制负载与缓存收益之间的权衡。这个公式是该 Router 的具体实现策略，不是所有 vLLM 部署的通用路由标准。</p>
+      <p>扩缩容时也不要只看 GPU utilization。可结合等待队列、TTFT、请求速率、KV Cache 使用情况和副本冷启动时间；新副本需要分配 GPU、拉取模型、加载权重和预热，扩容动作本身有延迟。若请求很快消失，盲目扩缩容还可能产生抖动。</p>
+    </section>
 
-metricsSpec:
-  enabled: true                # 开启 Prometheus 指标
-EOF
+    <section id="recap">
+      <h2>本章自检</h2>
+      <ol>
+        <li>为什么 Kubernetes Scheduler 需要 Device Plugin 才能调度 NVIDIA GPU？</li>
+        <li>GPU request 与 limit 为什么必须满足特殊规则？</li>
+        <li>为什么模型加载时间应该由 Startup Probe 考虑，而不是简单缩短 Liveness 周期？</li>
+        <li>PDB 与 Deployment RollingUpdate 各自控制什么？</li>
+        <li>为什么 Prefix-aware routing 可能让单个热门实例过载？</li>
+      </ol>
+      <p>下一章进入可观测性：把用户感受到的延迟拆成队列、Prefill、Decode 与网络事件，并用指标和 Trace 定位瓶颈。</p>
+    </section>
 
-# 3. 部署
-helm install vllm vllm/vllm-stack -f values.yaml</code></pre>
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>Kubernetes：<a href="https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/" target="_blank" rel="noopener noreferrer">Schedule GPUs</a>、<a href="https://kubernetes.io/docs/concepts/workloads/pods/probes/" target="_blank" rel="noopener noreferrer">Container Probes</a>、<a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" target="_blank" rel="noopener noreferrer">Deployments</a>、<a href="https://kubernetes.io/docs/concepts/workloads/pods/disruptions/" target="_blank" rel="noopener noreferrer">Pod Disruptions / PDB</a>。</li>
+        <li>vLLM：<a href="https://docs.vllm.ai/en/latest/deployment/integrations/production-stack/" target="_blank" rel="noopener noreferrer">Production Stack</a>。</li>
+        <li>vLLM Production Stack：<a href="https://docs.vllm.ai/projects/production-stack/en/latest/deployment/" target="_blank" rel="noopener noreferrer">Deployment Overview</a>、<a href="https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/prefix-aware-routing.html" target="_blank" rel="noopener noreferrer">Prefix Aware Routing</a>、<a href="https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/loadaware-routing.html" target="_blank" rel="noopener noreferrer">Load Aware Routing</a>。</li>
+      </ol>
+      <p><small>本章 YAML 是教学骨架，不是适用于任意 GPU 节点、vLLM 镜像和 StorageClass 的开箱即用 Chart。部署前应使用目标集群验证 Pod 安全上下文、驱动、设备插件、探针和存储访问模式。</small></p>
+    </section>
 
-<h3>16.3 生产栈关键能力</h3>
-
-<table>
-  <tr><th>能力</th><th>作用</th><th>启用方式</th></tr>
-  <tr><td>多模型管理</td><td>同一集群服务不同模型（路由匹配）</td><td>在 modelSpec 中配置多个模型</td></tr>
-  <tr><td>前缀感知路由</td><td>相同前缀的请求→同一个 Pod，最大化 prefix cache 命中</td><td><code>routerSpec.enabled: true</code></td></tr>
-  <tr><td>LMCache 集成</td><td>KV cache 离载到 CPU 内存/SSD，减少冷启动</td><td>配置 LMCache 后端</td></tr>
-  <tr><td>自动扩缩</td><td>基于 GPU 用量或 QPS 的 HPA</td><td>配置 <code>autoscaling</code></td></tr>
-  <tr><td>滚动更新</td><td>模型版本升级不中断服务</td><td>K8s 原生 rolling update</td></tr>
-</table>
-
-<div class="highlight">
-  <p><strong>前缀感知路由为什么重要</strong>：假设你有 3 个 Pod，随机路由请求。每个 Pod 的 prefix cache 都只有 1/3 的命中率。加了前缀感知路由后，同样 system prompt 的请求全部到同一个 Pod，缓存命中率从 33% → 90%+。这是 "用路由层换缓存效率" 的经典案例。</p>
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="15.html">← 上一章：Production Deployment</a><a class="next" href="17.html">下一章：Observability →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
 </div>
-
-<h3>16.4 GPU 资源管理</h3>
-
-<pre><code># 每个 vLLM Pod 申请 GPU 资源
-resources:
-  limits:
-    nvidia.com/gpu: 1  # 1 张 GPU
-
-# 多 GPU 张量并行
-args:
-  - --tensor-parallel-size 2
-resources:
-  limits:
-    nvidia.com/gpu: 2  # 要配 2 张
-
-# 注意：TP 要求 GPU 在同一节点 + NVLINK，用 nodeSelector 绑定
-nodeSelector:
-  nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB</code></pre>
-
-<h3>16.5 模型预热</h3>
-
-<p>Pod 冷启动时加载模型可能耗时 30s-2min（取决于模型大小和网络速度）。可以用 initContainer 预下载模型：</p>
-
-<pre><code>initContainers:
-  - name: model-downloader
-    image: huggingface/transformers:latest
-    command:
-      - huggingface-cli
-      - download
-      - meta-llama/Llama-3-8B
-      - --local-dir /models
-    volumeMounts:
-      - name: model-storage
-        mountPath: /models
-    env:
-      - name: HF_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: hf-secret
-            key: token</code></pre>
-
-<div class="tip">
-  <p><strong>成本优化</strong>：如果模型常用（不是冷门模型），把模型下载到持久卷（PVC/云盘），多个 Pod 共享，避免每次重启重新下载。模型文件通常几十 GB，下载一次重用省时省流量。</p>
-</div>
-
-<h3>16.6 典型生产拓扑</h3>
-
-<pre><code>                           ┌─────────────┐
-                           │  Ingress/Nginx│
-                           └──────┬──────┘
-                                  │
-                           ┌──────▼──────┐
-                           │   Router     │  ← 前缀感知路由
-                           └──────┬──────┘
-                    ┌─────────────┼──────────────┐
-                    ▼             ▼              ▼
-              ┌──────────┐ ┌──────────┐ ┌──────────┐
-              │ vLLM Pod │ │ vLLM Pod │ │ vLLM Pod │
-              │ GPU 0    │ │ GPU 1    │ │ GPU 2    │
-              └──────────┘ └──────────┘ └──────────┘
-                    │             │              │
-                    └─────────────┼──────────────┘
-                                  │
-                    ┌─────────────▼──────────────┐
-                    │  Prometheus + Grafana + Log │
-                    └────────────────────────────┘</code></pre>
-
-<p>生产集群搭起来了。下一章咱们做可观测性——没有监控的生产环境，等于蒙着眼睛开车。</p>
-
-        <div class="footer-nav"><a href="15.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="17.html">下一章 →</a></div>
-    </div>
-</div></div>
 </body>
 </html>
