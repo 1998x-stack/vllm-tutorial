@@ -185,88 +185,110 @@ window.VLLM_COURSES = {
       "num": "07",
       "title": "模型加载与配置",
       "topics": [
-        "模型来源",
-        "量化加载",
-        "显存参数",
-        "常见踩坑"
+        "模型身份与 Revision",
+        "架构解析与权重加载",
+        "dtype 与量化 Method / Scheme / Kernel",
+        "上下文与显存预算",
+        "可复现部署清单"
       ],
       "file": "07.html",
       "category": "getting-started",
       "level": "进阶",
-      "durationMinutes": 16,
+      "durationMinutes": 20,
       "prerequisites": [
         "06"
       ],
-      "summary": "理解模型来源、加载格式、量化与显存参数，并学会按版本查证配置项。",
+      "summary": "沿着模型仓库、架构解析、Tokenizer、权重加载、dtype、量化 Kernel 与显存预算理解 vLLM 的完整加载链路。",
       "learningObjectives": [
-        "选择 Hub、本地路径或对象存储模型来源",
-        "区分权重量化与 KV Cache dtype",
-        "按显存和请求长度调整服务配置"
+        "区分模型、Tokenizer、代码与 vLLM 的版本身份",
+        "解释 config.json 架构解析与权重加载的基本流程",
+        "区分 dtype、量化 method、scheme、kernel 和 KV Cache dtype",
+        "按上下文长度与显存预算建立可复现配置"
       ],
       "tags": [
         "model-loading",
+        "model-resolution",
+        "revision-pinning",
+        "tokenizer",
+        "dtype",
         "quantization",
         "configuration"
       ]
     },
     {
       "num": "08",
-      "title": "KV Cache管理",
+      "title": "KV Cache 容量规划",
       "topics": [
-        "显存精确估算",
-        "Free Block Pool",
-        "FP8量化",
-        "分层存储"
+        "每 Token KV Cache 公式",
+        "GQA 与 KV Heads",
+        "并发容量计算器",
+        "GPU 显存预算",
+        "Block Pool 与混合模型",
+        "FP8 / Offloading / Metrics"
       ],
       "file": "08.html",
       "category": "memory",
       "level": "进阶",
-      "durationMinutes": 18,
+      "durationMinutes": 22,
       "prerequisites": [
         "01",
         "03",
         "04"
       ],
-      "summary": "从公式出发估算 KV Cache，理解 block pool、缓存 dtype、监控和 offload 的边界。",
+      "summary": "从模型层数、KV heads、head dimension 和缓存 dtype 推导理论需求，再结合 vLLM 的显存规划、Block Pool、监控与 Offloading 理解实际容量。",
       "learningObjectives": [
-        "推导每 token KV Cache 字节数",
-        "计算并发与上下文长度对显存的影响",
-        "识别缓存压力、抢占和量化的代价"
+        "推导标准 Transformer 每 token KV Cache 字节数",
+        "计算不同上下文长度和并发数下的理论缓存需求",
+        "解释 TP 分片、混合 KV groups 和 Block Pool 对实际容量的影响",
+        "使用 FP8、Offloading 与 Prometheus 指标分析缓存压力"
       ],
       "tags": [
         "kv-cache-sizing",
-        "fp8",
-        "memory-monitoring"
+        "gqa",
+        "kv-heads",
+        "memory-budget",
+        "capacity-planning",
+        "fp8-kv-cache",
+        "kv-offloading",
+        "metrics"
       ]
     },
     {
       "num": "09",
-      "title": "Prefix Caching",
+      "title": "Automatic Prefix Caching",
       "topics": [
-        "零开销实现",
-        "命中率分析",
-        "RAG场景收益",
-        "前缀感知路由"
+        "Parent Hash Chain",
+        "Token IDs 与 Extra Keys",
+        "Block / Hash / Hit Alignment",
+        "ref_cnt 与 LRU 淘汰",
+        "Hybrid Mamba 细粒度检查点",
+        "cache_salt 与安全"
       ],
       "file": "09.html",
       "category": "memory",
       "level": "进阶",
-      "durationMinutes": 16,
+      "durationMinutes": 22,
       "prerequisites": [
         "03",
         "04",
         "08"
       ],
-      "summary": "理解自动前缀缓存如何识别并复用已计算的 KV blocks，以及命中条件和安全边界。",
+      "summary": "深入理解 vLLM APC 的链式哈希、缓存块生命周期、细粒度匹配约束、命中收益测量与多租户隔离。",
       "learningObjectives": [
-        "解释基于 token block hash 的前缀缓存",
-        "识别缓存命中、失效和淘汰条件",
-        "设计能测量缓存收益的对照实验"
+        "解释 parent hash、block token IDs 和 extra keys 如何构成缓存身份",
+        "区分物理 block size、hash block size 与 cache hit alignment",
+        "追踪引用计数、Free Queue 和 LRU 淘汰的生命周期",
+        "设计冷缓存 / 热缓存对照实验并解释 cache_salt 的安全边界"
       ],
       "tags": [
         "prefix-caching",
-        "hashing",
-        "cache-hit"
+        "block-hash",
+        "hash-chain",
+        "cache-hit-alignment",
+        "mamba-prefix-checkpoint",
+        "lru-eviction",
+        "cache-salt",
+        "multi-tenant-security"
       ]
     },
     {
