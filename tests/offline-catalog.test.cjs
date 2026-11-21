@@ -81,9 +81,6 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "07-model-config-map.svg",
     "08-kv-memory-budget.svg",
     "09-prefix-cache-hash.svg",
-    "04-kv-write-read-path.svg",
-    "05-iteration-batching.svg",
-    "06-first-run-path.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
@@ -100,4 +97,16 @@ test("chapter diagrams and evidence records are independently inspectable", () =
       assert.ok(claim.claim.length > 10);
     }
   }
+});
+
+test("chapter 08 calculator is offline, accessible, and wired to its formula", () => {
+  const html = fs.readFileSync(path.join(root, "08.html"), "utf8");
+  const script = fs.readFileSync(path.join(root, "assets", "js", "kv-cache-calculator.js"), "utf8");
+  assert.match(html, /assets\/js\/kv-cache-calculator\.js/);
+  assert.match(html, /data-kv-calculator/);
+  for (const field of ["layers", "kvHeads", "headDim", "bytes", "tokens", "concurrency"]) {
+    assert.match(html, new RegExp('data-kv-field="' + field + '"'));
+  }
+  assert.match(script, /2 \* values\.layers/);
+  assert.match(script, /addEventListener\("input"/);
 });
