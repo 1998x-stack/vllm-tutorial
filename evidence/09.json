@@ -65,7 +65,7 @@
       "status": "verified",
       "source_url": "https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/",
       "locator": "Hybrid Mamba models and --enable-mamba-shared-prefix-checkpoint",
-      "notes": "Current source implements partial cache entries as lookup metadata associated with an existing physical block; model and alignment conditions apply."
+      "notes": "Current source registers a partial-tail lookup entry against an existing physical block; the FullAttentionManager path only registers the final prompt boundary inside a physical block, not every interior hash boundary. Model and alignment conditions apply."
     },
     {
       "id": "cache-salt-isolation",
