@@ -11,6 +11,7 @@ This repository is a version-aware, visual learning course about the vLLM infere
 5. **Offline-first.** No CDN, remote fonts, analytics, or required network requests for article rendering. External links are references, not runtime dependencies.
 6. **Preserve the course contract.** The 28 chapter numbers and the local `file://` reading path remain stable. Update `courses.json`, regenerate `courses-data.js` with `python3 scripts/build_course_data.py`, and keep navigation links synchronized.
 7. **Keep work auditable.** Add or update `evidence/NN.json` for substantive claims in rewritten chapters. Separate official behavior, paper results, derived calculations, toy examples, and recommendations.
+8. **Respect model and cache boundaries.** Pin model / tokenizer / code revisions independently where needed; treat remote code as a trust decision. For Prefix Cache, distinguish physical block size, hash block size, and cache-hit alignment, and never generalize hybrid-model partial-hit behavior to every model.
 8. **Never claim QA that was not run.** Report static checks, browser checks, and deployment checks separately.
 
 ## Editing workflow
