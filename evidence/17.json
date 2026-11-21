@@ -1,0 +1,62 @@
+{
+  "chapter": "17",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 Prometheus metrics, latency metric definitions, histogram queries and OpenTelemetry tracing.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "metrics-endpoint",
+      "claim": "vLLM exposes Prometheus-compatible production metrics through the /metrics endpoint on the OpenAI-compatible API server.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/metrics.md",
+      "locator": "Production Metrics introduction",
+      "notes": "The exact metric set depends on version, task, optional features and deployment mode."
+    },
+    {
+      "id": "v1-latency-metrics",
+      "claim": "Current V1 metrics include time_to_first_token_seconds, inter_token_latency_seconds, request_time_per_output_token_seconds, e2e_request_latency_seconds and request_queue_time_seconds histograms.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/metrics.md",
+      "locator": "Metric family tables",
+      "notes": "Check the target instance's /metrics output before writing alerts or dashboards."
+    },
+    {
+      "id": "itl-vs-tpot",
+      "claim": "ITL measures time between successive streamed output events, while request-level TPOT is computed per request as (end-to-end latency minus TTFT) divided by output token count minus one.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/benchmarking/cli/",
+      "locator": "Understanding the latency metrics",
+      "notes": "The values can differ when an output event bundles multiple tokens or when aggregation weights differ."
+    },
+    {
+      "id": "metrics-histogram-cardinality",
+      "claim": "Custom histogram bucket families replace default boundaries; each additional bucket adds time series per metric and label combination, increasing Prometheus storage and scrape costs.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/metrics.md",
+      "locator": "Custom Histogram Buckets and Bucket cardinality",
+      "notes": "Keep bucket lists short and use only for actively monitored metrics."
+    },
+    {
+      "id": "otel-tracing-support",
+      "claim": "vLLM supports OpenTelemetry tracing configured with --otlp-traces-endpoint and detailed trace collection options.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/metrics/",
+      "locator": "OpenTelemetry tracing",
+      "notes": "Detailed tracing can add overhead; enable and sample based on operational need."
+    },
+    {
+      "id": "promql-examples-derived",
+      "claim": "The chapter's histogram_quantile PromQL examples are derived from Prometheus histogram query semantics and the documented vLLM histogram metric names.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://prometheus.io/docs/practices/histograms/",
+      "locator": "Quantiles from histograms",
+      "notes": "Aggregation labels should be adapted to labels actually exposed by the deployment."
+    }
+  ]
+}
