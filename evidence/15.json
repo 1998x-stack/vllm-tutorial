@@ -54,9 +54,9 @@
       "claim": "A failed replica can interrupt in-flight generation; retrying a generation request may repeat inference work unless the application adds idempotency and request-state handling.",
       "kind": "recommendation",
       "status": "verified",
-      "source_url": "https://docs.vllm.ai/en/latest/deployment/docker/",
-      "locator": "Serving process and container lifecycle",
-      "notes": "Application retry semantics depend on request IDs, client behavior and upstream orchestration."
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9110.html#name-idempotent-methods",
+      "locator": "Idempotent Methods",
+      "notes": "POST is not defined as an idempotent method by default; retry behavior should be made safe by application-level request IDs and idempotency handling where required."
     }
   ]
 }
