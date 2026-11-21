@@ -1,158 +1,239 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第14章 Sampling与生成控制</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从 logits、softmax 到 Temperature、Top-k、Top-p、Min-p、Logprobs 与 Structured Outputs，理解 vLLM 的生成控制。">
+  <title>第 14 章｜Sampling & Decoding：模型如何选出下一个 Token</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
+  <script defer src="assets/js/sampling-lab.js"></script>
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html" class="active">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/api/vllm/sampling_params/" target="_blank" rel="noopener noreferrer">SamplingParams ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#distribution">14.1 从 logits 到概率分布</a></li>
+      <li><a href="#temperature">14.2 Temperature：改变分布的尖锐程度</a></li>
+      <li><a href="#filters">14.3 Top-k、Top-p 与 Min-p</a></li>
+      <li><a href="#controls">14.4 惩罚项、随机种子与停止条件</a></li>
+      <li><a href="#structured">14.5 Structured Outputs：约束可生成的语言</a></li>
+      <li><a href="#logprobs">14.6 Logprobs：观察概率，不是读取思维</a></li>
+      <li><a href="#lab">14.7 交互实验：亲手裁剪候选分布</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 14 章 · 安装、模型接入与生成控制</p>
+      <h1>Sampling & Decoding：模型如何选出下一个 Token</h1>
+      <p class="article-dek">模型输出的是一组 logits，不是唯一正确的下一个词。Sampling 参数决定如何把这组分数变成候选集合、概率分布与最终 token；Structured Outputs 则从另一个方向限制哪些 token 序列允许出现。</p>
+      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 23 分钟</span><span class="meta-chip">前置章节：01、06</span><span class="meta-chip">源码审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">假设模型下一步给出六个候选 token 的分数。我们可以总是选择最高分，也可以按概率随机抽样；可以让分布更平滑，也可以只保留最有竞争力的一小部分候选。理解这些操作的顺序与边界，比背诵“聊天用 0.7、写作 0.9”更重要——不存在对所有模型、任务都最优的温度值。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>从 logits 推导 softmax 概率，并解释 Temperature 的数学作用。</li>
+        <li>区分 Top-k、Top-p 和 Min-p 的候选裁剪规则。</li>
+        <li>解释 presence、frequency、repetition penalty 与 seed 的不同职责。</li>
+        <li>使用当前 vLLM 的 structured_outputs API，而不是已弃用的 guided_* 字段。</li>
+        <li>正确解释 logprobs 的含义及其不能证明的事情。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第14章 Sampling与生成控制</h2>
 
-<p>前几章都在讲怎么让模型跑得快。这一章换个角度——怎么让模型输出得<strong>对</strong>。采样策略决定了你的输出是"千篇一律"还是"精彩纷呈"，是一堆废话还是精准答案。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/14-sampling-pipeline.svg" alt="从模型 logits 到概率分布，经过惩罚和约束、temperature、Top-k Top-p Min-p 候选过滤、重新归一化，最终执行 greedy 或随机抽样">
+      <figcaption>图 1：生成控制的概念流程。具体参数在运行时由不同 logits processor、采样器和约束解码后端实现；这张图强调各类控制改变的对象，不代表所有后端共享一条固定内核调用顺序。</figcaption>
+    </figure>
 
-<h3>14.1 采样参数全解析</h3>
+    <section id="distribution">
+      <h2>14.1 从 logits 到概率分布</h2>
+      <p>模型最后一层对词表中的每个 token 输出一个实数分数，称为 logit。假设词表只有六个 token，模型输出：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>候选 token</th><th>logit</th><th>softmax 概率（约）</th></tr></thead>
+          <tbody>
+            <tr><td>“猫”</td><td>3.2</td><td>0.50</td></tr>
+            <tr><td>“狗”</td><td>2.6</td><td>0.27</td></tr>
+            <tr><td>“狐狸”</td><td>1.9</td><td>0.13</td></tr>
+            <tr><td>“鸟”</td><td>1.3</td><td>0.07</td></tr>
+            <tr><td>“乌龟”</td><td>0.6</td><td>0.03</td></tr>
+            <tr><td>“鲸鱼”</td><td>-0.1</td><td>0.01</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>概率由 softmax 得到：</p>
+      <div class="math-display"><code>pᵢ = exp(zᵢ) / Σⱼ exp(zⱼ)</code></div>
+      <p>其中 <code>zᵢ</code> 是第 i 个 token 的 logit。softmax 把任意实数映射成非负且总和为 1 的概率。实际词表可能有数万到数十万个 token，采样器要高效处理整行 logits。</p>
+      <p>注意：概率只描述当前模型、当前上下文与当前 logits 处理条件下的下一 token 分布，不是 token 的客观正确率，也不是模型对整段答案的校准置信度。</p>
+    </section>
 
-<table>
-  <tr><th>参数</th><th>作用</th><th>范围</th><th>推荐值</th></tr>
-  <tr><td><code>temperature</code></td><td>控制输出的随机性。越高越"放飞"，越低越"保守"</td><td>0.0 - 2.0</td><td>创意 0.8-1.0，严谨 0.0-0.3</td></tr>
-  <tr><td><code>top_p</code>（核采样）</td><td>只考虑累积概率达到 p 的 token 集合</td><td>0.0 - 1.0</td><td>0.9</td></tr>
-  <tr><td><code>top_k</code></td><td>只考虑概率最高的 k 个 token</td><td>1 - vocab_size</td><td>50</td></tr>
-  <tr><td><code>max_tokens</code></td><td>最大生成 token 数（含 stop tokens）</td><td>1 - model_max_len</td><td>按业务设定</td></tr>
-  <tr><td><code>stop</code></td><td>遇到这些字符串立即停</td><td>字符串列表</td><td>["\n\n", "Human:", "&lt;/s&gt;"]</td></tr>
-  <tr><td><code>repetition_penalty</code></td><td>惩罚重复 token，>1.0 减少重复</td><td>0.0 - 2.0</td><td>1.1（需要时）</td></tr>
-  <tr><td><code>presence_penalty</code></td><td>惩罚已出现过的 token</td><td>-2.0 - 2.0</td><td>0.5（鼓励多样性时）</td></tr>
-  <tr><td><code>frequency_penalty</code></td><td>按出现频率惩罚</td><td>-2.0 - 2.0</td><td>0.5（减少重复时）</td></tr>
-</table>
+    <section id="temperature">
+      <h2>14.2 Temperature：改变分布的尖锐程度</h2>
+      <p>Temperature 对 logits 做缩放，再执行 softmax：</p>
+      <div class="math-display"><code>pᵢ(T) = exp(zᵢ / T) / Σⱼ exp(zⱼ / T)</code></div>
+      <ul>
+        <li><strong>T = 1：</strong>保持原始 softmax 分布。</li>
+        <li><strong>0 小于 T 小于 1：</strong>放大 logit 差异，概率更集中在高分 token。</li>
+        <li><strong>T 大于 1：</strong>缩小 logit 差异，概率更平坦。</li>
+        <li><strong>T = 0：</strong>不是除以零，而是切换到 Greedy：选择最高分 token。</li>
+      </ul>
+      <p>Temperature 改变的是“如何从模型给出的分数构造概率”，不是模型权重、知识或推理能力。把 Temperature 调高，可能增加表达多样性，也可能增加低概率候选被选中的机会；它不会自动让答案更有创意或更正确。</p>
+      <div class="callout">
+        <p><strong>当前 vLLM 实现细节：</strong><code>SamplingParams</code> 默认 Temperature 为 1.0。温度接近 0 时，当前实现会进入 Greedy 路径，并将 Top-k、Top-p、Min-p 设为关闭状态；Greedy 模式还要求 <code>n=1</code>。不要把 T=0 理解为“随机采样后再把温度调低”。</p>
+      </div>
+    </section>
 
-<h3>14.2 Temperature 的直观理解</h3>
+    <section id="filters">
+      <h2>14.3 Top-k、Top-p 与 Min-p</h2>
+      <p>Temperature 调整概率形状，候选过滤则决定哪些 token 还允许参与抽样。三种常见策略回答的是三个不同问题：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>策略</th><th>保留规则</th><th>直觉</th><th>vLLM 默认</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Top-k</strong></td><td>只保留 logit / 概率最高的 k 个 token</td><td>候选数量固定</td><td><code>0</code>，关闭</td></tr>
+            <tr><td><strong>Top-p</strong></td><td>按概率从高到低排序，保留累计概率达到 p 的最小前缀集合</td><td>候选数量随分布变化</td><td><code>1.0</code>，关闭</td></tr>
+            <tr><td><strong>Min-p</strong></td><td>保留概率至少达到最高 token 概率乘以阈值的 token</td><td>相对最高候选设底线</td><td><code>0.0</code>，关闭</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Min-p 的规则可以写成：</p>
+      <div class="math-display"><code>保留 token i，当 pᵢ ≥ min_p × maxⱼ(pⱼ)</code></div>
+      <p>举例：若最高候选概率为 0.50，<code>min_p=0.1</code>，则低于 0.05 的候选会被过滤。这里的 0.1 是相对阈值，不是“至少 10% 的绝对概率”。</p>
+      <p>Top-k 与 Top-p 的差别尤其重要：如果分布非常尖锐，Top-p 可能只保留一两个 token；如果分布很平，Top-p 可能保留更多 token。Top-k 则无论概率分布怎样，候选数量上限固定。</p>
+      <p>这些过滤器组合使用时会相互影响。实际 vLLM 会根据设备与采样后端选择优化实现，不能把下面的教学模拟当成所有 GPU kernel 的逐行执行顺序。</p>
+    </section>
 
-<pre><code>temperature = 0.0 (Greedy, 贪婪解码):
-  每一步选概率最高的 token → 输出完全确定
-  "今天天气" → 模型每步都选最可能的 → 永远是同一个答案
+    <section id="controls">
+      <h2>14.4 惩罚项、随机种子与停止条件</h2>
+      <p>除了 Temperature 和候选过滤，vLLM 还提供改变 token 分数或生成过程的控制：</p>
+      <ul>
+        <li><strong>Presence penalty：</strong>只要 token 在已生成内容中出现过，就按是否出现施加惩罚；鼓励话题词汇变化。</li>
+        <li><strong>Frequency penalty：</strong>惩罚幅度随 token 已出现次数增长；控制重复频率。</li>
+        <li><strong>Repetition penalty：</strong>对已出现 token 的分数做与符号相关的缩放式惩罚；其行为不同于简单减去固定常数。</li>
+        <li><strong>Seed：</strong>控制采样随机数流。相同 seed 有助于复现实验，但并不自动保证跨硬件、版本、并行执行和非确定性 kernel 的逐 token 完全一致。</li>
+        <li><strong>Stop / stop_token_ids / max_tokens：</strong>决定何时停止生成，而不是改变模型对下一个 token 的偏好。</li>
+      </ul>
+      <p>不要把这些参数统称为“随机性参数”。惩罚项改变 logits 或候选偏好，seed 控制随机数，stop 条件控制生成何时结束。</p>
+    </section>
 
-  适用: 数学计算、代码生成、事实问答
+    <section id="structured">
+      <h2>14.5 Structured Outputs：约束可生成的语言</h2>
+      <p>普通采样只根据概率选择 token；结构化输出则引入语法或 Schema 约束，让不符合目标结构的 token 序列不能被继续生成。它适合 JSON 提取、分类标签、受限格式和受控 DSL 等场景。</p>
+      <p>当前 vLLM 的 OpenAI 兼容接口使用 <code>structured_outputs</code>，支持 <code>json</code>、<code>regex</code>、<code>choice</code>、<code>grammar</code> 和 <code>structural_tag</code> 等形式。默认 backend 为 <code>auto</code>，也可以按需求选择 XGrammar 或 Guidance。</p>
+      <pre><code>from openai import OpenAI
+from pydantic import BaseModel
 
-temperature = 0.7 (温和创意):
-  "今天天气" → 可能是"很好"、"不错"、"还行"、"晴朗"...
-  有变化但不会离谱
+class Ticket(BaseModel):
+    category: str
+    priority: int
+    needs_human: bool
 
-  适用: 日常对话、内容总结
-
-temperature = 1.5 (放任自由):
-  "今天天气" → 可能是"很好"、"如您所愿"、"量子纠缠"、"打雷下冰雹"...
-  极度随机，容易胡说
-
-  适用: 创意写作（不推荐用于严谨场景）</code></pre>
-
-<h3>14.3 结构化输出（Guided Decoding）</h3>
-
-<p>vLLM 支持强制输出特定格式（JSON、正则等），这对 API 服务至关重要：</p>
-
-<pre><code>from vllm import LLM, SamplingParams
-from vllm.sampling_params import GuidedDecodingParams
-
-# JSON 模式
-guided = GuidedDecodingParams(json={
-    "type": "object",
-    "properties": {
-        "name": {"type": "string"},
-        "age": {"type": "integer"}
-    }
-})
-sampling_params = SamplingParams(guided_decoding=guided)
-
-# 正则模式
-guided = GuidedDecodingParams(regex=r"答案: (A|B|C|D)")
-
-# 基于上下文无关文法（CFG）
-guided = GuidedDecodingParams(grammar='''
-    root ::= answer
-    answer ::= "是" | "否"
-''')
-
-outputs = llm.generate(prompts, sampling_params)
-# 输出保证符合指定格式！</code></pre>
-
-<div class="tip">
-  <p><strong>实战技巧</strong>：结构化输出不仅让下游代码解析方便，还能减少生成 token 数（模型不用自己组织格式了）。在批量数据提取场景中，结构化解码通常能减少 10-30% 的生成 token 数。</p>
-</div>
-
-<h3>14.4 Logprobs：看模型"想了什么"</h3>
-
-<pre><code>sampling_params = SamplingParams(
-    temperature=0.7,
-    max_tokens=10,
-    logprobs=5  # 返回每个位置 top-5 的概率
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="YOUR_API_KEY",
 )
-output = llm.generate(["你好"], sampling_params)
-# output.outputs[0].logprobs: 每个位置的 log 概率列表
-# 适用于: 不确定性检测、黑盒评估、debug</code></pre>
 
-<h3>14.5 不同场景的采样方案</h3>
+response = client.chat.completions.create(
+    model="your-served-model",
+    messages=[
+        {"role": "user", "content": "分类：登录失败，无法进入账户。"}
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "ticket",
+            "schema": Ticket.model_json_schema(),
+        },
+    },
+)</code></pre>
+      <p><strong>重要版本边界：</strong>旧字段 <code>guided_json</code>、<code>guided_regex</code>、<code>guided_choice</code> 等已在 vLLM v0.12.0 移除。新代码应迁移到 <code>structured_outputs</code>。不同 backend 的 JSON Schema 与正则支持范围可能不同，升级时要用真实 Schema 做回归测试。</p>
+      <div class="callout warning">
+        <p><strong>格式正确不等于内容正确。</strong>约束解码可以限制输出结构，但无法证明分类结果真实、数字计算正确、引用存在或业务规则满足。仍需业务层验证与授权检查。</p>
+      </div>
+    </section>
 
-<table>
-  <tr><th>场景</th><th>推荐配置</th><th>原因</th></tr>
-  <tr><td>数学/代码生成</td><td>temperature=0.0, top_p=1.0</td><td>确定性输出，greedy 最优</td></tr>
-  <tr><td>客服对话</td><td>temperature=0.6, top_p=0.9, stop=["\n\n", "用户:"]</td><td>有点变化但不离谱，防止自问自答</td></tr>
-  <tr><td>JSON 数据提取</td><td>temperature=0.0 + GuidedDecoding(json_schema)</td><td>格式保证 + 确定性内容</td></tr>
-  <tr><td>创意写作</td><td>temperature=0.9, top_p=0.95, top_k=100</td><td>多样性优先</td></tr>
-  <tr><td>翻译</td><td>temperature=0.3, top_p=0.9</td><td>忠实原文为主，少量变化空间</td></tr>
-</table>
+    <section id="logprobs">
+      <h2>14.6 Logprobs：观察概率，不是读取思维</h2>
+      <p>Log probability 是概率的自然对数：</p>
+      <div class="math-display"><code>log p(token | context)</code></div>
+      <p>例如 <code>log p = -0.2</code> 对应概率约为 <code>exp(-0.2) ≈ 0.819</code>。数值越接近 0，概率越高；概率越小，log probability 越负。</p>
+      <p>vLLM 的 <code>logprobs</code> 可请求每个输出位置若干高概率候选及实际采样 token 的 logprob。当前 API 语义遵循 OpenAI 兼容行为：返回结果可能包含所请求数量之外的 sampled token，因此最多可能出现 <code>logprobs + 1</code> 个条目；设为 <code>-1</code> 时会请求整个词表的 logprobs，开销可能很大。</p>
+      <p>如果只关心少量指定 token（例如分类标签 A / B / C），可评估 <code>logprob_token_ids</code>，避免请求整个词表。还要确认返回的是 raw 还是 processed logprobs 模式；采样过滤后的分数不一定等于模型原始 softmax 分布。</p>
+      <p>Logprobs 能帮助比较候选、分析模型选择和构建评分器，但不能直接解释模型的内部推理过程，也不能单独作为事实正确率或可靠性保证。</p>
+    </section>
 
-<p>第二部分"核心机制篇"到此结束。咱们从 KV Cache 管理一路讲到 V1 架构和采样控制。下一章开始第三部分——怎么把你的 vLLM 服务真正推上生产环境。</p>
-
-        <div class="footer-nav">
-            <a href="13.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="15.html">下一章 →</a>
+    <section id="lab">
+      <h2>14.7 交互实验：亲手裁剪候选分布</h2>
+      <p>下面用六个固定 logits 演示 Temperature、Top-k、Top-p 和 Min-p 如何改变候选集合。它是一个可复算的教学模型：不调用 vLLM、不访问网络，也不模拟 GPU kernel 的具体实现顺序。</p>
+      <div class="sampling-lab" data-sampling-lab>
+        <div class="sampling-lab-controls">
+          <label>Temperature <output data-sampling-value="temperature">0.8</output>
+            <input type="range" min="0" max="2" step="0.05" value="0.8" data-sampling-field="temperature" aria-label="Temperature">
+          </label>
+          <label>Top-k <output data-sampling-value="topK">0（关闭）</output>
+            <input type="range" min="0" max="6" step="1" value="0" data-sampling-field="topK" aria-label="Top-k">
+          </label>
+          <label>Top-p <output data-sampling-value="topP">0.92</output>
+            <input type="range" min="0.1" max="1" step="0.01" value="0.92" data-sampling-field="topP" aria-label="Top-p">
+          </label>
+          <label>Min-p <output data-sampling-value="minP">0.05</output>
+            <input type="range" min="0" max="0.5" step="0.01" value="0.05" data-sampling-field="minP" aria-label="Min-p">
+          </label>
         </div>
-    </div>
-</div></div>
+        <div class="sampling-lab-summary" aria-live="polite">
+          <div><span>候选数量</span><strong data-sampling-result="count">—</strong></div>
+          <div><span>最高候选</span><strong data-sampling-result="winner">—</strong></div>
+          <div><span>采样模式</span><strong data-sampling-result="mode">—</strong></div>
+        </div>
+        <p class="sampling-lab-note" data-sampling-result="note">正在初始化分布实验……</p>
+        <div class="sampling-bars" data-sampling-bars aria-label="候选 token 概率分布">
+          <div class="sampling-bar-row"><span>猫</span><span class="sampling-bar-track"><i style="width:50%"></i></span><strong>50.0%</strong></div>
+          <div class="sampling-bar-row"><span>狗</span><span class="sampling-bar-track"><i style="width:27%"></i></span><strong>27.0%</strong></div>
+          <div class="sampling-bar-row"><span>狐狸</span><span class="sampling-bar-track"><i style="width:13%"></i></span><strong>13.0%</strong></div>
+          <div class="sampling-bar-row"><span>鸟</span><span class="sampling-bar-track"><i style="width:7%"></i></span><strong>7.0%</strong></div>
+          <div class="sampling-bar-row"><span>乌龟</span><span class="sampling-bar-track"><i style="width:3%"></i></span><strong>3.0%</strong></div>
+          <div class="sampling-bar-row"><span>鲸鱼</span><span class="sampling-bar-track"><i style="width:1%"></i></span><strong>1.0%</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="recap">
+      <h2>本章自检</h2>
+      <ol>
+        <li>为什么 Temperature=0 应被理解为 Greedy 特殊路径，而不是普通公式中的除零？</li>
+        <li>Top-k、Top-p、Min-p 分别根据什么规则删除候选？</li>
+        <li>为什么结构化输出的 JSON 合法性不等于业务语义正确？</li>
+        <li>Logprob=-2 与 Logprob=-0.2，哪个对应更高的 token 概率？</li>
+        <li>为什么重复惩罚、seed 与 stop 条件不应该被混为一类？</li>
+      </ol>
+      <p>下一章从单个模型实例走向生产服务：如何部署容器、规划资源、处理流式连接、管理副本与故障恢复。</p>
+    </section>
+
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>vLLM API Reference：<a href="https://docs.vllm.ai/en/latest/api/vllm/sampling_params/" target="_blank" rel="noopener noreferrer">SamplingParams</a>，包含 Temperature、Top-k、Top-p、Min-p、Logprobs 与参数默认值。</li>
+        <li>vLLM User Guide：<a href="https://docs.vllm.ai/en/latest/features/structured_outputs/" target="_blank" rel="noopener noreferrer">Structured Outputs</a>，包含 JSON Schema、Regex、Choice、Grammar 与 backend 迁移说明。</li>
+        <li>源码：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/sampling_params.py" target="_blank" rel="noopener noreferrer">SamplingParams</a> 与 <a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/sample/ops/topk_topp_sampler.py" target="_blank" rel="noopener noreferrer">Top-k / Top-p sampler</a>。</li>
+        <li>vLLM API Reference：<a href="https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html" target="_blank" rel="noopener noreferrer">OpenAI-Compatible Server</a>，在线请求参数和响应格式。</li>
+      </ol>
+      <p><small>源码审校基线：vLLM commit <code>c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf</code>。参数范围、默认值、Structured Outputs backend 和采样实现可能随版本演进；以实际部署版本为准。</small></p>
+    </section>
+
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="13.html">← 上一章：Request Lifecycle</a><a class="next" href="15.html">下一章：Production Deployment →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
+</div>
 </body>
 </html>
