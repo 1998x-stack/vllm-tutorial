@@ -191,5 +191,5 @@ test("chapters 14–18 cover production, Kubernetes, observability and security 
   assert.match(observability, /histogram_quantile/);
   assert.match(security, /API Key/);
   assert.match(security, /cache_salt/);
-  assert.match(security, /Multi-Tenant/);
+  assert.match(security, /multi-tenancy/i);
 });
