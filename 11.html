@@ -79,7 +79,7 @@
           </tbody>
         </table>
       </div>
-      <p>当前官方优化文档描述的 V1 Chunked Prefill 策略，会优先安排待处理的 Decode 请求，然后用剩余的 <code>max_num_batched_tokens</code> 预算安排 Prefill；如果某条 Prefill 无法一次装入预算，就会自动分块。要注意，源码还会先处理已经 Running 的请求，因此不能把整个 Scheduler 误读为一个没有 Running 队列状态的简单“Decode 队列先于 Prefill 队列”。</p>
+      <p>当前官方优化文档说明，V1 在支持的配置下会默认启用 Chunked Prefill；具体模型和运行模式仍可能使它被关闭，因此应检查最终解析出的配置。该文档描述的策略会优先安排待处理的 Decode 请求，再用剩余的 <code>max_num_batched_tokens</code> 预算安排 Prefill；如果某条 Prefill 无法一次装入预算，就会自动分块。要注意，源码还会先处理已经 Running 的请求，因此不能把整个 Scheduler 误读为一个没有 Running 队列状态的简单“Decode 队列先于 Prefill 队列”。</p>
     </section>
 
     <section id="example">
