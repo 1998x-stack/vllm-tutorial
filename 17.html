@@ -77,7 +77,7 @@
         <li><strong>E2E：</strong>End-to-End Latency。从客户端发起请求到最后一个输出到达的总时间。</li>
         <li><strong>Queue Time：</strong>请求在进入运行阶段之前等待调度的时间。</li>
       </ul>
-      <p>标准逐 token streaming 时，ITL 与 TPOT 往往接近；但如果一次输出事件包含多个 token（例如某些 speculative decoding / streaming 设置），两者就不再是同一个统计量。vLLM 的 <code>request_time_per_output_token_seconds</code> 是请求级 TPOT Histogram；<code>inter_token_latency_seconds</code> 记录相邻输出事件之间的间隔。</p>
+      <p>标准逐 token streaming 时，ITL 与 TPOT 往往接近；但如果一次输出事件包含多个 token（例如某些 speculative decoding / streaming 设置），两者就不再是同一个统计量。vLLM 的 <code>request_time_per_output_token_seconds</code> 是请求级 TPOT Histogram；<code>inter_token_latency_seconds</code> 记录相邻输出事件之间的间隔。当前实现对输出不超过一个 token 的请求记录 TPOT 为 0，因此 Prometheus Histogram 与 benchmark 工具排除这类请求后的 TPOT 统计也可能不同。</p>
       <div class="callout">
         <p><strong>不要把客户端 TTFT 与服务端某个内部阶段耗时混用。</strong>客户端基准包含网络与 API 入口时间；服务端指标可能从调度或推理阶段开始计时。比较数字时必须先核对测量点。</p>
       </div>
@@ -95,7 +95,7 @@
             <tr><td><code>vllm:request_time_per_output_token_seconds</code></td><td>Histogram · 请求级 TPOT</td><td>比较请求级生成速度</td></tr>
             <tr><td><code>vllm:e2e_request_latency_seconds</code></td><td>Histogram · 端到端请求延迟</td><td>衡量完整请求耗时</td></tr>
             <tr><td><code>vllm:request_queue_time_seconds</code></td><td>Histogram · WAITING 阶段耗时</td><td>判断排队是否主导延迟</td></tr>
-            <tr><td><code>vllm:num_requests_waiting</code></td><td>Gauge · 等待请求数</td><td>发现积压</td></tr>
+            <tr><td><code>vllm:num_requests_waiting</code> / <code>vllm:num_requests_waiting_by_reason</code></td><td>Gauge · 等待请求数及等待原因</td><td>区分容量不足与暂时性延迟约束</td></tr>
             <tr><td><code>vllm:num_requests_running</code></td><td>Gauge · 正在运行的请求数</td><td>观察并发状态</td></tr>
             <tr><td><code>vllm:kv_cache_usage_perc</code></td><td>Gauge · KV Cache blocks 使用比例</td><td>判断缓存压力</td></tr>
             <tr><td><code>vllm:request_num_preemptions</code></td><td>Histogram · 请求抢占次数</td><td>定位资源压力导致的重算</td></tr>
