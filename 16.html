@@ -148,7 +148,7 @@ spec:
           persistentVolumeClaim:
             claimName: hf-model-cache</code></pre>
       <p><strong>关于探针：</strong>示例使用 <code>/health</code> 作为启动与就绪检查，TCP 探针仅作为轻量存活信号示意。真实部署需要验证所用 vLLM 版本的 endpoint 行为、模型加载时长和失败模式；探针阈值不能照抄。容器镜像以 root 运行时可使用 root 路径；若采用官方支持的 non-root 方式，需要同步修改挂载目录和安全上下文。</p>
-      <p><strong>关于 GPU limit：</strong>这里的 <code>nvidia.com/gpu</code> 依赖节点已经安装 NVIDIA 驱动与 Device Plugin。若集群使用 MIG 或 GPU 共享插件，资源名称与申请方式要以集群管理员提供的资源清单为准。</p>
+      <p><strong>关于 GPU limit：</strong>这里的 <code>nvidia.com/gpu</code> 依赖节点已经安装 NVIDIA 驱动与 Device Plugin。若集群使用 MIG 或 GPU 共享插件，资源名称与申请方式要以集群管理员提供的资源清单为准。</p><p><strong>关于优雅终止：</strong>示例中的 <code>terminationGracePeriodSeconds: 180</code> 只是占位演示，应根据最大请求时长、流式响应 drain 策略和实际 shutdown 行为测试后设定；不要假设它能自动保证所有 in-flight 请求都完成。</p>
     </section>
 
     <section id="probes">
