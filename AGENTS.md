@@ -38,3 +38,14 @@ python3 scripts/validate_articles.py
 ```
 
 When browser tooling is available, inspect desktop and narrow mobile widths, keyboard navigation, figures, code overflow, links, console errors and at least one meaningful interaction. Do not mark a skipped browser check as passed.
+
+
+## Production engineering chapter rules
+
+13. **Sampling must be mathematical and version-scoped.** Define logits, softmax, temperature, Top-k, Top-p and Min-p explicitly. Temperature zero is a greedy special path in the pinned V1 implementation; do not describe it as division by zero. Label toy sampler visualizers as conceptual, not as a reproduction of a GPU kernel's exact operation order.
+14. **Use current generation APIs.** Prefer `structured_outputs`; do not teach removed `guided_json`, `guided_regex` or other legacy fields as current APIs. Explain that syntactically constrained output does not establish semantic correctness. Distinguish raw and processed logprobs where relevant.
+15. **Production artifacts must be reproducible.** Pin tested container image tags and preferably digests, model revisions and tokenizer revisions. Treat cache volumes, shared memory, credentials, non-root execution and model code as separate deployment decisions. Never prescribe universal GPU memory ratios, concurrency or latency targets without a workload and hardware baseline.
+16. **Kubernetes GPU resources are explicit.** Verify device drivers and Device Plugin, request the actual extended resource, and explain MIG / time-slicing differences. Separate startup, readiness and liveness probes; separate Deployment rollout controls from PodDisruptionBudget. GPU surge capacity and model cold-start time are part of rollout design.
+17. **Observability definitions must not be conflated.** Define client TTFT, ITL, request TPOT, Queue Time and E2E with measurement boundaries. Use current vLLM V1 metric names, explain Histogram quantiles and bucket cardinality, and avoid high-cardinality Prometheus labels. Detailed tracing can add overhead.
+18. **Security is a boundary, not a flag.** Audit the exact deployed version's endpoint authentication coverage; place vLLM behind a Gateway with endpoint allowlisting and private networking. Treat distributed communication and KV transfer as trusted-network traffic. vLLM processes shared by tenants do not provide tenant isolation; `cache_salt` mitigates a specific prefix-cache timing side channel but is not an isolation boundary.
+19. **Enforce application authorization outside the model.** Prompt text, structured outputs and content filters are not authorization. Apply identity checks to tools and data access, scope client-provided cache identifiers at a trusted gateway, constrain request resource budgets, and redact sensitive logs.
