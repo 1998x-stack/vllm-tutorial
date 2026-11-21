@@ -138,7 +138,7 @@ histogram_quantile(
     <section id="tracing">
       <h2>17.5 Tracing 与高基数边界</h2>
       <p>Metrics 擅长回答“整体趋势如何”，但很难解释“这一个请求为什么慢”。分布式 Trace 可以把 API Gateway、Router、请求预处理、Engine Core 与模型执行等阶段连接成一条时间线。vLLM 支持 OpenTelemetry tracing，可通过 <code>--otlp-traces-endpoint</code> 配置接收端，并按需要启用更细粒度的 trace collection。</p>
-      <p>日志适合记录错误、重试、模型版本、请求 ID 和关键状态变化。Trace 适合分析跨服务的时间消耗。Metrics 则负责稳定的聚合趋势。三者互补，不应让 Prometheus label 承担请求级事件存储的工作。</p>
+      <p>日志适合记录错误、重试、模型版本、请求 ID 和关键状态变化。Trace 适合分析跨服务的时间消耗。Metrics 则负责稳定的聚合趋势。三者互补，不应让 Prometheus label 承担请求级事件存储的工作。启用详细 Trace 可能触发成本较高或阻塞式操作，应先在代表性负载下测量开销，再决定采样率和细节级别。</p>
       <div class="callout warning">
         <p><strong>避免高基数标签。</strong>不要把 prompt、用户 ID、request ID、完整 URL 或任意租户字符串直接作为 Prometheus label。它们会使时间序列数量快速膨胀，并带来存储、查询和隐私成本。请求级标识应放在受控日志或 Trace 中，并执行采样、脱敏和访问控制。</p>
       </div>
