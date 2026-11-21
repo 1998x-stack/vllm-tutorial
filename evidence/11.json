@@ -1,0 +1,62 @@
+{
+  "chapter": "11",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 Chunked Prefill scheduling, token budget trade-offs, long-prefill threshold and multimodal chunk boundaries.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "chunked-prefill-v1-policy",
+      "claim": "The V1 optimization guide describes Chunked Prefill as batching smaller portions of long prompts with Decode requests; pending Decode work is prioritized before new Prefill work and long Prefill is split when it does not fit the remaining token budget.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/optimization/#chunked-prefill",
+      "locator": "Chunked Prefill",
+      "notes": "The scheduler also processes existing Running requests before admitting Waiting requests; avoid reducing the entire algorithm to a single decode-first queue."
+    },
+    {
+      "id": "chunked-prefill-budget-field",
+      "claim": "SchedulerConfig.enable_chunked_prefill allows prefill requests to be chunked based on remaining max_num_batched_tokens; max_num_batched_tokens is a per-iteration token capacity, not a fixed chunk-size parameter.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py",
+      "locator": "enable_chunked_prefill and max_num_batched_tokens docstrings",
+      "notes": "Some model paths or configurations can disable chunking, including models without KV cache and encoder-decoder restrictions."
+    },
+    {
+      "id": "chunked-prefill-ttft-itl-tradeoff",
+      "claim": "The official optimization guide describes smaller token budgets as favoring ITL and larger budgets as allowing more Prefill tokens per batch, potentially improving TTFT and throughput.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/optimization/#performance-tuning-with-chunked-prefill",
+      "locator": "Performance Tuning with Chunked Prefill",
+      "notes": "Recommendations depend on model size, GPU, workload and SLO; no universal best budget is asserted."
+    },
+    {
+      "id": "long-prefill-threshold",
+      "claim": "long_prefill_token_threshold can cap the size of a long Prefill chunk when multiple requests are eligible; the adaptive option can floor the effective cap at a fair share of the token budget.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py",
+      "locator": "long_prefill_token_threshold and long_prefill_token_threshold_adaptive",
+      "notes": "The threshold is ignored when Chunked Prefill is disabled and is not applied when the long request is the only eligible request."
+    },
+    {
+      "id": "multimodal-chunk-boundary",
+      "claim": "disable_chunked_mm_input can prevent partial scheduling of a multimodal item while allowing surrounding text tokens to be scheduled separately.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py",
+      "locator": "disable_chunked_mm_input",
+      "notes": "Multimodal feature boundaries are model- and processor-dependent."
+    },
+    {
+      "id": "budget-lab-is-toy-model",
+      "claim": "The chapter's interactive calculator allocates one token per active Decode request and uses the remaining budget for one Prompt; it is a derived teaching model, not a faithful simulation of vLLM's complete scheduler.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "Scheduler.schedule token-budget and request scheduling logic",
+      "notes": "The toy model deliberately omits KV block allocation, Prefix Cache, speculative decode, multimodal input and scheduling order nuances."
+    }
+  ]
+}
