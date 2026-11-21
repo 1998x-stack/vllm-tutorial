@@ -265,3 +265,66 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
   .diagram, .callout, pre, table { break-inside: avoid; box-shadow: none; }
   a { color: inherit; text-decoration: underline; }
 }
+
+
+/* Chapter 08: offline KV-cache capacity calculator */
+.kv-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.kv-calc-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: .88rem;
+  font-weight: 650;
+}
+.kv-calc-grid input,
+.kv-calc-grid select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #c8d5d0;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: .92rem;
+}
+.kv-calc-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0 12px;
+}
+.kv-calc-results div {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.kv-calc-results span {
+  color: var(--muted);
+  font-size: .8rem;
+}
+.kv-calc-results strong {
+  color: var(--accent-dark);
+  font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+  font-variant-numeric: tabular-nums;
+}
+.kv-calc-note {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: .84rem;
+}
+@media (max-width: 700px) {
+  .kv-calc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 460px) {
+  .kv-calc-grid,
+  .kv-calc-results { grid-template-columns: 1fr; }
+}
