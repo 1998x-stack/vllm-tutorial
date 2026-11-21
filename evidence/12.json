@@ -1,0 +1,62 @@
+{
+  "chapter": "12",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 process architecture, EngineCore scheduling/execution loop, executor/worker boundary and asynchronous overlap mechanisms.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "v1-process-responsibilities",
+      "claim": "The V1 architecture separates API Server, Engine Core, GPU Worker and conditional DP Coordinator responsibilities; API Server handles HTTP and input processing, Engine Core owns scheduler and KV management, and workers execute the model.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "V1 Process Architecture",
+      "notes": "Actual process count depends on API server count, parallelism and executor mode."
+    },
+    {
+      "id": "v1-process-count-examples",
+      "claim": "The official architecture overview gives a typical 4-GPU TP=4 deployment as 1 API server + 1 Engine Core + 4 GPU workers, and an 8-GPU TP=2 DP=4 deployment as 4 API servers + 4 Engine Cores + 8 workers + 1 DP coordinator.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "Process Count Summary",
+      "notes": "These are documented typical multiprocess topologies, not universal totals."
+    },
+    {
+      "id": "enginecore-step-order",
+      "claim": "EngineCore.step checks scheduler work, calls Scheduler.schedule, executes the resulting SchedulerOutput through ModelExecutor, waits for model output, then calls Scheduler.update_from_output.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/engine/core.py",
+      "locator": "EngineCore.step",
+      "notes": "Error handling, grammar masks, abort processing, output attachment and optional batch queue paths are omitted from the chapter pseudocode."
+    },
+    {
+      "id": "enginecore-busy-loop",
+      "claim": "EngineCoreProc.run_busy_loop processes input requests and then performs an engine step, publishing request counts around the step.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/engine/core.py",
+      "locator": "EngineCoreProc.run_busy_loop and _process_engine_step",
+      "notes": "The loop waits for work when idle and yields briefly when background connector work needs progress."
+    },
+    {
+      "id": "async-scheduler-placeholders",
+      "claim": "AsyncScheduler updates request output placeholders after scheduling so subsequent scheduling can account for tokens expected from in-flight steps.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/async_scheduler.py",
+      "locator": "AsyncScheduler._update_after_schedule",
+      "notes": "Placeholder accounting is an implementation mechanism, not an extra client-visible token."
+    },
+    {
+      "id": "batch-queue-pp",
+      "claim": "EngineCore can enable a batch queue when max_concurrent_batches is greater than one to overlap scheduled batches, a mechanism used to support pipeline-parallel execution.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/engine/core.py",
+      "locator": "batch_queue_size initialization and step_with_batch_queue",
+      "notes": "Batch Queue and Async Scheduling are separate mechanisms."
+    }
+  ]
+}

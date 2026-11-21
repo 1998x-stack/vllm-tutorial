@@ -1,0 +1,71 @@
+{
+  "chapter": "16",
+  "reviewed_at": "2026-11-21",
+  "scope": "Kubernetes GPU device resources, probes, Deployment rollout, PDB and vLLM Production Stack.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "k8s-gpu-device-plugin",
+      "claim": "Kubernetes exposes vendor GPU resources through device plugins; NVIDIA nodes commonly advertise nvidia.com/gpu after drivers and the NVIDIA device plugin are installed.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/",
+      "locator": "Using device plugins",
+      "notes": "MIG and GPU-sharing plugins can expose different resource names and allocation semantics."
+    },
+    {
+      "id": "k8s-gpu-resource-rules",
+      "claim": "Kubernetes GPU resources are specified in limits; limits may be used as requests when requests are omitted, requests and limits must match when both are set, and GPU requests without limits are not allowed.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/",
+      "locator": "Using GPUs in a Pod",
+      "notes": "This applies to the extended GPU resources documented by Kubernetes; plugin-specific sharing schemes can differ."
+    },
+    {
+      "id": "k8s-probe-semantics",
+      "claim": "Startup probes delay liveness and readiness probes until initialization succeeds; readiness removes non-ready Pods from Service traffic; liveness failure can restart the container.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+      "locator": "Startup, Liveness and Readiness",
+      "notes": "The example thresholds in the chapter are illustrative and must be tuned for model load time."
+    },
+    {
+      "id": "deployment-rollout-controls",
+      "claim": "Kubernetes Deployment RollingUpdate uses maxUnavailable and maxSurge to control unavailable and additional Pods during rollout.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+      "locator": "Rolling update Deployment",
+      "notes": "GPU scheduling capacity can prevent surge Pods from starting even when rollout settings permit them."
+    },
+    {
+      "id": "pdb-voluntary-disruption",
+      "claim": "PodDisruptionBudget limits simultaneous voluntary disruptions; it does not prevent involuntary node failures and does not replace Deployment rolling update strategy.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/",
+      "locator": "Pod disruption budgets",
+      "notes": "PDB semantics differ from Deployment rollout controls."
+    },
+    {
+      "id": "production-stack-deployment-modes",
+      "claim": "Current vLLM Production Stack documentation lists Helm Chart, CRD and Gateway API Inference Extension as three primary deployment options.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/projects/production-stack/en/latest/deployment/",
+      "locator": "Deployment Options",
+      "notes": "Each mode has its own version and component compatibility requirements."
+    },
+    {
+      "id": "load-aware-routing-score",
+      "claim": "Production Stack load-aware routing scores an endpoint using matched prompt tokens divided by prompt tokens minus beta times relative endpoint load.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/loadaware-routing.html",
+      "locator": "How It Works",
+      "notes": "This is one router implementation, not a universal routing algorithm."
+    }
+  ]
+}

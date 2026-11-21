@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+<title id="title">vLLM 第一次运行的四步路径</title>
+<desc id="desc">先检查操作系统、Python、驱动、GPU 和模型访问条件；再按硬件平台创建隔离环境并安装 vLLM；随后运行离线批量推理；最后启动 OpenAI 兼容 API 并通过 models 或 chat completions 接口验证。</desc>
+<defs><marker id="a06" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<rect width="1200" height="500" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">从环境检查到第一个 API 响应</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">不要先复制一条安装命令；先确认硬件平台、Python 和驱动版本是否匹配。</text>
+<g font-family="Arial,'PingFang SC',sans-serif">
+ <rect x="55" y="150" width="235" height="205" rx="18" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <circle cx="90" cy="190" r="22" fill="#e5f3ef"/><text x="90" y="198" text-anchor="middle" font-size="20" font-weight="700" fill="#0d5e58">1</text>
+ <text x="125" y="196" font-size="21" font-weight="700" fill="#264b45">检查环境</text>
+ <text x="80" y="245" font-size="15" fill="#53636b">OS / Python</text><text x="80" y="274" font-size="15" fill="#53636b">GPU / Driver / CUDA</text><text x="80" y="303" font-size="15" fill="#53636b">模型访问与磁盘空间</text>
+ <path d="M290 252 H335" stroke="#47756d" stroke-width="3" marker-end="url(#a06)"/>
+ <rect x="345" y="150" width="235" height="205" rx="18" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <circle cx="380" cy="190" r="22" fill="#fff"/><text x="380" y="198" text-anchor="middle" font-size="20" font-weight="700" fill="#0d5e58">2</text>
+ <text x="415" y="196" font-size="21" font-weight="700" fill="#0d5e58">安装 vLLM</text>
+ <text x="370" y="245" font-size="15" fill="#315d56">隔离 Python 环境</text><text x="370" y="274" font-size="15" fill="#315d56">选择硬件对应的 wheel</text><text x="370" y="303" font-size="15" fill="#315d56">安装 / 下载 kernels</text>
+ <path d="M580 252 H625" stroke="#47756d" stroke-width="3" marker-end="url(#a06)"/>
+ <rect x="635" y="150" width="235" height="205" rx="18" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <circle cx="670" cy="190" r="22" fill="#fff"/><text x="670" y="198" text-anchor="middle" font-size="20" font-weight="700" fill="#51488c">3</text>
+ <text x="705" y="196" font-size="21" font-weight="700" fill="#51488c">离线推理</text>
+ <text x="660" y="245" font-size="15" fill="#625b91">加载小型模型</text><text x="660" y="274" font-size="15" fill="#625b91">构造 SamplingParams</text><text x="660" y="303" font-size="15" fill="#625b91">验证生成结果</text>
+ <path d="M870 252 H915" stroke="#47756d" stroke-width="3" marker-end="url(#a06)"/>
+ <rect x="925" y="150" width="220" height="205" rx="18" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <circle cx="960" cy="190" r="22" fill="#fff"/><text x="960" y="198" text-anchor="middle" font-size="20" font-weight="700" fill="#9c4d30">4</text>
+ <text x="995" y="196" font-size="21" font-weight="700" fill="#9c4d30">在线服务</text>
+ <text x="950" y="245" font-size="15" fill="#87533f">vllm serve</text><text x="950" y="274" font-size="15" fill="#87533f">/v1/models</text><text x="950" y="303" font-size="15" fill="#87533f">Chat Completions</text>
+</g>
+<rect x="55" y="395" width="1090" height="58" rx="13" fill="#fff" stroke="#dce4e1"/>
+<text x="80" y="430" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#53636b">安装命令、Python 版本、CUDA / ROCm 轮子和模型支持会随发布版本与硬件变化；运行前请对照官方安装矩阵。</text>
+</svg>

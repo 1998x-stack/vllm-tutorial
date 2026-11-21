@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+<title id="title">LLM 推理的 Prefill 与 Decode 生命周期</title>
+<desc id="desc">用户 Prompt 先进入 Prefill，模型并行处理输入 token 并写入各层 K 和 V。随后 Decode 每轮只处理新 token 的查询，读取历史 KV Cache，采样下一个 token，并循环直到结束。</desc>
+<defs>
+ <marker id="arrow01" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker>
+ <marker id="arrow02" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#c66a46"/></marker>
+</defs>
+<rect width="1200" height="560" rx="24" fill="#fbfaf7"/>
+<text x="52" y="55" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">一次请求，两个阶段</text>
+<text x="52" y="86" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">关键区别：Prefill 处理输入序列；Decode 为新 token 计算，并复用历史 K/V。</text>
+<rect x="52" y="145" width="170" height="104" rx="16" fill="#ffffff" stroke="#b7cbc3" stroke-width="2"/>
+<text x="137" y="183" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#264b45">Prompt</text>
+<text x="137" y="215" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#5d6e69">x₁ · x₂ · … · xₙ</text>
+<path d="M222 197 H274" stroke="#47756d" stroke-width="3" marker-end="url(#arrow01)"/>
+<rect x="285" y="128" width="270" height="138" rx="18" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+<text x="420" y="166" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="22" font-weight="700" fill="#0d5e58">Prefill</text>
+<text x="420" y="197" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#315d56">并行处理 prompt tokens</text>
+<text x="420" y="225" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#315d56">逐层计算 Q / K / V</text>
+<path d="M555 197 H610" stroke="#47756d" stroke-width="3" marker-end="url(#arrow01)"/>
+<rect x="622" y="128" width="220" height="138" rx="18" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+<text x="732" y="166" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="21" font-weight="700" fill="#51488c">KV Cache</text>
+<text x="732" y="197" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#5d568c">每层保存历史 K、V</text>
+<text x="732" y="225" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#5d568c">供后续 token 读取</text>
+<path d="M842 197 H895" stroke="#47756d" stroke-width="3" marker-end="url(#arrow01)"/>
+<rect x="906" y="128" width="242" height="138" rx="18" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+<text x="1027" y="166" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="22" font-weight="700" fill="#9c4d30">Decode</text>
+<text x="1027" y="197" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#87533f">新 token 的 Q / K / V</text>
+<text x="1027" y="225" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">Q attends to cached K/V</text>
+<path d="M1027 266 V323 H732 V276" fill="none" stroke="#c66a46" stroke-width="3" marker-end="url(#arrow02)"/>
+<text x="878" y="314" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#9c4d30">每轮追加新的 K/V</text>
+<path d="M1027 266 V385" stroke="#c66a46" stroke-width="3" marker-end="url(#arrow02)"/>
+<rect x="914" y="398" width="226" height="82" rx="16" fill="#ffffff" stroke="#c66a46" stroke-width="2"/>
+<text x="1027" y="431" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#9c4d30">采样下一个 token</text>
+<text x="1027" y="458" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">y₁ → y₂ → … → yₘ</text>
+<path d="M914 439 H835 V500 H420 V276" fill="none" stroke="#c66a46" stroke-width="2" stroke-dasharray="7 7"/>
+<text x="615" y="490" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#9c4d30">未遇到停止条件，就进入下一轮 Decode</text>
+<rect x="52" y="342" width="790" height="108" rx="16" fill="#ffffff" stroke="#dce4e1"/>
+<text x="78" y="377" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">记住这两个事实</text>
+<text x="78" y="408" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#53636b">① KV Cache 避免重复计算历史 token 的 K/V 投影。</text>
+<text x="78" y="434" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#53636b">② 新 token 仍需读取历史 K/V，因此上下文越长，单步注意力读取量通常越大。</text>
+</svg>

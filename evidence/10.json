@@ -1,0 +1,62 @@
+{
+  "chapter": "10",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 Scheduler token budget, request admission, queue ordering, KV allocation and preemption.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "unified-token-budget-scheduler",
+      "claim": "V1 Scheduler uses a unified per-step token budget and tracks each request's computed-token progress; the same scheduling loop can cover prefill, decode, chunked prefill, prefix caching and speculative decoding.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "Scheduler.schedule docstring and token_budget initialization",
+      "notes": "This does not mean all requests are treated identically; running and waiting requests follow different admission paths."
+    },
+    {
+      "id": "running-before-waiting",
+      "claim": "The current V1 schedule method processes Running requests first and then attempts to schedule Waiting requests if the step has budget and no blocking preemption condition.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "schedule: Running loop around lines 778–1040; Waiting loop after line 1040",
+      "notes": "The full implementation contains many additional branches for connectors, multimodal inputs, speculative decoding and pauses."
+    },
+    {
+      "id": "scheduler-token-config-distinction",
+      "claim": "max_num_batched_tokens bounds token work in one iteration; max_num_scheduled_tokens is the scheduler-issued token cap and usually matches but may be smaller; max_num_seqs sizes per-iteration request capacity and max_num_active_seqs can lower active admission.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py",
+      "locator": "SchedulerConfig max_num_batched_tokens, max_num_scheduled_tokens, max_num_seqs, max_num_active_seqs",
+      "notes": "Resolved values depend on EngineArgs, platform, model and runtime mode."
+    },
+    {
+      "id": "fcfs-priority-policy",
+      "claim": "V1 supports FCFS and Priority scheduling. Lower numeric priority values are handled earlier; priority scheduling selects the highest numeric priority and latest arrival time as a lower-priority preemption candidate.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "SchedulingPolicy initialization and priority preemption selection",
+      "notes": "Priority does not by itself provide tenant quotas or strict fairness."
+    },
+    {
+      "id": "preemption-recompute",
+      "claim": "When KV allocation cannot proceed, V1 may preempt a running request, free its KV blocks, reset computed-token progress and place it back in the waiting queue for later recomputation or prefix reuse.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "_preempt_request",
+      "notes": "Prefix Cache or a KV connector may recover some work on re-admission; recomputation is not the same as swapping the request state to CPU."
+    },
+    {
+      "id": "preempted-not-finished",
+      "claim": "PREEMPTED is not a terminal RequestStatus; RequestStatus.is_finished treats statuses after PREEMPTED as finished.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/request.py",
+      "locator": "RequestStatus.is_finished",
+      "notes": "RequestStatus enum values are internal implementation details and may change."
+    }
+  ]
+}

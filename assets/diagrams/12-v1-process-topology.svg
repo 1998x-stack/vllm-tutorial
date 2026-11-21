@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+<title id="title">vLLM V1 多进程架构拓扑</title>
+<desc id="desc">客户端请求进入 API Server，由 API Server 进行 HTTP 处理、Tokenization 和多模态预处理，再通过 ZMQ 与 Engine Core 通信。Engine Core 包含 Scheduler 和 KV Cache Manager，并通过 Executor 把 SchedulerOutput 分发到 GPU Worker；GPU Worker 运行 Model Runner 和模型。DP 大于 1 时，DP Coordinator 协调多个 Engine Core。</desc>
+<defs><marker id="a12" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<rect width="1200" height="680" rx="24" fill="#fbfaf7"/>
+<text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">V1 把请求入口、调度控制与 GPU 执行分开</text>
+<text x="52" y="84" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#60716c">逻辑职责与进程边界示意；具体进程数量取决于 DP / TP / PP 与执行器配置。</text>
+<g font-family="Arial,'PingFang SC',sans-serif">
+ <rect x="55" y="138" width="180" height="84" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <text x="145" y="172" text-anchor="middle" font-size="18" font-weight="700" fill="#264b45">Client</text>
+ <text x="145" y="198" text-anchor="middle" font-size="14" fill="#53636b">HTTP / OpenAI API</text>
+ <path d="M235 180 H280" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12)"/>
+ <rect x="295" y="118" width="265" height="124" rx="15" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="427" y="154" text-anchor="middle" font-size="20" font-weight="700" fill="#0d5e58">API Server Process</text>
+ <text x="427" y="185" text-anchor="middle" font-size="14" fill="#315d56">HTTP · Tokenizer</text>
+ <text x="427" y="210" text-anchor="middle" font-size="14" fill="#315d56">Multimodal preprocessing · Streaming</text>
+ <path d="M560 180 H615" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12)"/>
+ <text x="585" y="163" text-anchor="middle" font-size="12" fill="#60716c">ZMQ</text>
+ <rect x="630" y="105" width="290" height="150" rx="15" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <text x="775" y="142" text-anchor="middle" font-size="20" font-weight="700" fill="#51488c">Engine Core Process</text>
+ <rect x="660" y="160" width="105" height="65" rx="10" fill="#fff" stroke="#b7aee0"/>
+ <text x="712" y="188" text-anchor="middle" font-size="15" font-weight="700" fill="#51488c">Scheduler</text>
+ <text x="712" y="210" text-anchor="middle" font-size="12" fill="#625b91">Token budget</text>
+ <rect x="780" y="160" width="110" height="65" rx="10" fill="#fff" stroke="#b7aee0"/>
+ <text x="835" y="188" text-anchor="middle" font-size="15" font-weight="700" fill="#51488c">KV Manager</text>
+ <text x="835" y="210" text-anchor="middle" font-size="12" fill="#625b91">Blocks / cache</text>
+ <path d="M775 255 V305" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12)"/>
+ <text x="790" y="286" font-size="13" fill="#60716c">Executor / IPC</text>
+ <rect x="560" y="320" width="430" height="148" rx="15" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <text x="775" y="356" text-anchor="middle" font-size="20" font-weight="700" fill="#9c4d30">GPU Worker Processes</text>
+ <g>
+  <rect x="585" y="378" width="115" height="68" rx="10" fill="#fff" stroke="#e2b49f"/>
+  <text x="642" y="406" text-anchor="middle" font-size="15" font-weight="700" fill="#9c4d30">Worker 0</text>
+  <text x="642" y="429" text-anchor="middle" font-size="12" fill="#87533f">Model Runner</text>
+  <rect x="718" y="378" width="115" height="68" rx="10" fill="#fff" stroke="#e2b49f"/>
+  <text x="775" y="406" text-anchor="middle" font-size="15" font-weight="700" fill="#9c4d30">Worker 1</text>
+  <text x="775" y="429" text-anchor="middle" font-size="12" fill="#87533f">Model Runner</text>
+  <rect x="851" y="378" width="115" height="68" rx="10" fill="#fff" stroke="#e2b49f"/>
+  <text x="908" y="406" text-anchor="middle" font-size="15" font-weight="700" fill="#9c4d30">Worker N</text>
+  <text x="908" y="429" text-anchor="middle" font-size="12" fill="#87533f">Model Runner</text>
+ </g>
+ <path d="M775 468 V510" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12)"/>
+ <rect x="630" y="525" width="290" height="68" rx="13" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <text x="775" y="553" text-anchor="middle" font-size="18" font-weight="700" fill="#264b45">GPU devices</text>
+ <text x="775" y="577" text-anchor="middle" font-size="13" fill="#53636b">Weights · Activations · KV Cache</text>
+ <rect x="55" y="345" width="390" height="115" rx="14" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
+ <text x="250" y="383" text-anchor="middle" font-size="19" font-weight="700" fill="#80571a">DP Coordinator（条件性）</text>
+ <text x="250" y="412" text-anchor="middle" font-size="14" fill="#80571a">DP > 1 时协调多个 Engine Core ranks</text>
+ <text x="250" y="437" text-anchor="middle" font-size="13" fill="#80571a">Load balancing / synchronized execution</text>
+ <path d="M445 402 H520 V180 H615" fill="none" stroke="#d5a24a" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a12)"/>
+</g>
+<text x="55" y="635" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">简化示意：一个 Engine Core 管理一个 DP rank；每个 rank 的 Worker 数量受 TP × PP 影响。</text>
+</svg>

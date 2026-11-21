@@ -1,141 +1,197 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第10章 调度器详解</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从 vLLM V1 Scheduler 源码理解 token budget、running / waiting 队列、FCFS / Priority、KV Cache 分配与请求抢占。">
+  <title>第 10 章｜Scheduler：每轮迭代如何决定执行谁</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html" class="active">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">V1 Architecture ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#question">10.1 Scheduler 究竟在决定什么</a></li>
+      <li><a href="#budget">10.2 三种容量约束不能混为一谈</a></li>
+      <li><a href="#algorithm">10.3 V1 一轮调度的执行顺序</a></li>
+      <li><a href="#preemption">10.4 KV Cache 不够时如何抢占</a></li>
+      <li><a href="#policy">10.5 FCFS、Priority 与公平性</a></li>
+      <li><a href="#tuning">10.6 调参应该先观察什么</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 10 章 · 调度、批处理与运行时</p>
+      <h1>Scheduler：每轮迭代如何决定执行谁</h1>
+      <p class="article-dek">模型执行一次 forward 之前，vLLM 必须决定哪些请求进入这一轮、每个请求处理多少 token、是否需要新的 KV blocks，以及空间不足时谁先让出资源。Scheduler 就是这组决策的中心。</p>
+      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 23 分钟</span><span class="meta-chip">前置章节：05、08、09</span><span class="meta-chip">源码审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">把推理服务想成一个繁忙的 GPU 车间：请求是等待加工的订单，KV Cache 是每个订单占用的工作台，GPU 每次 forward 是一轮生产。Scheduler 每一轮都要回答三个问题：现在有哪些请求可以推进？每个请求推进多少 token？如果工作台不够，哪些请求需要暂时离开？它输出的不是自然语言答案，而是一份可执行的 <code>SchedulerOutput</code>。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>解释 V1 为什么用每轮 token budget，而不是只按请求数组 batch。</li>
+        <li>区分 <code>max_num_batched_tokens</code>、<code>max_num_scheduled_tokens</code> 与 <code>max_num_seqs</code>。</li>
+        <li>按 Running → Waiting → KV allocation → SchedulerOutput 的顺序描述一轮调度。</li>
+        <li>解释 FCFS / Priority 的选择方式，以及 KV Cache 不足时的 preemption / recompute。</li>
+        <li>从 waiting、抢占和延迟指标判断调度瓶颈，而不是盲目放大参数。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第10章 调度器详解</h2>
 
-<p>当一个请求到达 vLLM 服务时，它不会立刻上 GPU。它先进入<strong>等待队列</strong>，由调度器决定什么时候让它"上场"。调度器的质量直接决定了——用户等多久、GPU 用多满、长请求会不会霸占所有资源。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/10-scheduler-decision-loop.svg" alt="V1 Scheduler 每轮先处理 running 请求，再从 waiting 队列接纳请求，在 token budget 内分配 token 并申请 KV blocks；若分配失败则根据策略抢占请求，最后生成 SchedulerOutput 交给 EngineCore 执行">
+      <figcaption>图 1：Scheduler 是一个迭代决策循环。它把 token 预算、请求状态和 KV Cache 容量放在同一个决策过程中。</figcaption>
+    </figure>
 
-<h3>10.1 调度器的角色</h3>
+    <section id="question">
+      <h2>10.1 Scheduler 究竟在决定什么？</h2>
+      <p>在第 05 章，我们已经知道 Continuous Batching 会在每轮迭代重新组织请求。本章进一步进入 V1 Scheduler 的实现：它不只是把等待请求排成一个队列，而是维护 Running 请求、多个 Waiting 队列、KV Cache 状态和本轮已经消耗的预算。</p>
+      <p>对一个请求，Scheduler 最重要的进度量之一是 <code>num_computed_tokens</code>：模型已经计算到请求序列的哪个位置。它会与请求当前需要处理的 token 总量比较，得到本轮还需要推进多少 token。这个统一视角能覆盖：</p>
+      <ul>
+        <li><strong>Prefill：</strong>尚未计算的 Prompt token 需要进入模型。</li>
+        <li><strong>Decode：</strong>模型为请求生成新 token 后，下一轮需要把新 token 对应的状态推进到 KV Cache。</li>
+        <li><strong>Chunked Prefill：</strong>长 Prompt 尚未处理完时，本轮只推进其中一段。</li>
+        <li><strong>Prefix Cache：</strong>已有的前缀状态可以减少需要重新计算的 token 数。</li>
+        <li><strong>Speculative Decoding：</strong>草稿 token、占位 token 与验证结果会影响本轮 token 计划。</li>
+      </ul>
+      <p>因此，V1 的核心思路不是先进入一个独立的“Prefill 阶段”，再进入一个独立的“Decode 阶段”，而是对每个请求计算它当前还需要多少 token，并在一轮预算内尽可能推进。</p>
+    </section>
 
-<p>调度器（Scheduler）是 vLLM 的"交通指挥中心"。每步迭代它要做三个决策：</p>
+    <section id="budget">
+      <h2>10.2 三种容量约束不能混为一谈</h2>
+      <p>调度参数中有几个名字很像，但它们约束的是不同维度：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>参数</th><th>约束对象</th><th>直觉</th></tr></thead>
+          <tbody>
+            <tr><td><code>max_num_batched_tokens</code></td><td>一轮可处理的输入 token 容量</td><td>这一轮 GPU 最多接收多少 token 工作</td></tr>
+            <tr><td><code>max_num_scheduled_tokens</code></td><td>Scheduler 单轮实际可发出的 token 数上限</td><td>通常与 batched token budget 相同；Speculative Decoding 等路径可能需要更小</td></tr>
+            <tr><td><code>max_num_seqs</code></td><td>模型执行器为单轮请求数准备的容量，并作为默认接纳上限</td><td>这一轮最多有多少条 sequence 参与执行</td></tr>
+            <tr><td><code>max_num_active_seqs</code></td><td>允许占据 RUNNING 状态的请求数</td><td>可以降低活跃 Decode batch，而不必缩小执行器已准备的 buffer</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>为什么请求数和 token 数必须分开？一个 batch 里可能有 32 条请求，每条只推进 1 个 Decode token；也可能只有 1 条请求，却要处理数千个 Prompt tokens。两种 batch 的请求数相同或相反，GPU 工作量却完全不同。</p>
+      <div class="math-display"><code>本轮已调度 token 总数 = Σ_request 本轮分配给该请求的 token 数</code></div>
+      <p>Scheduler 会确保本轮 token 总数不超过配置上限。真实执行还可能受到 Encoder 预算、Speculative Decode slots、KV Cache blocks、模型长度、LoRA 数量以及多模态输入边界等约束。</p>
+      <div class="callout warning">
+        <p><strong>不要把配置类里的测试默认值当成生产默认值。</strong>当前源码中的 <code>SchedulerConfig</code> 会注明部分字段默认值主要为测试便利；真实 EngineArgs 会结合平台、模型和运行模式解析配置。部署时应检查实际启动日志与最终配置，而不是从一个字段定义推断所有场景。</p>
+      </div>
+    </section>
 
-<pre><code>每步调度循环：
-1. 哪些请求该"下场"了？（检测完成/超时请求，释放资源）
-2. 哪些请求可以"上场"？（从等待队列选请求，分配 KV Cache Block）
-3. 怎么组这一轮的 batch？（prefill/decode 混合，batch size 决定）
-
-约束条件：
-- Block 够不够？（显存约束）
-- 这轮 batch 的总 token 会不会太多？（计算约束）
-- 优先级规则是什么？（公平性约束）</code></pre>
-
-<h3>10.2 三种调度策略</h3>
-
-<table>
-  <tr><th>策略</th><th>规则</th><th>优点</th><th>缺点</th><th>适用场景</th></tr>
-  <tr><td>FCFS (先来先服务)</td><td>按到达时间排队</td><td>公平，实现简单</td><td>长请求阻塞短请求</td><td>通用，默认推荐</td></tr>
-  <tr><td>Priority (优先级)</td><td>高优先级请求插队</td><td>SLA 可控</td><td>低优先级可能饿死</td><td>多租户，VIP 用户</td></tr>
-  <tr><td>Preemption (抢占)</td><td>高优请求可中断低优请求</td><td>保证紧急请求低延迟</td><td>被抢占请求浪费已做的工作</td><td>实时交互+批量任务混合</td></tr>
-</table>
-
-<h3>10.3 FCFS 的实际表现</h3>
-
-<p>FCFS 看起来"公平"，但在 LLM 推理中有个致命问题：</p>
-
-<pre><code>假设先到 3 个短请求，后到 1 个长请求：
-✅ 短请求 A/B/C 很快完成 → GPU 效率高
-
-假设先到 1 个长请求（8000 token 输出），后到 10 个短请求：
-❌ 长请求霸占资源 30 秒 → 10 个短请求全在排队 → P99 延迟爆炸
-
-这就是所谓的 "Hogging 问题"（长请求霸占资源）</code></pre>
-
-<div class="highlight">
-  <p><strong>生产建议</strong>：如果你的服务混合了长短请求，推荐用 Priority 策略。给短请求（实时对话）设高优先级，给长请求（文章生成）设低优先级。这样短请求的 P99 延迟能控制住。</p>
-</div>
-
-<h3>10.4 统一调度器：Prefill + Decode 一起管</h3>
-
-<p>V1 的调度器不再区分"prefill 调度器"和"decode 调度器"，而是统一管理所有请求。这解决了 V0 的一个长期问题：</p>
-
-<pre><code>V0 问题:
-prefill_scheduler: "我有 3 个请求要做 prefill，每个需要 5 个 block"
-decode_scheduler: "我有 10 个请求在做 decode，占着 200 个 block"
-两个调度器互相看不到对方的决策，导致资源争抢
-
-V1 解法:
-unified_scheduler: "总共 215 个 block，prefill 需要 15 个，decode 需要 200 个。还剩 30 个，可以再放入 2 个短请求的 prefill"
-统一视图，统一决策</code></pre>
-
-<h3>10.5 调度参数调优</h3>
-
-<pre><code>vllm serve model \
-    --scheduling-policy fcfs \      # 或 priority
-    --max-num-seqs 128 \            # 最大并发序列
-    --max-num-batched-tokens 8192   # 每 batch 最大 token 数
-
-# max-num-seqs: 限制同时"在场"的请求数。太小→GPU闲。太大→KV Cache不够
-# max-num-batched-tokens: 限制一轮 batch 的总 token 数，控制计算量
-
-# 调优思路：
-# 1. 设置 max-num-seqs 到一个偏大的值（如 256）
-# 2. 观察 free_blocks 指标
-# 3. 如果 free_blocks 经常 < 100 → 降低 max-num-seqs
-# 4. 如果 GPU 利用率 < 70% → 提高 max-num-seqs（如果 free_blocks 还够）</code></pre>
-
-<div class="warning">
-  <p><strong>常见错误</strong>：很多人把 <code>max-num-seqs</code> 设得特别大（1000+）以为能提高吞吐。实际上 vLLM 的调度器会自动限制并发——KV cache 不够时请求自然进不了 batch。这个参数只是个硬上限，设太大没有额外好处，反而可能导致显存压力下不必要的抢占。</p>
-</div>
-
-<p>调度策略没有银弹，要结合你的业务特征。下一章咱们深入 Chunked Prefill——vLLM 处理长 prompt 的独门武器。</p>
-
-        <div class="footer-nav">
-            <a href="09.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="11.html">下一章 →</a>
+    <section id="algorithm">
+      <h2>10.3 V1 一轮调度的执行顺序</h2>
+      <p>把 <code>Scheduler.schedule()</code> 简化为教学流程，可以拆成五步。这里保留主干逻辑，暂时省略多模态 Encoder、KV Connector、Speculative Decoding 和其他扩展分支。</p>
+      <ol>
+        <li><strong>建立预算：</strong>初始化本轮 <code>token_budget</code>，并读取当前 Running / Waiting 请求数量和暂停状态。</li>
+        <li><strong>推进 Running：</strong>先遍历已经运行的请求，计算它们还需要多少 token，并受本轮预算、模型长度和其他限制裁剪。</li>
+        <li><strong>申请 KV blocks：</strong>为请求本轮新增 token 申请 KV Cache slots。若申请成功，记录本轮分配的 block 和 token 数。</li>
+        <li><strong>接纳 Waiting：</strong>如果还有活跃请求槽位和 token budget，再尝试接纳等待请求；必要时先查 Prefix Cache，再计算真正需要新做的 Prefill 工作。</li>
+        <li><strong>生成 SchedulerOutput：</strong>把本轮请求、token 数、block IDs 和执行所需元数据打包，交给 EngineCore 的 Model Executor。</li>
+      </ol>
+      <div class="stepper" data-stepper>
+        <h3>交互观察：一轮 Scheduler 决策</h3>
+        <div class="step-controls" role="group" aria-label="Scheduler 调度步骤">
+          <button type="button" data-step-target="sched-budget" aria-pressed="true">① 建立预算</button>
+          <button type="button" data-step-target="sched-running" aria-pressed="false">② 推进 Running</button>
+          <button type="button" data-step-target="sched-waiting" aria-pressed="false">③ 接纳 Waiting</button>
+          <button type="button" data-step-target="sched-kv" aria-pressed="false">④ 检查 KV</button>
+          <button type="button" data-step-target="sched-output" aria-pressed="false">⑤ 输出计划</button>
         </div>
-    </div>
-</div></div>
+        <div class="step-panel" data-step-panel="sched-budget"><p><strong>建立预算：</strong>假设教学示例的单轮 token budget 为 16。此时预算是 16，Scheduler 还没有把 token 分配给任何请求。</p></div>
+        <div class="step-panel" data-step-panel="sched-running" hidden><p><strong>推进 Running：</strong>两条 Running 请求各需要推进 1 个 Decode token。Scheduler 分配 2 个 token，剩余预算为 14。</p></div>
+        <div class="step-panel" data-step-panel="sched-waiting" hidden><p><strong>接纳 Waiting：</strong>一条新请求携带 30 个 Prompt tokens。它不需要一次性全部完成，可以在剩余预算内推进一段；实际可推进长度还受其他配置约束。</p></div>
+        <div class="step-panel" data-step-panel="sched-kv" hidden><p><strong>检查 KV：</strong>为这段新计算申请 KV Cache slots。如果空间不足，Scheduler 会尝试按照调度策略释放某些 Running 请求的 blocks；如果无法释放足够空间，这条请求本轮就不能推进。</p></div>
+        <div class="step-panel" data-step-panel="sched-output" hidden><p><strong>输出计划：</strong>SchedulerOutput 描述本轮哪些请求各自处理多少 token、使用哪些新 blocks，以及模型执行和输出处理所需的其他元数据。EngineCore 随后执行模型并把结果交回 Scheduler 更新状态。</p></div>
+      </div>
+      <p>源码中有一个值得记住的细节：Running 请求先被处理，Waiting 请求随后才尝试接纳。若某个请求由于预算或其他资源约束本轮无法推进，某些分支会跳过它，让后面的请求继续尝试；因此不能把实际调度简化成“严格 FIFO、一个请求阻塞整个队列”。</p>
+    </section>
+
+    <section id="preemption">
+      <h2>10.4 KV Cache 不够时如何抢占</h2>
+      <p>假设模型权重和运行时工作区已经占据大部分显存，多个长上下文请求又逐渐填满 KV Cache。某个 Running 请求需要新的 KV blocks，却无法立即分配。Scheduler 可以选择一个正在运行的请求进行 <strong>Preemption（抢占）</strong>，把它的缓存块释放出来，再尝试当前请求。</p>
+      <figure class="diagram">
+        <img src="assets/diagrams/10-preemption-recompute.svg" alt="KV Cache 分配失败后，Scheduler 选择一个 Running 请求，释放其 KV blocks，将其进度重置并放回 Waiting 队列；之后重新接纳时可能从 Prefix Cache 命中部分前缀，否则需要重新计算">
+        <figcaption>图 2：V1 的典型抢占路径是释放 KV Cache 并重新计算，而不是默认把请求状态交换到 CPU 再原样恢复。</figcaption>
+      </figure>
+      <p>当前 V1 的 <code>_preempt_request()</code> 关键动作包括：</p>
+      <ul>
+        <li>释放请求持有的 KV Cache blocks 与 Encoder Cache 引用。</li>
+        <li>把请求状态设置为 <code>PREEMPTED</code>，并将 <code>num_computed_tokens</code> 重置为 0。</li>
+        <li>清理 speculative token 状态，记录抢占次数。</li>
+        <li>把请求放回 Waiting 队列，等待后续重新接纳。</li>
+      </ul>
+      <p>重新接纳时并不一定要把所有 Prompt 从头计算：如果相应的 Prefix Cache blocks 仍然驻留且请求前缀匹配，Scheduler 可以恢复一部分已计算前缀；否则就要重新做 Prefill。换句话说，抢占释放了显存，却可能增加后续计算量。</p>
+      <div class="callout">
+        <p><strong>抢占不等于请求失败。</strong>请求被标记为 <code>PREEMPTED</code> 后会回到等待队列，仍有机会继续执行。真正结束的状态包括停止、长度上限、用户中止、错误等；源码中的 <code>RequestStatus.is_finished()</code> 明确把 PREEMPTED 排除在 finished 状态之外。</p>
+      </div>
+    </section>
+
+    <section id="policy">
+      <h2>10.5 FCFS、Priority 与公平性</h2>
+      <p>当前 V1 提供 FCFS 与 Priority 两种调度策略。它们影响请求排队顺序，也影响 KV Cache 不足时选择谁作为抢占对象。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>策略</th><th>等待队列顺序</th><th>KV 不足时的典型抢占选择</th></tr></thead>
+          <tbody>
+            <tr><td><strong>FCFS</strong></td><td>按请求到达顺序处理</td><td>从 Running 队列尾部选择最后一个运行请求</td></tr>
+            <tr><td><strong>Priority</strong></td><td>先按优先级，再按到达时间处理</td><td>选择数值更大的 priority；同优先级时优先抢占到达更晚的请求</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Priority 的数值语义容易看反：当前实现中较小的 priority 数值表示更早处理；因此当需要抢占时，<code>max(priority, arrival_time)</code> 对应的是优先级更低、且到达更晚的请求。</p>
+      <p>两种策略都不自动等于严格公平。长请求可能长期占用 KV Cache，短请求可能频繁进入；高优先级请求也可能让低优先级请求等待更久。生产系统还需要结合租户配额、排队上限、超时、请求长度分布和 SLO 设计 admission control。</p>
+    </section>
+
+    <section id="tuning">
+      <h2>10.6 调参应该先观察什么</h2>
+      <p>不要看到 waiting 上升就直接把 <code>max_num_batched_tokens</code> 调大。它主要改变每轮可处理 token 的规模，并不能创造额外 GPU 显存。建议把这些信号放在同一时间窗口里观察：</p>
+      <ul>
+        <li><code>num_requests_running</code> 与 <code>num_requests_waiting</code>：判断活跃批次与排队是否持续增长。</li>
+        <li><code>kv_cache_usage_perc</code>：判断 KV Cache 是否接近容量上限。</li>
+        <li><code>num_preemptions_total</code>：观察抢占计数的增量，而不是累计值本身。</li>
+        <li>TTFT、ITL、生成吞吐：判断瓶颈究竟偏向 Prefill、Decode 还是排队。</li>
+      </ul>
+      <p>如果 KV Cache 使用率持续很高且抢占增长，优先检查上下文长度、并发、KV dtype、Prefix Cache 命中和显存预算；如果 GPU 计算不饱和但 token budget 经常用尽，则需要结合模型执行效率和请求到达分布分析，而不是单纯放大并发数。</p>
+    </section>
+
+    <section id="recap">
+      <h2>本章自检</h2>
+      <ol>
+        <li>为什么 V1 Scheduler 同时需要 token budget 和 request-count limit？</li>
+        <li><code>num_computed_tokens</code> 如何帮助一个调度循环同时处理 Prefill、Decode 和 Chunked Prefill？</li>
+        <li>为什么 KV Cache allocation 失败会触发 preemption，而不是无限等待显存？</li>
+        <li>PREEMPTED 为什么不是 finished 状态？重新接纳时哪些计算可能被复用？</li>
+        <li>Priority 数值越大是否越优先？当前抢占选择又如何解释？</li>
+      </ol>
+      <p>下一章把 token budget 放进长 Prompt 与短 Decode 混合负载，观察 Chunked Prefill 如何切分 Prefill 工作，以及它为什么会同时影响 TTFT 和 ITL。</p>
+    </section>
+
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — Scheduler</a>：V1 token-budget scheduling、FCFS / Priority、Preemption 与 async scheduling。</li>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/#preemption" target="_blank" rel="noopener noreferrer">Optimization — Preemption</a>：KV Cache 不足时的抢占和重算说明。</li>
+        <li>源码：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py" target="_blank" rel="noopener noreferrer">Scheduler.schedule / _preempt_request</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py" target="_blank" rel="noopener noreferrer">SchedulerConfig</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/request.py" target="_blank" rel="noopener noreferrer">Request / RequestStatus</a>。</li>
+        <li>测试：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/tests/v1/core/test_scheduler.py" target="_blank" rel="noopener noreferrer">V1 Scheduler tests</a>：验证调度、请求状态和抢占相关行为。</li>
+      </ol>
+      <p><small>源码审校基线：vLLM commit <code>c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf</code>。Scheduler 的队列、异步执行、KV Connector 和多模态分支会持续演进；本文描述的是该源码快照中的 V1 行为，不应直接套用到旧版 V0。</small></p>
+    </section>
+
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="09.html">← 上一章：Automatic Prefix Caching</a><a class="next" href="11.html">下一章：Chunked Prefill →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
+</div>
 </body>
 </html>

@@ -1,0 +1,62 @@
+{
+  "chapter": "18",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 HTTP API authentication coverage, network isolation, multi-tenant sharing, cache side-channel and application security.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "api-key-prefix-coverage",
+      "claim": "The current vLLM --api-key or VLLM_API_KEY authentication applies only to selected endpoint path prefixes such as /v1, /v2, /inference and /cohere; many sensitive inference, utility and operational endpoints are not protected by it.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/security.md",
+      "locator": "API Key Authentication Limitations",
+      "notes": "The endpoint list changes with enabled features and releases; re-audit the exact deployed version."
+    },
+    {
+      "id": "vllm-network-security",
+      "claim": "vLLM documents inter-node PyTorch Distributed and KV Cache transfer communications as insecure by default and recommends restricting them to trusted networks and hosts.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/security.md",
+      "locator": "Inter-Node Communication and Security and Firewalls",
+      "notes": "Use firewall, network isolation and minimal exposed ports; do not assume internal communication is encrypted."
+    },
+    {
+      "id": "multi-tenant-process-sharing",
+      "claim": "vLLM does not provide isolation between tenants sharing the same server process; requests are scheduled together and share caches.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/security.md",
+      "locator": "Multi-Tenant Deployments",
+      "notes": "Dedicated vLLM instances are recommended where tenant isolation is required."
+    },
+    {
+      "id": "cache-salt-side-channel",
+      "claim": "cache_salt is mixed into the first KV Cache block hash to prevent cross-salt prefix block reuse and mitigate a Prefix Cache timing side channel; it is not a full tenant isolation boundary.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/security.md",
+      "locator": "Prefix Cache Timing Side-Channel Mitigation",
+      "notes": "Salt values should be unpredictable secrets scoped to the intended sharing boundary; salting reduces cache reuse."
+    },
+    {
+      "id": "media-uuid-tenant-scope",
+      "claim": "For multimodal multi-tenant requests, client-provided media UUID values should be scoped by a trusted gateway to avoid unintended cross-tenant cache sharing.",
+      "kind": "recommendation",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/security.md",
+      "locator": "Multimodal Media UUID Security and Recommendations",
+      "notes": "Do not trust arbitrary client-supplied cache identifiers as tenant identity."
+    },
+    {
+      "id": "prompt-injection-tool-auth",
+      "claim": "Prompt injection defenses must be enforced at application and tool execution boundaries; model instructions and output formatting alone do not provide authorization.",
+      "kind": "recommendation",
+      "status": "verified",
+      "source_url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "locator": "Prompt Injection and Excessive Agency",
+      "notes": "The article presents general secure design guidance, not a claim that vLLM itself implements these controls."
+    }
+  ]
+}

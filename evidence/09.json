@@ -1,0 +1,89 @@
+{
+  "chapter": "09",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 Automatic Prefix Caching hash inputs, block lifecycle, hash granularity, hybrid Mamba checkpoints, metrics and cache isolation.",
+  "upstream_source_commit": "0bf9c07376a4091627e6cb50dd85464361db452c",
+  "claims": [
+    {
+      "id": "parent-hash-chain",
+      "claim": "A V1 prefix block hash includes its parent block hash, current block token IDs and extra hash keys.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/v1/core/kv_cache_utils.py",
+      "locator": "hash_block_tokens",
+      "notes": "Later block identity depends on the preceding token prefix, not just local block contents."
+    },
+    {
+      "id": "extra-hash-keys",
+      "claim": "Current request hash extras can include LoRA identity, multimodal feature hashes, cache_salt and prompt-embedding digests.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/v1/core/kv_cache_utils.py",
+      "locator": "generate_block_hash_extra_keys",
+      "notes": "Different adapters or multimodal inputs must not reuse the same KV state."
+    },
+    {
+      "id": "hash-algorithms",
+      "claim": "Current CacheConfig defaults prefix caching to SHA-256 and documents CBOR-based reproducible variants and non-cryptographic xxHash variants.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/cache.py",
+      "locator": "prefix_caching_hash_algo",
+      "notes": "The source warns non-cryptographic collision risk can affect correctness and multi-tenant privacy."
+    },
+    {
+      "id": "block-pool-refcount-lru",
+      "claim": "V1 BlockPool maps hashes to physical blocks and manages a free-block queue; referenced blocks are protected from eviction and cached blocks can be evicted from the LRU end.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/v1/core/block_pool.py",
+      "locator": "BlockPool and FreeKVCacheBlockQueue",
+      "notes": "The cache is bounded and is not permanent storage."
+    },
+    {
+      "id": "last-token-recompute",
+      "claim": "When all request tokens appear cached, V1 still recomputes the last token to obtain logits; block alignment can cause the final block to be recomputed.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/v1/core/kv_cache_manager.py",
+      "locator": "get_computed_blocks",
+      "notes": "Implementation detail may change across releases."
+    },
+    {
+      "id": "prefix-match-unit-single-group",
+      "claim": "Current V1 resolves hash block size to scheduler block size for a single KV group and rejects a different prefix_match_unit while block hashing is active.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/v1/core/kv_cache_utils.py",
+      "locator": "resolve_kv_cache_block_sizes",
+      "notes": "For multiple groups the default can be the GCD of prefix-cacheable group block sizes, or an explicit valid prefix_match_unit."
+    },
+    {
+      "id": "hybrid-mamba-partial-checkpoints",
+      "claim": "Fine-grained sub-block prefix reuse is a constrained hybrid Mamba path requiring aligned prefix-cacheable groups and shared-prefix checkpoint configuration; it is not a universal arbitrary-token hit guarantee.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/",
+      "locator": "Hybrid Mamba models and --enable-mamba-shared-prefix-checkpoint",
+      "notes": "Current source registers a partial-tail lookup entry against an existing physical block; the FullAttentionManager path only registers the final prompt boundary inside a physical block, not every interior hash boundary. Model and alignment conditions apply."
+    },
+    {
+      "id": "cache-salt-isolation",
+      "claim": "cache_salt is mixed into the first block hash so only requests with the same salt can share the corresponding prefix cache, mitigating timing-based cross-tenant inference.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
+      "locator": "Cache Isolation for Security",
+      "notes": "cache_salt does not replace API authentication, authorization or network isolation."
+    },
+    {
+      "id": "apc-prefill-only",
+      "claim": "Automatic Prefix Caching reduces repeated query Prefill work but does not reduce Decode work required to generate new output tokens.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/",
+      "locator": "Limits",
+      "notes": "Benefit depends on exact repeated prefixes, cache residency, routing and prompt/output length distribution."
+    }
+  ]
+}

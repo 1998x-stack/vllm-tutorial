@@ -1,389 +1,181 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>课程目录</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(145deg, #f9fcf5 0%, #e8f3e8 100%);
-            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', system-ui, -apple-system, sans-serif;
-            padding: 2rem 1.5rem 1rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            display: block;
-            max-width: 1400px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.70);
-            backdrop-filter: blur(2px);
-            border-radius: 48px 48px 32px 32px;
-            padding: 2rem 2rem 1.5rem;
-            box-shadow: 0 20px 40px rgba(90, 140, 100, 0.15), 0 8px 20px rgba(0, 30, 20, 0.08);
-            border: 1px solid rgba(255, 245, 200, 0.5);
-        }
-
-        .header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            border-bottom: 4px solid #f7d44a;
-            padding-bottom: 0.75rem;
-        }
-
-        .header h1 {
-            font-size: 2.4rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #2b7a4b, #3f9e6b);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 2px 8px rgba(60, 140, 80, 0.12);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .header h1 .emoji {
-            font-size: 2.2rem;
-            filter: drop-shadow(0 2px 4px rgba(255, 200, 50, 0.3));
-        }
-
-        .header .sub {
-            font-size: 1rem;
-            background: #fef7e0;
-            padding: 0.3rem 1.2rem;
-            border-radius: 40px;
-            color: #3f6b4a;
-            font-weight: 600;
-            border: 1px solid #f3d98a;
-            box-shadow: 0 2px 6px rgba(200, 160, 50, 0.1);
-            white-space: nowrap;
-        }
-
-        .course-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.2rem;
-            margin: 1.8rem 0 1.2rem;
-        }
-
-        .card {
-            background: #ffffff;
-            border-radius: 28px;
-            padding: 1rem 1.2rem 1rem 1.2rem;
-            box-shadow: 0 6px 14px rgba(70, 120, 80, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
-            transition: all 0.2s ease;
-            border: 1px solid rgba(210, 230, 200, 0.5);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            backdrop-filter: blur(2px);
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 14px 24px rgba(70, 140, 90, 0.15), 0 4px 12px rgba(40, 100, 60, 0.05);
-            border-color: #b8d9b0;
-            background: #fefefc;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: baseline;
-            gap: 0.4rem;
-            margin-bottom: 0.4rem;
-            flex-wrap: wrap;
-        }
-
-        .chapter-num {
-            font-size: 1.1rem;
-            font-weight: 700;
-            background: #f5d142;
-            color: #2a5a3a;
-            padding: 0 0.6rem;
-            border-radius: 40px;
-            line-height: 1.6;
-            display: inline-block;
-            box-shadow: inset 0 -2px 0 #dbb42c;
-            letter-spacing: 0.3px;
-            min-width: 2.2rem;
-            text-align: center;
-        }
-
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: 650;
-            color: #1f4d33;
-            letter-spacing: -0.3px;
-            line-height: 1.3;
-            flex: 1;
-        }
-
-        .topic-list {
-            list-style: none;
-            margin-top: 0.3rem;
-            padding-left: 0.2rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.2rem 0.6rem;
-        }
-
-        .topic-list li {
-            font-size: 0.8rem;
-            color: #2d543a;
-            background: #f1f9ee;
-            padding: 0.1rem 0.7rem 0.2rem 1.2rem;
-            border-radius: 30px;
-            line-height: 1.6;
-            position: relative;
-            border: 1px solid #dcebd4;
-            box-shadow: inset 0 1px 2px white;
-        }
-
-        .topic-list li::before {
-            content: "⚡";
-            position: absolute;
-            left: 4px;
-            top: 0px;
-            font-size: 0.7rem;
-            color: #e5b13b;
-        }
-
-        .card-footer {
-            margin-top: 0.6rem;
-            display: flex;
-            justify-content: flex-end;
-            border-top: 1px dashed #d4e8d0;
-            padding-top: 0.5rem;
-        }
-
-        .card-footer a {
-            background: #b7d8b0;
-            color: #1f452b;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            padding: 0.2rem 1.2rem;
-            border-radius: 40px;
-            transition: 0.15s;
-            border: 1px solid #8fb88a;
-            box-shadow: 0 2px 4px rgba(60, 120, 60, 0.1);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .card-footer a::after {
-            content: "→";
-            font-size: 1rem;
-            transition: transform 0.1s;
-        }
-
-        .card-footer a:hover {
-            background: #f7d44a;
-            border-color: #dbb42c;
-            color: #1f3d28;
-            box-shadow: 0 4px 8px rgba(200, 160, 40, 0.2);
-            transform: scale(1.02);
-        }
-
-        .card-footer a:active {
-            transform: scale(0.96);
-        }
-
-        .footer {
-            margin-top: 2.5rem;
-            text-align: center;
-            font-size: 1rem;
-            color: #3b6b47;
-            background: #f2fcee;
-            padding: 0.8rem 2rem;
-            border-radius: 60px;
-            display: inline-block;
-            border: 1px solid #c6dfbe;
-            box-shadow: 0 2px 8px rgba(80, 130, 70, 0.08);
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            backdrop-filter: blur(2px);
-        }
-
-        .footer span {
-            background: #f9eec1;
-            padding: 0.1rem 0.8rem;
-            border-radius: 30px;
-            margin: 0 4px;
-        }
-
-        .footer .wechat {
-            font-weight: 700;
-            color: #1f5a33;
-        }
-
-        @media (max-width: 640px) {
-            body { padding: 1rem 0.8rem; }
-            .container { padding: 1.2rem 1rem; border-radius: 32px; }
-            .header h1 { font-size: 1.8rem; }
-            .header .sub { font-size: 0.75rem; padding: 0.2rem 0.8rem; }
-            .course-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .card-title { font-size: 1.05rem; }
-            .topic-list li { font-size: 0.7rem; }
-        }
-
-        @media (min-width: 768px) and (max-width: 1024px) {
-            .course-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .container::before {
-            content: "";
-            display: block;
-            height: 6px;
-            width: 120px;
-            background: linear-gradient(90deg, #f7d44a, #7fc47c, #4aa0b0, #f7b07a);
-            border-radius: 10px;
-            margin-bottom: 0.2rem;
-        }
-
-        /* Alternate chapter badge colors */
-        .card:nth-child(6n+1) .chapter-num { background: #f7b07a; color: #3d2e1a; }
-        .card:nth-child(6n+2) .chapter-num { background: #a7d4a0; color: #1f452b; }
-        .card:nth-child(6n+3) .chapter-num { background: #f5d44a; color: #2f4d2a; }
-        .card:nth-child(6n+4) .chapter-num { background: #b3d9e8; color: #1a3f4a; }
-        .card:nth-child(6n+5) .chapter-num { background: #f7c6c6; color: #5a2e2e; }
-        .card:nth-child(6n) .chapter-num { background: #c4b3e0; color: #2f2a4a; }
-
-        .state-msg {
-            text-align: center;
-            padding: 3rem;
-            color: #5f7f66;
-            font-size: 1.1rem;
-        }
-        .state-msg.error {
-            color: #b91c1c;
-            background: #fef2f2;
-            border-radius: 20px;
-            margin: 1rem 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从 LLM 推理基础到 vLLM 核心机制、并行推理与生产部署的 28 章视觉化学习课程。">
+  <title>vLLM 推理系统 · 课程地图</title>
+  <style>
+    :root{--paper:#f8faf8;--ink:#1d2d2b;--muted:#5a6b67;--line:#dce6e1;--accent:#147d73;--accent-soft:#e7f3ef;--card:#fff;--shadow:0 12px 30px rgba(25,55,45,.06)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+    a{color:var(--accent);text-underline-offset:.16em}
+    a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #d79b52;outline-offset:3px}
+    .wrap{width:min(1160px,calc(100% - 40px));margin:0 auto}
+    .topbar{padding:18px 0;border-bottom:1px solid var(--line);background:rgba(255,255,255,.8)}
+    .topbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:18px}
+    .brand{font-weight:800;letter-spacing:-.03em}.brand span{color:var(--accent)}
+    .topbar a{text-decoration:none;color:var(--muted);font-size:.9rem}
+    .hero{padding:64px 0 38px}
+    .eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+    h1{max-width:850px;margin:12px 0;font-size:clamp(2.3rem,6vw,4.4rem);line-height:1.1;letter-spacing:-.055em}
+    .intro{max-width:760px;color:var(--muted);font-size:1.15rem}
+    .hero-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:30px 0 0}
+    .flow-step{position:relative;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);font-size:.9rem}
+    .flow-step b{display:block;color:var(--accent);font-size:.75rem;letter-spacing:.06em;margin-bottom:3px}
+    .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0 24px}
+    .search{flex:1 1 280px;min-height:46px;padding:10px 14px;border:1px solid #cbd9d3;border-radius:12px;background:white;color:var(--ink);font:inherit}
+    .filter-list{display:flex;flex-wrap:wrap;gap:7px}
+    .filter{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:white;color:var(--muted);font:inherit;font-size:.84rem;cursor:pointer}
+    .filter[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:white}
+    .result-count{width:100%;color:var(--muted);font-size:.84rem}
+    .catalog{padding:12px 0 72px}
+    .category{margin:34px 0 46px}
+    .category-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:16px}
+    .category h2{margin:0;font-size:1.55rem;letter-spacing:-.03em}
+    .category p{margin:5px 0 0;color:var(--muted);font-size:.94rem}
+    .chapter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .chapter-card{display:flex;flex-direction:column;min-height:208px;padding:18px;border:1px solid var(--line);border-radius:17px;background:var(--card);box-shadow:var(--shadow);transition:transform .18s,border-color .18s}
+    .chapter-card:hover{transform:translateY(-3px);border-color:#9fc8b9}
+    .card-top{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+    .number{display:inline-grid;place-items:center;width:38px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:.82rem;font-weight:850}
+    .level{margin-left:auto;color:var(--muted);font-size:.76rem}
+    .chapter-card h3{margin:0;font-size:1.08rem;line-height:1.35}
+    .chapter-card h3 a{color:var(--ink);text-decoration:none}
+    .chapter-card h3 a:hover{color:var(--accent)}
+    .summary{margin:9px 0 13px;color:var(--muted);font-size:.9rem;line-height:1.6}
+    .topics{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+    .tag{padding:3px 8px;border-radius:999px;background:#f1f5f3;color:#566761;font-size:.72rem}
+    .card-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;color:#73817c;font-size:.75rem}
+    .empty{padding:36px;border:1px dashed #b9c9c2;border-radius:16px;text-align:center;color:var(--muted)}
+    footer{padding:26px 0 44px;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
+    @media(max-width:900px){.chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-flow{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.wrap{width:min(100% - 28px,1160px)}.hero{padding:42px 0 24px}h1{font-size:2.5rem}.chapter-grid{grid-template-columns:1fr}.hero-flow{grid-template-columns:1fr 1fr}.chapter-card{min-height:0}.category-head{display:block}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+  </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1><span class="emoji"></span><span class="title-text"></span></h1>
-        <div class="sub"></div>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">vLLM <span>Learning Map</span></div>
+      <a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a>
     </div>
-
-    <div id="cardContainer" class="course-grid"></div>
-
-    <div style="text-align:center;">
-        <div class="footer"></div>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow">28 chapters · visual systems course</div>
+      <h1 id="page-title">从一个 token，理解一套推理系统。</h1>
+      <p class="intro">这不是参数速查表，而是一条从模型推理基础、KV Cache 与调度机制，到多 GPU 并行和生产部署的学习路径。每章围绕一个具体问题展开，并逐步连接原理、图解和工程实现。</p>
+      <div class="hero-flow" aria-label="课程主线">
+        <div class="flow-step"><b>01 · UNDERSTAND</b>理解请求如何生成 token</div>
+        <div class="flow-step"><b>02 · MANAGE</b>管理 KV Cache 与计算资源</div>
+        <div class="flow-step"><b>03 · DISTRIBUTE</b>扩展到多 GPU 与复杂模型</div>
+        <div class="flow-step"><b>04 · OPERATE</b>部署、观测、评测与排障</div>
+      </div>
+    </section>
+    <section aria-label="课程搜索和筛选">
+      <div class="toolbar">
+        <input id="search" class="search" type="search" placeholder="搜索章节、概念或标签…" aria-label="搜索课程">
+        <div id="filters" class="filter-list" aria-label="按专题筛选"></div>
+        <div id="result-count" class="result-count" role="status" aria-live="polite">正在加载课程目录…</div>
+      </div>
+    </section>
+    <div id="catalog" class="catalog" aria-live="polite">
+      <noscript>请启用 JavaScript 以浏览离线课程目录。</noscript>
     </div>
-</div>
-
-<script src="courses-data.js"></script>
-<script>
-    (function() {
-        var container = document.getElementById('cardContainer');
-        var emojiEl = document.querySelector('.header .emoji');
-        var titleEl = document.querySelector('.header .title-text');
-        var subEl = document.querySelector('.header .sub');
-        var footerEl = document.querySelector('.footer');
-
-        function showError(msg) {
-            var error = document.createElement('div');
-            error.className = 'state-msg error';
-            error.textContent = msg;
-            container.replaceChildren(error);
+  </main>
+  <footer>
+    <div class="wrap">建议按章节编号循序学习；专题筛选适合查找和复习。技术参数与默认行为请以对应 vLLM 版本的官方文档为准。</div>
+  </footer>
+  <script src="courses-data.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const data = window.VLLM_COURSES;
+      const catalog = document.getElementById("catalog");
+      const filters = document.getElementById("filters");
+      const search = document.getElementById("search");
+      const count = document.getElementById("result-count");
+      if (!data || !Array.isArray(data.chapters) || !Array.isArray(data.categories)) {
+        catalog.textContent = "课程目录加载失败。请检查 courses-data.js，并运行 python3 scripts/build_course_data.py。";
+        count.textContent = "目录不可用";
+        return;
+      }
+      let selected = "all";
+      const make = (tag, className, text) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      };
+      const filterItems = [{id:"all",title:"全部专题"}, ...[...data.categories].sort((a,b)=>a.order-b.order)];
+      filterItems.forEach((item) => {
+        const button = make("button","filter",item.title);
+        button.type = "button";
+        button.dataset.category = item.id;
+        button.setAttribute("aria-pressed",String(item.id === selected));
+        button.addEventListener("click",() => {
+          selected = item.id;
+          filters.querySelectorAll("button").forEach((b)=>b.setAttribute("aria-pressed",String(b.dataset.category===selected)));
+          render();
+        });
+        filters.appendChild(button);
+      });
+      const render = () => {
+        const q = search.value.trim().toLocaleLowerCase();
+        const matching = data.chapters.filter((chapter) => {
+          const categoryMatch = selected === "all" || chapter.category === selected;
+          const haystack = [chapter.title,chapter.summary,...(chapter.topics||[]),...(chapter.tags||[])].join(" ").toLocaleLowerCase();
+          return categoryMatch && (!q || haystack.includes(q));
+        });
+        catalog.replaceChildren();
+        count.textContent = "显示 " + matching.length + " / " + data.chapters.length + " 章";
+        if (!matching.length) {
+          catalog.appendChild(make("div","empty","没有找到匹配章节。试试更短的关键词或切换专题。"));
+          return;
         }
-
-        // A sibling JavaScript file works under both file:// and HTTP origins.
-        Promise.resolve(window.VLLM_COURSES)
-            .then(function(data) {
-                if (!data || !Array.isArray(data.chapters)) {
-                    throw new Error('课程数据格式无效');
-                }
-                document.title = data.title + ' · 课程目录';
-                emojiEl.textContent = data.emoji;
-                titleEl.textContent = data.title;
-                subEl.textContent = data.subtitle;
-                var count = document.createElement('span');
-                count.textContent = data.chapters.length + '章';
-                footerEl.replaceChildren(count, document.createTextNode(' 实战体系 · 从入门到精通'));
-
-                if (!data.chapters || data.chapters.length === 0) {
-                    showError('暂无课程数据');
-                    return;
-                }
-
-                container.replaceChildren();
-                data.chapters.forEach(function(course) {
-                    var card = document.createElement('div');
-                    card.className = 'card';
-
-                    var headerDiv = document.createElement('div');
-                    headerDiv.className = 'card-header';
-
-                    var numSpan = document.createElement('span');
-                    numSpan.className = 'chapter-num';
-                    numSpan.textContent = course.num;
-
-                    var titleSpan = document.createElement('span');
-                    titleSpan.className = 'card-title';
-                    titleSpan.textContent = course.title;
-
-                    headerDiv.appendChild(numSpan);
-                    headerDiv.appendChild(titleSpan);
-                    card.appendChild(headerDiv);
-
-                    if (course.topics && course.topics.length > 0) {
-                        var topicUl = document.createElement('ul');
-                        topicUl.className = 'topic-list';
-                        course.topics.forEach(function(topic) {
-                            var li = document.createElement('li');
-                            li.textContent = topic;
-                            topicUl.appendChild(li);
-                        });
-                        card.appendChild(topicUl);
-                    }
-
-                    var footerDiv = document.createElement('div');
-                    footerDiv.className = 'card-footer';
-                    var link = document.createElement('a');
-                    if (!/^[0-9]{2}\.html$/.test(course.file) || course.file !== course.num + '.html') {
-                        throw new Error('章节文件名无效');
-                    }
-                    link.href = course.file;
-                    link.textContent = '开始学习 ';
-                    footerDiv.appendChild(link);
-                    card.appendChild(footerDiv);
-
-                    container.appendChild(card);
-                });
-            })
-            .catch(function(err) {
-                showError('课程数据加载失败: ' + err.message + '。请刷新页面重试。');
-            });
+        const visibleIds = new Set(matching.map((chapter)=>chapter.num));
+        [...data.categories].sort((a,b)=>a.order-b.order).forEach((category) => {
+          const chapters = matching.filter((chapter)=>chapter.category===category.id);
+          if (!chapters.length) return;
+          const section = make("section","category");
+          const head = make("div","category-head");
+          const heading = document.createElement("div");
+          heading.appendChild(make("h2","",category.title));
+          heading.appendChild(make("p","",category.description));
+          head.appendChild(heading);
+          head.appendChild(make("span","level",chapters.length+" 章"));
+          section.appendChild(head);
+          const grid = make("div","chapter-grid");
+          chapters.forEach((chapter) => {
+            const card = make("article","chapter-card");
+            const top = make("div","card-top");
+            top.appendChild(make("span","number",chapter.num));
+            top.appendChild(make("span","level",chapter.level));
+            card.appendChild(top);
+            const h3 = document.createElement("h3");
+            const link = document.createElement("a");
+            link.href = chapter.file;
+            link.textContent = chapter.title;
+            h3.appendChild(link);
+            card.appendChild(h3);
+            card.appendChild(make("p","summary",chapter.summary));
+            const topics = make("div","topics");
+            (chapter.topics||[]).slice(0,4).forEach((topic)=>topics.appendChild(make("span","tag",topic)));
+            card.appendChild(topics);
+            const meta = make("div","card-meta");
+            meta.appendChild(make("span","",chapter.durationMinutes+" 分钟"));
+            meta.appendChild(make("span","", "前置："+((chapter.prerequisites||[]).length ? chapter.prerequisites.join("、") : "无")));
+            card.appendChild(meta);
+            grid.appendChild(card);
+          });
+          section.appendChild(grid);
+          catalog.appendChild(section);
+        });
+      };
+      search.addEventListener("input",render);
+      render();
     })();
-</script>
-
-<noscript>
-    <div style="background:#fcf0d9; padding:1rem; border-radius:20px; text-align:center; color:#92400e;">
-        请启用 JavaScript 以浏览课程目录。
-    </div>
-</noscript>
+  </script>
 </body>
 </html>

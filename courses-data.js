@@ -14,7 +14,23 @@ window.VLLM_COURSES = {
         "KV Cache原理",
         "显存估算"
       ],
-      "file": "01.html"
+      "file": "01.html",
+      "category": "foundations",
+      "level": "入门",
+      "durationMinutes": 15,
+      "prerequisites": [],
+      "summary": "建立从输入 token 到逐 token 输出的推理心智模型，理解 Prefill、Decode 与 KV Cache。",
+      "learningObjectives": [
+        "描述自回归生成的逐 token 过程",
+        "区分 Prefill 与 Decode 的计算特点",
+        "估算单请求 KV Cache 的理论占用"
+      ],
+      "tags": [
+        "autoregressive",
+        "prefill",
+        "decode",
+        "kv-cache"
+      ]
     },
     {
       "num": "02",
@@ -25,7 +41,25 @@ window.VLLM_COURSES = {
         "竞品对比",
         "适用场景"
       ],
-      "file": "02.html"
+      "file": "02.html",
+      "category": "foundations",
+      "level": "入门",
+      "durationMinutes": 14,
+      "prerequisites": [
+        "01"
+      ],
+      "summary": "从真实的 serving 瓶颈出发，理解 vLLM 的设计目标、PagedAttention 与系统边界。",
+      "learningObjectives": [
+        "解释 vLLM 要解决的核心系统问题",
+        "区分 PagedAttention、调度和缓存复用",
+        "根据工作负载判断推理引擎的选型因素"
+      ],
+      "tags": [
+        "vllm",
+        "serving",
+        "paged-attention",
+        "architecture"
+      ]
     },
     {
       "num": "03",
@@ -36,172 +70,559 @@ window.VLLM_COURSES = {
         "按需分配",
         "Free Block Pool"
       ],
-      "file": "03.html"
+      "file": "03.html",
+      "category": "memory",
+      "level": "进阶",
+      "durationMinutes": 18,
+      "prerequisites": [
+        "01",
+        "02"
+      ],
+      "summary": "用分页内存模型解释 KV Cache 的逻辑块与物理块映射，掌握 Block Table 的工作方式。",
+      "learningObjectives": [
+        "说明连续预留为何造成内部与外部碎片",
+        "根据 token 位置计算逻辑块和块内偏移",
+        "解释 Block Table 如何映射到非连续物理块"
+      ],
+      "tags": [
+        "paged-attention",
+        "block-table",
+        "memory-fragmentation"
+      ]
     },
     {
       "num": "04",
       "title": "PagedAttention下篇",
       "topics": [
-        "Slot Mapping",
-        "Copy-on-Write",
-        "Block Size权衡",
-        "Flash Attn配合"
+        "Slot Mapping 写入定位",
+        "Block Table 读取定位",
+        "Prefix Cache 引用计数",
+        "Attention backend"
       ],
-      "file": "04.html"
+      "file": "04.html",
+      "category": "memory",
+      "level": "进阶",
+      "durationMinutes": 18,
+      "prerequisites": [
+        "03"
+      ],
+      "summary": "沿着当前 vLLM V1 的调度、slot mapping、Block Table 与 Attention backend 追踪 KV Cache 的写入、读取和共享。",
+      "learningObjectives": [
+        "区分 slot mapping 与 Block Table 的职责",
+        "计算新 token 对应的物理 KV 写入槽位",
+        "解释 Prefix Cache 的整块复用与引用计数"
+      ],
+      "tags": [
+        "slot-mapping",
+        "block-table",
+        "prefix-cache",
+        "attention-backend"
+      ]
     },
     {
       "num": "05",
       "title": "Continuous Batching",
       "topics": [
-        "静态vs动态批处理",
-        "Chunked Prefill",
-        "调度粒度",
-        "性能对比"
+        "固定批次 vs 迭代级批处理",
+        "token budget",
+        "V1 Scheduler",
+        "KV Cache 抢占"
       ],
-      "file": "05.html"
+      "file": "05.html",
+      "category": "scheduling",
+      "level": "进阶",
+      "durationMinutes": 16,
+      "prerequisites": [
+        "01",
+        "03"
+      ],
+      "summary": "用请求时间线理解 V1 Scheduler 如何在每轮迭代重组请求，并在 token budget 与 KV Cache 容量约束下安排工作。",
+      "learningObjectives": [
+        "比较固定批次与迭代级连续批处理",
+        "解释 V1 token-budget scheduling 的基本思路",
+        "理解 KV Cache 抢占、重算及延迟权衡"
+      ],
+      "tags": [
+        "continuous-batching",
+        "iteration-level-scheduling",
+        "token-budget",
+        "preemption"
+      ]
     },
     {
       "num": "06",
       "title": "快速上手",
       "topics": [
-        "安装环境",
-        "离线推理",
-        "在线API服务",
-        "Docker部署"
+        "硬件平台与环境检查",
+        "uv 安装",
+        "离线批量推理",
+        "OpenAI 兼容服务",
+        "Docker"
       ],
-      "file": "06.html"
+      "file": "06.html",
+      "category": "getting-started",
+      "level": "入门",
+      "durationMinutes": 15,
+      "prerequisites": [
+        "01",
+        "02"
+      ],
+      "summary": "按硬件平台准备环境，使用 uv 安装 vLLM，完成离线批量推理、OpenAI 兼容 API 验证和 Docker 运行。",
+      "learningObjectives": [
+        "检查 Python、GPU 驱动与模型访问条件",
+        "运行离线批量推理示例",
+        "启动 API 服务并发送 Chat Completions 请求"
+      ],
+      "tags": [
+        "installation",
+        "uv",
+        "offline-inference",
+        "openai-compatible-api",
+        "docker"
+      ]
     },
     {
       "num": "07",
       "title": "模型加载与配置",
       "topics": [
-        "模型来源",
-        "量化加载",
-        "显存参数",
-        "常见踩坑"
+        "模型身份与 Revision",
+        "架构解析与权重加载",
+        "dtype 与量化 Method / Scheme / Kernel",
+        "上下文与显存预算",
+        "可复现部署清单"
       ],
-      "file": "07.html"
+      "file": "07.html",
+      "category": "getting-started",
+      "level": "进阶",
+      "durationMinutes": 20,
+      "prerequisites": [
+        "06"
+      ],
+      "summary": "沿着模型仓库、架构解析、Tokenizer、权重加载、dtype、量化 Kernel 与显存预算理解 vLLM 的完整加载链路。",
+      "learningObjectives": [
+        "区分模型、Tokenizer、代码与 vLLM 的版本身份",
+        "解释 config.json 架构解析与权重加载的基本流程",
+        "区分 dtype、量化 method、scheme、kernel 和 KV Cache dtype",
+        "按上下文长度与显存预算建立可复现配置"
+      ],
+      "tags": [
+        "model-loading",
+        "model-resolution",
+        "revision-pinning",
+        "tokenizer",
+        "dtype",
+        "quantization",
+        "configuration"
+      ]
     },
     {
       "num": "08",
-      "title": "KV Cache管理",
+      "title": "KV Cache 容量规划",
       "topics": [
-        "显存精确估算",
-        "Free Block Pool",
-        "FP8量化",
-        "分层存储"
+        "每 Token KV Cache 公式",
+        "GQA 与 KV Heads",
+        "并发容量计算器",
+        "GPU 显存预算",
+        "Block Pool 与混合模型",
+        "FP8 / Offloading / Metrics"
       ],
-      "file": "08.html"
+      "file": "08.html",
+      "category": "memory",
+      "level": "进阶",
+      "durationMinutes": 22,
+      "prerequisites": [
+        "01",
+        "03",
+        "04"
+      ],
+      "summary": "从模型层数、KV heads、head dimension 和缓存 dtype 推导理论需求，再结合 vLLM 的显存规划、Block Pool、监控与 Offloading 理解实际容量。",
+      "learningObjectives": [
+        "推导标准 Transformer 每 token KV Cache 字节数",
+        "计算不同上下文长度和并发数下的理论缓存需求",
+        "解释 TP 分片、混合 KV groups 和 Block Pool 对实际容量的影响",
+        "使用 FP8、Offloading 与 Prometheus 指标分析缓存压力"
+      ],
+      "tags": [
+        "kv-cache-sizing",
+        "gqa",
+        "kv-heads",
+        "memory-budget",
+        "capacity-planning",
+        "fp8-kv-cache",
+        "kv-offloading",
+        "metrics"
+      ]
     },
     {
       "num": "09",
-      "title": "Prefix Caching",
+      "title": "Automatic Prefix Caching",
       "topics": [
-        "零开销实现",
-        "命中率分析",
-        "RAG场景收益",
-        "前缀感知路由"
+        "Parent Hash Chain",
+        "Token IDs 与 Extra Keys",
+        "Block / Hash / Hit Alignment",
+        "ref_cnt 与 LRU 淘汰",
+        "Hybrid Mamba 细粒度检查点",
+        "cache_salt 与安全"
       ],
-      "file": "09.html"
+      "file": "09.html",
+      "category": "memory",
+      "level": "进阶",
+      "durationMinutes": 22,
+      "prerequisites": [
+        "03",
+        "04",
+        "08"
+      ],
+      "summary": "深入理解 vLLM APC 的链式哈希、缓存块生命周期、细粒度匹配约束、命中收益测量与多租户隔离。",
+      "learningObjectives": [
+        "解释 parent hash、block token IDs 和 extra keys 如何构成缓存身份",
+        "区分物理 block size、hash block size 与 cache hit alignment",
+        "追踪引用计数、Free Queue 和 LRU 淘汰的生命周期",
+        "设计冷缓存 / 热缓存对照实验并解释 cache_salt 的安全边界"
+      ],
+      "tags": [
+        "prefix-caching",
+        "block-hash",
+        "hash-chain",
+        "cache-hit-alignment",
+        "mamba-prefix-checkpoint",
+        "lru-eviction",
+        "cache-salt",
+        "multi-tenant-security"
+      ]
     },
     {
       "num": "10",
-      "title": "调度器详解",
+      "title": "Scheduler：每轮迭代如何决定执行谁",
       "topics": [
-        "FCFS策略",
-        "Priority优先级",
-        "Preemption抢占",
-        "统一调度器"
+        "统一 token budget",
+        "Running / Waiting 队列",
+        "FCFS 与 Priority",
+        "KV Cache 分配",
+        "Preemption 与 Recompute"
       ],
-      "file": "10.html"
+      "file": "10.html",
+      "category": "scheduling",
+      "level": "进阶",
+      "durationMinutes": 23,
+      "prerequisites": [
+        "05",
+        "08"
+      ],
+      "summary": "从 V1 Scheduler.schedule() 追踪 Running 与 Waiting 请求的调度顺序、token budget、KV Cache allocation、FCFS / Priority 和抢占恢复。",
+      "learningObjectives": [
+        "区分每轮 token budget、请求数上限和活跃请求上限",
+        "描述 Running → Waiting → KV allocation → SchedulerOutput 的主路径",
+        "解释 FCFS / Priority 的抢占选择和 PREEMPTED 状态",
+        "根据 waiting、KV 使用率和抢占增量定位调度瓶颈"
+      ],
+      "tags": [
+        "v1-scheduler",
+        "token-budget",
+        "running-waiting-queues",
+        "fcfs",
+        "priority-scheduling",
+        "kv-preemption",
+        "recompute"
+      ]
     },
     {
       "num": "11",
-      "title": "Chunked Prefill",
+      "title": "Chunked Prefill：长 Prompt 与 Decode 协同执行",
       "topics": [
-        "长Prompt处理",
-        "吞吐延迟平衡",
-        "Chunk Size选择",
-        "与Prefix Cache配合"
+        "Prefill 与 Decode 计算形态",
+        "动态 token chunk",
+        "max_num_batched_tokens",
+        "TTFT / ITL 权衡",
+        "多模态边界"
       ],
-      "file": "11.html"
+      "file": "11.html",
+      "category": "scheduling",
+      "level": "进阶",
+      "durationMinutes": 21,
+      "prerequisites": [
+        "05",
+        "10"
+      ],
+      "summary": "理解 V1 如何使用每轮剩余 token budget 推进长 Prompt，并与 Decode 工作交错；通过离线预算实验观察 TTFT、ITL 与吞吐之间的权衡。",
+      "learningObjectives": [
+        "解释长 Prefill 对 Decode ITL 的影响",
+        "区分 token budget、剩余预算与动态 Prefill chunk",
+        "计算简化负载下的每轮 Prefill 预算与迭代数",
+        "识别 long-prefill threshold 和多模态 item 边界"
+      ],
+      "tags": [
+        "chunked-prefill",
+        "max-num-batched-tokens",
+        "ttft",
+        "itl",
+        "prefill-decode-mixing",
+        "multimodal-chunk-boundary"
+      ]
     },
     {
       "num": "12",
-      "title": "V1架构上篇",
+      "title": "V1 Process Architecture：从 API 到 GPU Worker",
       "topics": [
-        "1+N多进程",
-        "EngineCore",
-        "ZeroMQ总线",
-        "故障隔离"
+        "API Server",
+        "Engine Core 与 Scheduler",
+        "GPU Worker / Model Runner",
+        "DP Coordinator",
+        "EngineCore step loop",
+        "Async Scheduling 与 Batch Queue"
       ],
-      "file": "12.html"
+      "file": "12.html",
+      "category": "scheduling",
+      "level": "高级",
+      "durationMinutes": 24,
+      "prerequisites": [
+        "02",
+        "06",
+        "10"
+      ],
+      "summary": "拆解 V1 多进程架构和通信边界，追踪 API Server、Engine Core、Executor、GPU Worker 与 DP Coordinator 的职责及一次 EngineCore 执行循环。",
+      "learningObjectives": [
+        "画出 V1 核心进程和职责边界",
+        "解释 DP / TP / PP 如何影响典型进程拓扑",
+        "沿着 EngineCore.step() 追踪 schedule → execute → update",
+        "区分 Async Scheduling 与 Pipeline Parallelism 的 Batch Queue"
+      ],
+      "tags": [
+        "v1-architecture",
+        "api-server",
+        "engine-core",
+        "gpu-worker",
+        "model-runner",
+        "data-parallel-coordinator",
+        "multiprocess-executor"
+      ]
     },
     {
       "num": "13",
-      "title": "V1架构下篇",
+      "title": "Request Lifecycle：一次请求如何走完整个引擎",
       "topics": [
-        "V0 vs V1性能",
-        "兼容性变化",
-        "特性成熟度",
-        "迁移指南"
+        "请求输入与 Admission",
+        "RequestStatus 状态机",
+        "Prefill / Decode 进度",
+        "等待、抢占与恢复",
+        "OutputProcessor 与资源释放"
       ],
-      "file": "13.html"
+      "file": "13.html",
+      "category": "scheduling",
+      "level": "高级",
+      "durationMinutes": 22,
+      "prerequisites": [
+        "05",
+        "10",
+        "12"
+      ],
+      "summary": "沿着 Request、Scheduler、EngineCore 和 OutputProcessor 追踪请求入队、执行、远端 KV 等待、抢占恢复、流式输出、Abort 与资源清理。",
+      "learningObjectives": [
+        "追踪请求从 API Server 到 OutputProcessor 的主路径",
+        "解释 Request 进度字段和异步输出占位符",
+        "区分等待、运行、抢占与终止状态",
+        "定位 Abort、远端 KV 和异步清理等非直线路径"
+      ],
+      "tags": [
+        "request-lifecycle",
+        "request-status",
+        "enginecore-output",
+        "output-processor",
+        "preemption-resume",
+        "abort",
+        "streaming"
+      ]
     },
     {
       "num": "14",
-      "title": "Sampling与生成控制",
+      "title": "Sampling & Decoding：生成控制",
       "topics": [
-        "采样参数全解",
+        "Logits 与 Softmax",
         "Temperature",
-        "结构化输出",
+        "Top-k / Top-p / Min-p",
+        "Penalty / Seed / Stop",
+        "Structured Outputs",
         "Logprobs"
       ],
-      "file": "14.html"
+      "file": "14.html",
+      "category": "getting-started",
+      "level": "进阶",
+      "durationMinutes": 23,
+      "prerequisites": [
+        "01",
+        "06"
+      ],
+      "summary": "从 logits 与概率分布出发，解释温度、候选过滤、惩罚项、结构化输出和 logprobs，建立可验证的生成控制心智模型。",
+      "learningObjectives": [
+        "从 logits 推导 softmax 与 temperature 分布",
+        "区分 Top-k、Top-p、Min-p 的候选过滤规则",
+        "使用当前 structured_outputs API 并解释 logprobs 的边界",
+        "通过离线实验观察采样参数如何改变候选集合"
+      ],
+      "tags": [
+        "sampling",
+        "decoding",
+        "temperature",
+        "top-k",
+        "top-p",
+        "min-p",
+        "structured-outputs",
+        "logprobs"
+      ]
     },
     {
       "num": "15",
-      "title": "生产级部署",
+      "title": "Production Deployment：生产服务设计",
       "topics": [
-        "Docker部署",
-        "显存规划",
-        "反向代理",
-        "高可用架构"
+        "服务分层与副本拓扑",
+        "Docker 与制品固定",
+        "GPU / KV Cache 容量预算",
+        "请求路由与缓存局部性",
+        "Readiness / Rollout / Recovery"
       ],
-      "file": "15.html"
+      "file": "15.html",
+      "category": "production",
+      "level": "高级",
+      "durationMinutes": 24,
+      "prerequisites": [
+        "06",
+        "07",
+        "08",
+        "12",
+        "13"
+      ],
+      "summary": "把单个 vLLM Engine 放进完整生产服务链路，覆盖容器可复现性、容量预算、路由、健康检查、发布和故障恢复。",
+      "learningObjectives": [
+        "设计 Gateway、Router 与 vLLM replica 的职责边界",
+        "固定镜像、模型 revision、Tokenizer 和运行配置",
+        "解释 GPU 权重、运行时与 KV Cache 的容量竞争",
+        "设计摘流、滚动发布、重试和回滚流程"
+      ],
+      "tags": [
+        "production-deployment",
+        "docker",
+        "capacity-planning",
+        "routing",
+        "health-check",
+        "high-availability"
+      ]
     },
     {
       "num": "16",
-      "title": "Kubernetes部署",
+      "title": "Kubernetes GPU Serving：集群部署",
       "topics": [
-        "Production Stack",
-        "Helm Chart",
-        "前缀感知路由",
-        "GPU资源管理"
+        "GPU Device Plugin",
+        "Deployment / Service",
+        "Pod 探针与安全上下文",
+        "RollingUpdate / PDB",
+        "Production Stack / Helm / CRD",
+        "Cache-aware Routing"
       ],
-      "file": "16.html"
+      "file": "16.html",
+      "category": "production",
+      "level": "高级",
+      "durationMinutes": 25,
+      "prerequisites": [
+        "12",
+        "15"
+      ],
+      "summary": "理解 Kubernetes 如何通过 Device Plugin 调度 GPU，如何部署 vLLM Pod、配置探针和滚动更新，并评估 Production Stack 的编排与路由能力。",
+      "learningObjectives": [
+        "解释 NVIDIA GPU 扩展资源的注册与申请规则",
+        "编写包含 GPU limit、Secret、PVC 和探针的 Pod 模板",
+        "区分 Deployment 滚动更新与 PodDisruptionBudget",
+        "比较 Helm、CRD、Gateway API Inference Extension 与路由策略"
+      ],
+      "tags": [
+        "kubernetes",
+        "gpu-device-plugin",
+        "deployment",
+        "probes",
+        "rolling-update",
+        "pdb",
+        "helm",
+        "production-stack"
+      ]
     },
     {
       "num": "17",
-      "title": "可观测性",
+      "title": "Observability：推理服务可观测性",
       "topics": [
-        "三层监控体系",
-        "Prometheus指标",
-        "Grafana告警",
-        "链路追踪"
+        "业务 / Engine / Hardware 三层观测",
+        "TTFT / ITL / TPOT / E2E",
+        "vLLM Prometheus 指标",
+        "Histogram / PromQL",
+        "OpenTelemetry Tracing",
+        "排障决策树"
       ],
-      "file": "17.html"
+      "file": "17.html",
+      "category": "production",
+      "level": "高级",
+      "durationMinutes": 24,
+      "prerequisites": [
+        "12",
+        "13",
+        "15"
+      ],
+      "summary": "将用户感知延迟拆解为排队、Prefill、Decode 和网络阶段，使用 vLLM 指标、PromQL、日志与 Trace 定位瓶颈。",
+      "learningObjectives": [
+        "区分 TTFT、ITL、TPOT、Queue Time 与 E2E",
+        "识别 V1 的关键 Histogram 和 Gauge 指标",
+        "使用 histogram_quantile 编写 P95 / P99 PromQL",
+        "根据队列、KV Cache 和 GPU 信号建立可证伪的排障假设"
+      ],
+      "tags": [
+        "observability",
+        "prometheus",
+        "grafana",
+        "ttft",
+        "itl",
+        "tpot",
+        "promql",
+        "opentelemetry",
+        "tracing"
+      ]
     },
     {
       "num": "18",
-      "title": "安全与访问控制",
+      "title": "Security & Multi-tenancy：推理服务安全",
       "topics": [
-        "API鉴权",
-        "Rate Limiting",
-        "Prompt Injection",
-        "网络安全"
+        "Threat Model / Trust Boundaries",
+        "API Key 与 Endpoint Allowlist",
+        "分布式网络隔离",
+        "多租户与 Prefix Cache Side-channel",
+        "请求资源限制",
+        "Prompt Injection / Tool Authorization",
+        "供应链与日志治理"
       ],
-      "file": "18.html"
+      "file": "18.html",
+      "category": "production",
+      "level": "高级",
+      "durationMinutes": 25,
+      "prerequisites": [
+        "07",
+        "12",
+        "13",
+        "15",
+        "17"
+      ],
+      "summary": "审视 vLLM HTTP 端点、分布式通信、共享缓存与模型工具链的安全边界，建立认证、网络隔离、多租户、资源限制和应用授权策略。",
+      "learningObjectives": [
+        "解释 --api-key 的端点覆盖边界与 allowlist 需求",
+        "设计 API、GPU 分布式通信和运维网络的隔离策略",
+        "区分 cache_salt 的侧信道缓解与真正租户隔离",
+        "把 Prompt Injection 防护落实到工具、数据 ACL 和执行授权"
+      ],
+      "tags": [
+        "security",
+        "api-authentication",
+        "network-policy",
+        "multi-tenancy",
+        "cache-salt",
+        "prompt-injection",
+        "tool-authorization",
+        "supply-chain"
+      ]
     },
     {
       "num": "19",
@@ -212,7 +633,25 @@ window.VLLM_COURSES = {
         "NVLINK vs PCIe",
         "性能分析"
       ],
-      "file": "19.html"
+      "file": "19.html",
+      "category": "parallelism",
+      "level": "高级",
+      "durationMinutes": 20,
+      "prerequisites": [
+        "02",
+        "12"
+      ],
+      "summary": "通过矩阵切分和通信示意图理解 Tensor Parallelism 的收益、代价与硬件拓扑依赖。",
+      "learningObjectives": [
+        "解释线性层权重和激活如何切分",
+        "区分 All-Reduce 与 Reduce-Scatter / All-Gather",
+        "根据 GPU 互联评估 TP 的通信成本"
+      ],
+      "tags": [
+        "tensor-parallel",
+        "nccl",
+        "all-reduce"
+      ]
     },
     {
       "num": "20",
@@ -223,7 +662,25 @@ window.VLLM_COURSES = {
         "DP吞吐优化",
         "MoE并行"
       ],
-      "file": "20.html"
+      "file": "20.html",
+      "category": "parallelism",
+      "level": "高级",
+      "durationMinutes": 20,
+      "prerequisites": [
+        "19"
+      ],
+      "summary": "比较 Pipeline、Data、Tensor 与 Expert Parallelism，理解多节点和 MoE 的组合方式。",
+      "learningObjectives": [
+        "解释 PP、DP 与 TP 的切分维度",
+        "识别流水线气泡和跨节点通信开销",
+        "理解 MoE Expert Parallelism 的 All-to-All 通信"
+      ],
+      "tags": [
+        "pipeline-parallel",
+        "data-parallel",
+        "expert-parallel",
+        "moe"
+      ]
     },
     {
       "num": "21",
@@ -234,7 +691,26 @@ window.VLLM_COURSES = {
         "Medusa",
         "P-EAGLE展望"
       ],
-      "file": "21.html"
+      "file": "21.html",
+      "category": "parallelism",
+      "level": "高级",
+      "durationMinutes": 18,
+      "prerequisites": [
+        "01",
+        "05",
+        "10"
+      ],
+      "summary": "用 Draft–Verify 流程理解推测解码，并分析接受率、验证成本和真实加速边界。",
+      "learningObjectives": [
+        "解释草稿模型与目标模型的分工",
+        "追踪候选 token 的接受与拒绝",
+        "判断推测解码何时可能没有收益"
+      ],
+      "tags": [
+        "speculative-decoding",
+        "draft-model",
+        "verification"
+      ]
     },
     {
       "num": "22",
@@ -245,7 +721,27 @@ window.VLLM_COURSES = {
         "CUDA Graph加速",
         "LoRA适配器"
       ],
-      "file": "22.html"
+      "file": "22.html",
+      "category": "parallelism",
+      "level": "高级",
+      "durationMinutes": 20,
+      "prerequisites": [
+        "01",
+        "02",
+        "07"
+      ],
+      "summary": "梳理图像、视频和音频输入进入模型的路径，并区分多模态、LoRA 与推理优化。",
+      "learningObjectives": [
+        "描述多模态预处理到模型输入的链路",
+        "识别不同模态对显存和调度的影响",
+        "按模型与 vLLM 版本核验支持矩阵"
+      ],
+      "tags": [
+        "multimodal",
+        "vision",
+        "audio",
+        "lora"
+      ]
     },
     {
       "num": "23",
@@ -256,7 +752,28 @@ window.VLLM_COURSES = {
         "ModelRunner",
         "Triton Kernel"
       ],
-      "file": "23.html"
+      "file": "23.html",
+      "category": "source-lab",
+      "level": "高级",
+      "durationMinutes": 25,
+      "prerequisites": [
+        "03",
+        "04",
+        "05",
+        "10",
+        "12"
+      ],
+      "summary": "通过精简推理引擎阅读 Engine、Scheduler、ModelRunner 与 KV Cache 的代码组织。",
+      "learningObjectives": [
+        "把概念映射到实际类和调用路径",
+        "追踪一次请求从调度到模型执行",
+        "识别教学实现与生产级 vLLM 的差异"
+      ],
+      "tags": [
+        "nano-vllm",
+        "source-code",
+        "model-runner"
+      ]
     },
     {
       "num": "24",
@@ -267,7 +784,27 @@ window.VLLM_COURSES = {
         "性能退化",
         "常见错误速查"
       ],
-      "file": "24.html"
+      "file": "24.html",
+      "category": "production",
+      "level": "进阶",
+      "durationMinutes": 18,
+      "prerequisites": [
+        "06",
+        "07",
+        "15"
+      ],
+      "summary": "用症状—证据—假设—验证的流程排查 OOM、NCCL、加载失败和性能退化。",
+      "learningObjectives": [
+        "从错误日志定位故障层级",
+        "设计最小化复现与排除实验",
+        "避免只靠盲目调参掩盖根因"
+      ],
+      "tags": [
+        "debugging",
+        "cuda-oom",
+        "nccl",
+        "troubleshooting"
+      ]
     },
     {
       "num": "25",
@@ -278,7 +815,25 @@ window.VLLM_COURSES = {
         "Benchmark数据",
         "调优Checklist"
       ],
-      "file": "25.html"
+      "file": "25.html",
+      "category": "production",
+      "level": "进阶",
+      "durationMinutes": 18,
+      "prerequisites": [
+        "17"
+      ],
+      "summary": "设计可复现的推理 Benchmark，正确比较吞吐、TTFT、ITL 与资源利用率。",
+      "learningObjectives": [
+        "区分吞吐、请求延迟与 token 延迟",
+        "控制模型、输入分布、并发和硬件变量",
+        "报告基准结果的置信边界和局限"
+      ],
+      "tags": [
+        "benchmark",
+        "latency",
+        "throughput",
+        "reproducibility"
+      ]
     },
     {
       "num": "26",
@@ -289,7 +844,27 @@ window.VLLM_COURSES = {
         "智能路由",
         "竞品格局"
       ],
-      "file": "26.html"
+      "file": "26.html",
+      "category": "roadmap",
+      "level": "高级",
+      "durationMinutes": 15,
+      "prerequisites": [
+        "12",
+        "19",
+        "21",
+        "22"
+      ],
+      "summary": "按问题、证据和成熟度观察推理系统趋势，避免把研究原型误写成生产默认能力。",
+      "learningObjectives": [
+        "识别推理系统的主要演进方向",
+        "区分论文结果、实验功能和稳定功能",
+        "建立跟踪官方 release 与设计文档的方法"
+      ],
+      "tags": [
+        "roadmap",
+        "research",
+        "release-tracking"
+      ]
     },
     {
       "num": "27",
@@ -300,7 +875,30 @@ window.VLLM_COURSES = {
         "Prefix Cache优化",
         "性能迭代"
       ],
-      "file": "27.html"
+      "file": "27.html",
+      "category": "source-lab",
+      "level": "高级",
+      "durationMinutes": 25,
+      "prerequisites": [
+        "06",
+        "07",
+        "09",
+        "15",
+        "17",
+        "18"
+      ],
+      "summary": "搭建一个包含检索、推理 API、缓存、监控与安全边界的最小 RAG 服务。",
+      "learningObjectives": [
+        "设计 RAG 请求与 vLLM 服务的端到端数据流",
+        "实现基础检索、生成和错误处理",
+        "测量缓存、延迟与输出质量"
+      ],
+      "tags": [
+        "rag",
+        "end-to-end",
+        "deployment",
+        "evaluation"
+      ]
     },
     {
       "num": "28",
@@ -311,7 +909,86 @@ window.VLLM_COURSES = {
         "进阶学习路径",
         "推荐资源"
       ],
-      "file": "28.html"
+      "file": "28.html",
+      "category": "roadmap",
+      "level": "综合",
+      "durationMinutes": 12,
+      "prerequisites": [
+        "01",
+        "02",
+        "03",
+        "05",
+        "06",
+        "12",
+        "15",
+        "19",
+        "21",
+        "23",
+        "27"
+      ],
+      "summary": "把 28 章串成知识图谱，并根据目标选择系统、部署或源码方向的后续学习路线。",
+      "learningObjectives": [
+        "复述 vLLM 从模型执行到生产服务的核心链路",
+        "识别自己尚未掌握的关键子系统",
+        "制定下一阶段的阅读、实验与项目计划"
+      ],
+      "tags": [
+        "knowledge-map",
+        "learning-path",
+        "review"
+      ]
     }
-  ]
+  ],
+  "categories": [
+    {
+      "id": "foundations",
+      "title": "推理基础与系统认知",
+      "description": "从 token 生成、Prefill / Decode 到 vLLM 的整体设计目标。",
+      "order": 1
+    },
+    {
+      "id": "memory",
+      "title": "KV Cache 与内存管理",
+      "description": "理解 PagedAttention、Block Table、KV Cache 生命周期与前缀复用。",
+      "order": 2
+    },
+    {
+      "id": "scheduling",
+      "title": "调度、批处理与运行时",
+      "description": "理解连续批处理、调度策略、Chunked Prefill 和 V1 Engine Core。",
+      "order": 3
+    },
+    {
+      "id": "getting-started",
+      "title": "安装、模型接入与生成控制",
+      "description": "从第一个请求开始，掌握模型加载、参数配置和生成行为。",
+      "order": 4
+    },
+    {
+      "id": "parallelism",
+      "title": "并行计算与高级推理",
+      "description": "从多 GPU 并行走向推测解码、多模态等高级能力。",
+      "order": 5
+    },
+    {
+      "id": "production",
+      "title": "生产部署、观测与可靠性",
+      "description": "把推理服务部署到真实环境，并具备排障、评测和安全意识。",
+      "order": 6
+    },
+    {
+      "id": "source-lab",
+      "title": "源码阅读与系统实践",
+      "description": "通过 nano-vLLM 和端到端项目，把概念连接到工程实现。",
+      "order": 7
+    },
+    {
+      "id": "roadmap",
+      "title": "趋势判断与学习路径",
+      "description": "建立全局知识地图，辨别新特性的成熟度与适用边界。",
+      "order": 8
+    }
+  ],
+  "schemaVersion": 2,
+  "updatedAt": "2026-11-21"
 };

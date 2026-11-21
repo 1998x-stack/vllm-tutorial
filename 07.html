@@ -1,190 +1,240 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第7章 模型加载与配置</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从模型仓库、架构解析、Tokenizer、权重加载到 dtype、量化与上下文配置，理解 vLLM 的模型加载链路。">
+  <title>第 07 章｜模型加载与配置：从模型身份到运行时参数</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border">
-<div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li>
-            <li><a href="02.html">第2章 vLLM概述</a></li>
-            <li><a href="03.html">第3章 PagedAttention上篇</a></li>
-            <li><a href="04.html">第4章 PagedAttention下篇</a></li>
-            <li><a href="05.html">第5章 Continuous Batching</a></li>
-            <li><a href="06.html">第6章 快速上手</a></li>
-            <li><a href="07.html" class="active">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li>
-            <li><a href="09.html">第9章 Prefix Caching</a></li>
-            <li><a href="10.html">第10章 调度器详解</a></li>
-            <li><a href="11.html">第11章 Chunked Prefill</a></li>
-            <li><a href="12.html">第12章 V1架构上篇</a></li>
-            <li><a href="13.html">第13章 V1架构下篇</a></li>
-            <li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li>
-            <li><a href="16.html">第16章 Kubernetes部署</a></li>
-            <li><a href="17.html">第17章 可观测性</a></li>
-            <li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li>
-            <li><a href="20.html">第20章 流水线与数据并行</a></li>
-            <li><a href="21.html">第21章 推测解码</a></li>
-            <li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li>
-            <li><a href="24.html">第24章 调试与问题排查</a></li>
-            <li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li>
-            <li><a href="27.html">第27章 实战项目</a></li>
-            <li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/configuration/engine_args/" target="_blank" rel="noopener noreferrer">Engine Args ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#pipeline">7.1 模型加载的完整路径</a></li>
+      <li><a href="#identity">7.2 先锁定模型身份</a></li>
+      <li><a href="#resolution">7.3 架构解析与权重加载</a></li>
+      <li><a href="#precision">7.4 dtype、量化方法与 Kernel</a></li>
+      <li><a href="#memory">7.5 上下文和显存预算</a></li>
+      <li><a href="#reproducibility">7.6 建立可复现配置</a></li>
+      <li><a href="#troubleshoot">常见问题与自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 07 章 · 安装、模型接入与生成控制</p>
+      <h1>模型加载与配置：从模型身份到运行时参数</h1>
+      <p class="article-dek">模型能下载，不代表它能被正确解析；权重能装进 GPU，也不代表上下文和并发配置合理。本章沿着真实加载路径，把模型身份、Tokenizer、权重精度、量化 Kernel 和运行时显存预算拆开理解。</p>
+      <div class="article-meta"><span class="meta-chip">进阶</span><span class="meta-chip">约 20 分钟</span><span class="meta-chip">前置章节：06</span><span class="meta-chip">源码审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">想象你拿到一个模型仓库 ID，准备执行 <code>vllm serve</code>。vLLM 并不是把仓库里的某个权重文件直接塞进 GPU：它还要识别模型架构、读取配置、准备 Tokenizer、构造模型模块、加载权重分片、选择精度与量化实现，最后才进入 KV Cache 和 Scheduler 的容量规划。配置出错时，先判断错误发生在哪一层，比随机修改参数有效得多。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>区分模型权重、模型配置、Tokenizer、Chat Template 和模型代码的版本身份。</li>
+        <li>解释 vLLM 如何根据 <code>config.json</code> 中的架构信息选择模型实现。</li>
+        <li>区分权重 dtype、权重量化方法、量化 scheme、执行 Kernel 和 KV Cache dtype。</li>
+        <li>理解 <code>max_model_len</code>、<code>gpu_memory_utilization</code> 与 <code>kv_cache_memory_bytes</code> 的资源边界。</li>
+        <li>建立可复现的模型加载清单，而不是依赖一组来历不明的“最佳参数”。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第7章 模型加载与配置</h2>
 
-<p>上一章咱们跑了 Hello World。这一章深入模型加载的各种细节——从哪里加载、支持什么格式、那些关键参数到底怎么调。说实话，我踩过的坑有一半来自参数配置不当。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/07-model-config-map.svg" alt="vLLM 模型加载六步路径：模型仓库与 revision、配置和架构解析、Tokenizer 与 Chat Template、权重分片加载、dtype 量化与 Kernel、KV Cache 和运行时预算">
+      <figcaption>图 1：模型加载是一个有依赖关系的流水线。后面的量化、Kernel 和显存参数，必须建立在前面的模型身份与架构解析正确的基础上。</figcaption>
+    </figure>
 
-<h3>7.1 模型来源</h3>
+    <section id="pipeline">
+      <h2>7.1 模型加载的完整路径：不要把它理解成一次文件下载</h2>
+      <p>可以把一次模型启动拆成六步。它们不是六个完全独立的开关，而是前后相依的检查链：</p>
+      <ol>
+        <li><strong>定位模型：</strong>从 Hugging Face Hub、本地目录或受支持的模型存储源找到配置与权重。</li>
+        <li><strong>解析配置：</strong>读取模型配置，识别架构、层数、注意力结构、上下文能力和量化元数据。</li>
+        <li><strong>准备输入协议：</strong>加载 Tokenizer，并确认 Chat Template 与模型训练时的消息格式一致。</li>
+        <li><strong>构造模型：</strong>vLLM 选择匹配的模型实现，初始化模块和参数结构。</li>
+        <li><strong>装载权重：</strong>读取 checkpoint 分片，把权重映射到模型参数；必要时执行在线量化或权重后处理。</li>
+        <li><strong>建立运行时：</strong>选择可用的 Attention / Linear Kernel，规划 KV Cache，初始化 Scheduler 和服务入口。</li>
+      </ol>
+      <p>如果报错发生在第二步，调整 KV Cache 显存比例通常没有帮助；如果报错发生在第五步，修改 Chat Template 也不能解决权重键名不匹配。先定位失败阶段，再处理对应配置。</p>
+    </section>
 
-<table>
-  <tr><th>来源</th><th>格式</th><th>示例</th></tr>
-  <tr><td>HuggingFace Hub</td><td>直接写 model ID</td><td><code>meta-llama/Llama-3-8B</code></td></tr>
-  <tr><td>本地路径</td><td>绝对路径或相对路径</td><td><code>/models/my-llama-3</code></td></tr>
-  <tr><td>ModelScope（中国镜像）</td><td>设置环境变量后直接写 ID</td><td><code>VLLM_USE_MODELSCOPE=True</code></td></tr>
-  <tr><td>S3 / GCS / OSS</td><td>通过 fsspec 协议</td><td><code>s3://bucket/model-path/</code></td></tr>
-</table>
+    <section id="identity">
+      <h2>7.2 先锁定模型身份：model、tokenizer 和 revision</h2>
+      <p>一个可复现的模型部署，至少要记录四种身份：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>身份</th><th>它决定什么</th><th>需要记录的内容</th></tr></thead>
+          <tbody>
+            <tr><td>Model revision</td><td>模型配置和权重来自哪个仓库版本</td><td>模型 ID、本地路径或 Hub commit / tag</td></tr>
+            <tr><td>Tokenizer revision</td><td>文本如何切分成 token，以及特殊 token 的 ID</td><td>Tokenizer 仓库与 revision</td></tr>
+            <tr><td>Code revision</td><td>需要执行的模型自定义代码来自哪个版本</td><td>代码仓库与 revision</td></tr>
+            <tr><td>vLLM revision</td><td>加载器、模型实现、Kernel 和参数默认值来自哪个版本</td><td>vLLM release / commit、PyTorch 和驱动版本</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>在当前配置实现中，<code>revision</code>、<code>tokenizer_revision</code> 和 <code>code_revision</code> 是分开的字段。Tokenizer 默认可以跟随模型 revision，但如果 Tokenizer 来自另一个仓库，就应该单独固定它的版本。仅记录一个可移动的模型分支名，无法保证未来还能下载到完全相同的文件。</p>
+      <pre><code># 示例：固定模型、Tokenizer 与模型代码版本
+vllm serve org/model-name \\
+  --revision &lt;model-commit-or-tag&gt; \\
+  --tokenizer-revision &lt;tokenizer-commit-or-tag&gt; \\
+  --code-revision &lt;code-commit-or-tag&gt;</code></pre>
+      <p>对聊天模型，还要检查 Chat Template。模型权重加载成功，只说明参数可以被装入；如果模板把 <code>system</code>、<code>user</code>、<code>assistant</code> 消息序列化成错误的特殊 token，模型仍可能出现角色混淆、停止条件错误或输出格式异常。</p>
+      <div class="callout warning">
+        <p><strong>安全边界：</strong>当前 <code>trust_remote_code</code> 默认是 <code>false</code>。只有在确认模型仓库来源可信、理解其自定义代码行为后，才考虑开启 <code>--trust-remote-code</code>。它不是一个普通的“兼容性优化开关”，而是允许加载远端仓库中的代码。</p>
+      </div>
+    </section>
 
-<div class="tip">
-  <p><strong>国内用户注意</strong>：HuggingFace Hub 在国内访问可能很慢。设置 <code>export HF_ENDPOINT=https://hf-mirror.com</code> 使用镜像，或者 <code>export VLLM_USE_MODELSCOPE=True</code> 切换到 ModelScope。</p>
-</div>
+    <section id="resolution">
+      <h2>7.3 架构解析与权重加载：config.json 为什么如此重要？</h2>
+      <p>vLLM 的模型解析会检查 Hugging Face 兼容配置中的 <code>architectures</code> 字段，再寻找 vLLM 已注册的对应实现。它不是只根据模型仓库名字猜测模型类型。</p>
+      <p>解析失败常见于三种情况：</p>
+      <ul>
+        <li><code>config.json</code> 缺少 <code>architectures</code> 字段。</li>
+        <li>第三方仓库使用了 vLLM 尚未登记的架构别名。</li>
+        <li>同一个架构名被不同模型复用，导致配置与实现无法唯一对应。</li>
+      </ul>
+      <p>如果问题确实来自配置中的架构标记，可以通过 <code>hf_overrides</code> 覆盖配置字段。但这只是在修正模型身份描述，并不会凭空给 vLLM 增加一个尚未实现的模型架构。</p>
+      <pre><code>from vllm import LLM
 
-<h3>7.2 关键显存参数</h3>
-
-<p>这些参数直接影响显存使用和性能——生产环境中也是最常调整的：</p>
-
-<pre><code>vllm serve meta-llama/Llama-3-8B \
-    --gpu-memory-utilization 0.95 \   # GPU 显存利用率上限
-    --max-model-len 8192 \            # 单个请求最大 token 数
-    --max-num-seqs 256 \              # 最大并发序列数
-    --max-num-batched-tokens 8192     # 每 batch 最大 token 数</code></pre>
-
-<table>
-  <tr><th>参数</th><th>含义</th><th>设太大</th><th>设太小</th></tr>
-  <tr><td><code>gpu-memory-utilization</code></td><td>GPU 显存使用比例上限</td><td>OOM</td><td>显存浪费，并发低</td></tr>
-  <tr><td><code>max-model-len</code></td><td>单个序列最大 token 数</td><td>单个请求霸占太多 KV cache</td><td>长请求被截断</td></tr>
-  <tr><td><code>max-num-seqs</code></td><td>同时处理的序列数上限</td><td>KV cache 不够，频繁抢占</td><td>GPU 利用率低</td></tr>
-</table>
-
-<h3>7.3 量化模型加载</h3>
-
-<p>vLLM 支持多种量化格式，可以大幅减少显存使用：</p>
-
-<table>
-  <tr><th>量化方法</th><th>压缩比</th><th>精度损失</th><th>启动参数</th></tr>
-  <tr><td>FP8</td><td>2×</td><td>几乎无损</td><td><code>--quantization fp8</code></td></tr>
-  <tr><td>AWQ</td><td>3-4×</td><td>微量</td><td><code>--quantization awq</code></td></tr>
-  <tr><td>GPTQ</td><td>3-4×</td><td>微量</td><td><code>--quantization gptq</code></td></tr>
-  <tr><td>BitsandBytes (8bit)</td><td>2×</td><td>小</td><td><code>--quantization bitsandbytes --load-format bitsandbytes</code></td></tr>
-</table>
-
-<p>FP8 是当前推荐首选——性能损失最小，且 H100/A100（SM89+）有原生 FP8 指令加速。</p>
-
-<pre><code># 加载 FP8 量化模型（显存减半）
-vllm serve neuralmagic/Meta-Llama-3-8B-FP8 --quantization fp8
-
-# 加载 AWQ 量化模型
-vllm serve TheBloke/Llama-3-8B-AWQ --quantization awq</code></pre>
-
-<h3>7.4 模型下载策略</h3>
-
-<p>vLLM 支持多种模型格式，可以通过 <code>--load-format</code> 控制：</p>
-
-<table>
-  <tr><th>格式</th><th>说明</th><th>使用场景</th></tr>
-  <tr><td><code>auto</code></td><td>自动检测（默认）</td><td>通用</td></tr>
-  <tr><td><code>safetensors</code></td><td>安全的张量格式（推荐）</td><td>HuggingFace 标准格式</td></tr>
-  <tr><td><code>pt</code></td><td>PyTorch checkpoint</td><td>旧版或自定义模型</td></tr>
-  <tr><td><code>npcache</code></td><td>vLLM 自有格式</td><td>快速重复启动</td></tr>
-</table>
-
-<div class="highlight">
-  <p><strong>加速技巧</strong>：首次启动后，vLLM 会自动缓存转换后的模型权重。第二次启动同样的模型会快很多。缓存路径在 <code>~/.cache/vllm/</code>。</p>
-</div>
-
-<h3>7.5 HuggingFace Token 认证</h3>
-
-<p>访问 gated model（如 Llama、Mistral）需要 HuggingFace Token：</p>
-
-<pre><code># 方法1：环境变量
-export HF_TOKEN="hf_xxxxxxxxxxxx"
-
-# 方法2：huggingface-cli login
-huggingface-cli login
-
-# 方法3：启动参数传入
-vllm serve meta-llama/Llama-3-8B --hf-token "hf_xxxxxxxxxxxx"</code></pre>
-
-<h3>7.6 遇到的坑与解法</h3>
-
-<div class="warning">
-  <p><strong>坑1：OOM 但显存明明有余量</strong></p>
-  <p>症状：<code>torch.cuda.OutOfMemoryError</code>，但 nvidia-smi 显示还有 5GB 空闲。原因：CUDA 的内存碎片或 driver context 占用了预留空间。解法：降低 <code>--gpu-memory-utilization</code> 到 0.85，或者设置 <code>VLLM_ATTENTION_BACKEND=FLASH_ATTN</code>。</p>
-</div>
-
-<div class="warning">
-  <p><strong>坑2：Docker 中 NCCL 通信失败</strong></p>
-  <p>症状：<code>NCCL WARN: Failed to initialize shm</code>。原因：Docker 默认限制共享内存为 64MB，NCCL 不够用。解法：<code>--ipc=host</code> 或 <code>--shm-size=8g</code>。</p>
-</div>
-
-<div class="warning">
-  <p><strong>坑3：模型下载超时</strong></p>
-  <p>症状：卡在 <code>Downloading model...</code>，然后 timeout。解法：先手动下载到本地路径，再用本地路径加载；或用国内镜像。</p>
-</div>
-
-<p>好了，第一部分"基础篇"到这里结束。从下一章开始，咱们进入"核心机制篇"——深入 vLLM 的内部，理解 KV Cache 管理、Prefix Caching、调度器等关键子系统。</p>
-
-        <div class="footer-nav">
-            <a href="06.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="08.html">下一章 →</a>
+llm = LLM(
+    model="cerebras/Cerebras-GPT-1.3B",
+    hf_overrides={"architectures": ["GPT2LMHeadModel"]},
+)</code></pre>
+      <p>解析成功后，加载器还要把 checkpoint 中的权重名映射到模型模块。当前默认加载器支持从模型源读取权重分片，并通过权重迭代器处理 Safetensors 等文件；随后还可能进行在线量化、权重重排或 Kernel 所需的后处理。</p>
+      <div class="stepper" data-stepper>
+        <h3>交互观察：同一个“模型加载失败”可能发生在哪一层？</h3>
+        <div class="step-controls" role="group" aria-label="模型加载故障定位">
+          <button type="button" data-step-target="load-config" aria-pressed="true">配置解析</button>
+          <button type="button" data-step-target="load-tokenizer" aria-pressed="false">Tokenizer</button>
+          <button type="button" data-step-target="load-weights" aria-pressed="false">权重装载</button>
+          <button type="button" data-step-target="load-kernel" aria-pressed="false">Kernel</button>
         </div>
-    </div>
-</div>
+        <div class="step-panel" data-step-panel="load-config"><p><strong>配置解析失败：</strong>检查 <code>config.json</code>、<code>architectures</code>、模型支持列表与 <code>hf_overrides</code>。此时 GPU 显存预算通常还不是主因。</p></div>
+        <div class="step-panel" data-step-panel="load-tokenizer" hidden><p><strong>Tokenizer 或模板失败：</strong>检查 Tokenizer revision、特殊 token、Chat Template，以及模型是否需要专用 tokenizer backend。</p></div>
+        <div class="step-panel" data-step-panel="load-weights" hidden><p><strong>权重装载失败：</strong>检查 checkpoint 文件、分片索引、参数名称、权重量化元数据、磁盘空间和仓库访问权限。</p></div>
+        <div class="step-panel" data-step-panel="load-kernel" hidden><p><strong>Kernel 不匹配：</strong>检查量化 scheme、GPU 架构、Attention / Linear backend 和当前 vLLM release 的支持矩阵。</p></div>
+        <noscript><p>交互需要 JavaScript；四类故障的排查方向已在本节文字中完整列出。</p></noscript>
+      </div>
+    </section>
+
+    <section id="precision">
+      <h2>7.4 dtype、量化方法与 Kernel：三个层次不要混为一谈</h2>
+      <h3>先理解 dtype</h3>
+      <p><code>dtype</code> 主要描述模型权重与计算所使用的数据精度。当前 vLLM 的 <code>dtype="auto"</code> 会根据模型配置选择精度：配置为 FP32 或 FP16 的模型使用 FP16；配置为 BF16 的模型使用 BF16。它不是“自动选择所有可能精度中最快的那个”。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>配置</th><th>含义</th><th>注意事项</th></tr></thead>
+          <tbody>
+            <tr><td><code>auto</code></td><td>按模型配置解析精度</td><td>结果受 checkpoint dtype 和版本行为影响</td></tr>
+            <tr><td><code>float16</code></td><td>FP16 权重 / 计算精度</td><td>需要硬件与模型实现支持</td></tr>
+            <tr><td><code>bfloat16</code></td><td>BF16 权重 / 计算精度</td><td>动态范围更适合部分大模型推理场景</td></tr>
+            <tr><td><code>float32</code></td><td>FP32 精度</td><td>通常显存开销明显更高，需评估 Kernel 支持</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>再把量化拆成 method、scheme 和 kernel</h3>
+      <p>vLLM 当前量化文档刻意区分三个概念。理解这张表，比背诵 AWQ、GPTQ、FP8 等名字更有用：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>概念</th><th>回答的问题</th><th>例子</th></tr></thead>
+          <tbody>
+            <tr><td>Method</td><td>用什么加载实现读取量化 checkpoint？</td><td><code>compressed-tensors</code>、<code>modelopt</code>、<code>quark</code></td></tr>
+            <tr><td>Scheme</td><td>某类 Tensor 的数值格式与 scale 如何组织？</td><td>W4A16、W8A8、FP8、MXFP4</td></tr>
+            <tr><td>Kernel</td><td>当前设备上由哪段代码执行这个 scheme？</td><td>Marlin、Humming、其他 Linear / MoE backend</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>W4A16</code> 表示权重为 4 bit、激活为 16 bit；<code>W8A8</code> 则表示权重与激活都采用 8 bit 表示。W4A16 主要压缩权重存储，并不意味着矩阵乘法自动变成 4-bit 激活计算。真实每参数占用还包含 scale、分组信息和对齐开销，所以不能把“4 bit”直接等同于整个模型显存精确缩小四倍。</p>
+      <p>对于已经量化的 checkpoint，vLLM 通常从模型配置中的 <code>quantization_config</code> 读取方法；对于未量化权重，也可以通过在线量化配置指定目标 scheme。无论是哪种方式，都必须确认当前硬件和选中的 Kernel 能执行对应格式。某个方法被识别，不等于所有设备上都存在相同速度的 Kernel。</p>
+      <div class="callout">
+        <p><strong>最容易混淆的一点：</strong>权重量化和 KV Cache 量化是两套独立设置。<code>--dtype</code> 不能替代 <code>--kv-cache-dtype</code>；<code>--quantization</code> 也不等于把运行时 K/V 自动压缩成 FP8。KV Cache dtype 和其 scale / backend 要在第 08 章单独检查。</p>
+      </div>
+    </section>
+
+    <section id="memory">
+      <h2>7.5 上下文和显存预算：三个参数各管一件事</h2>
+      <p>模型成功加载后，还要确定每个请求允许多长、vLLM 实例能使用多少设备内存，以及 KV Cache 是否采用显式字节预算。</p>
+      <ul>
+        <li><strong><code>max_model_len</code>：</strong>单个序列的上下文上限，包含 Prompt 和生成部分，不是只限制输入 Prompt。若未指定，vLLM 会从模型配置推导；<code>-1</code> / <code>auto</code> 会尝试选择能放入 GPU 内存的最大长度。</li>
+        <li><strong><code>gpu_memory_utilization</code>：</strong>当前 vLLM 实例的设备内存预算比例，不是整张 GPU 的全局锁，也不保证把这部分内存全部变成 KV Cache。</li>
+        <li><strong><code>kv_cache_memory_bytes</code>：</strong>按每张 GPU 显式指定 KV Cache 字节预算。当前配置实现中，一旦设置该值，就会忽略 <code>gpu_memory_utilization</code> 的自动缓存预算逻辑。</li>
+      </ul>
+      <p>一个容易被旧教程误导的地方是 <code>gpu_memory_utilization</code> 的默认值。当前上游代码中，启用 extensible KV Cache 时，未指定该值的默认预算为 1.0；不走该路径时则为 0.92。这个差异与平台和显存规划路径有关，不能把某个数字当成所有版本、所有设备的固定推荐值。</p>
+      <pre><code># 仅示意参数关系；实际值应根据模型和设备测量
+vllm serve &lt;model-id-or-local-path&gt; \\
+  --max-model-len &lt;prompt-plus-output-limit&gt; \\
+  --gpu-memory-utilization &lt;per-instance-budget&gt;
+
+# 也可以显式指定每张 GPU 的 KV Cache 字节数；
+# 设置后会覆盖 gpu_memory_utilization 的 KV Cache 自动预算逻辑
+vllm serve &lt;model-id-or-local-path&gt; \\
+  --kv-cache-memory-bytes &lt;bytes-per-gpu&gt;</code></pre>
+      <p>不要一开始就把上下文长度、并发数和显存比例都拉到最大。它们相互影响：上下文越长，每条活跃请求需要保存的 K/V 越多；并发越高，活跃请求总缓存需求越大；权重、CUDA Graph、运行时工作区和通信缓冲区也会占用设备内存。</p>
+    </section>
+
+    <section id="reproducibility">
+      <h2>7.6 建立可复现配置：把“能跑”变成“可重现”</h2>
+      <p>建议每次部署至少记录以下信息，并把它们作为服务发布清单的一部分：</p>
+      <ol>
+        <li>模型 ID / 本地路径、model revision、Tokenizer revision 和 code revision。</li>
+        <li>vLLM release / commit、Python、PyTorch、驱动、CUDA / ROCm 和 GPU 型号。</li>
+        <li>模型配置中的 architecture、原始权重 dtype、量化 method / scheme。</li>
+        <li>实际选用的 Attention / Linear backend，以及启动日志中的兼容性警告。</li>
+        <li><code>max_model_len</code>、KV Cache dtype、KV Cache 字节预算和并发配置。</li>
+        <li>代表真实业务的 Prompt 长度、输出长度、并发和延迟指标。</li>
+      </ol>
+      <p>调参时一次只改变一个主要变量。比如先固定模型与 dtype，再调整上下文；确认 KV Cache 容量后，再逐步增加并发。这样每一次性能变化都能追溯到一个明确的原因。</p>
+    </section>
+
+    <section id="troubleshoot">
+      <h2>常见问题与本章自检</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>现象</th><th>优先检查</th><th>不要先做什么</th></tr></thead>
+          <tbody>
+            <tr><td>找不到模型架构</td><td><code>architectures</code>、支持模型列表、仓库配置</td><td>不要先调 GPU 显存比例</td></tr>
+            <tr><td>模型加载后聊天格式异常</td><td>Tokenizer revision、特殊 token、Chat Template</td><td>不要把它直接判断为权重损坏</td></tr>
+            <tr><td>量化 checkpoint 无法启动</td><td>quant_method、scheme、硬件和 Kernel 支持</td><td>不要只换 <code>dtype</code> 就期待兼容</td></tr>
+            <tr><td>长上下文 OOM</td><td>max_model_len、KV Cache 预算、其他进程和运行时工作区</td><td>不要无条件把显存预算设为 1</td></tr>
+            <tr><td>量化后速度没有提高</td><td>实际执行的 Kernel、激活精度、batch 形态与硬件支持</td><td>不要把权重变小等同于推理一定变快</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ol>
+        <li>为什么固定模型 revision 还不一定能完全固定 Tokenizer？</li>
+        <li>为什么 <code>architectures</code> 修正不能让一个尚未实现的模型架构自动获得支持？</li>
+        <li>W4A16 中的 4 和 16 分别描述什么？为什么它不代表整个模型精确缩小四倍？</li>
+        <li>为什么设置 <code>kv_cache_memory_bytes</code> 后，不应该再把 <code>gpu_memory_utilization</code> 当成 KV Cache 的有效预算旋钮？</li>
+      </ol>
+      <p>下一章我们从模型结构出发，把 KV Cache 的每 token 字节数推导出来，再把理论需求与 vLLM 实际可分配的 Block Pool 容量对应起来。</p>
+    </section>
+
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/model_resolution/" target="_blank" rel="noopener noreferrer">Model Resolution</a>：从 <code>config.json</code> 的 <code>architectures</code> 字段解析模型实现。</li>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/models/supported_models/" target="_blank" rel="noopener noreferrer">Supported Models</a>：查看架构支持与 Transformers modeling backend 的边界。</li>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/engine_args/" target="_blank" rel="noopener noreferrer">Engine Arguments</a>：模型、Tokenizer、dtype、上下文与显存参数入口。</li>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/features/quantization/formats/" target="_blank" rel="noopener noreferrer">Quantization Methods and Schemes</a>：method、scheme、kernel 的区别。</li>
+        <li>源码：<a href="https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/model.py" target="_blank" rel="noopener noreferrer">ModelConfig</a>、<a href="https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/cache.py" target="_blank" rel="noopener noreferrer">CacheConfig</a>、<a href="https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/model_executor/model_loader/default_loader.py" target="_blank" rel="noopener noreferrer">DefaultModelLoader</a>。</li>
+      </ol>
+      <p><small>本章的版本敏感配置按上游 vLLM commit <code>0bf9c07376a4091627e6cb50dd85464361db452c</code> 审校。CLI 默认值和硬件支持会变化；实际部署请以安装版本的 Engine Args 与启动日志为准。</small></p>
+    </section>
+
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="06.html">← 上一章：快速上手</a><a class="next" href="08.html">下一章：KV Cache 容量规划 →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
 </div>
 </body>
 </html>

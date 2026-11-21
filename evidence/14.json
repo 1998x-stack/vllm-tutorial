@@ -1,0 +1,71 @@
+{
+  "chapter": "14",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 sampling parameters, token filtering, structured outputs and logprob semantics.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "sampling-params-defaults",
+      "claim": "Current SamplingParams defaults include temperature=1.0, top_p=1.0, top_k=0 and min_p=0.0; these values disable the corresponding truncation filters by default.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/sampling_params.py",
+      "locator": "SamplingParams field declarations",
+      "notes": "OpenAI-compatible request overrides and model generation config can affect effective values; inspect resolved params."
+    },
+    {
+      "id": "sampling-temperature-greedy",
+      "claim": "Current V1 SamplingParams treats temperature below its sampling epsilon as greedy sampling and resets top_p, top_k and min_p to disabled values; greedy mode requires n=1.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/sampling_params.py",
+      "locator": "SamplingParams.__post_init__ and _verify_greedy_sampling",
+      "notes": "This is implementation behavior for the pinned source commit; do not generalize to every inference library."
+    },
+    {
+      "id": "sampling-validation-ranges",
+      "claim": "The pinned vLLM implementation validates temperature in [0,2], top_p in (0,1], top_k as 0 or a positive integer (with -1 accepted as disabled), and min_p in [0,1].",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/sampling_params.py",
+      "locator": "SamplingParams validation",
+      "notes": "The public API and defaults can change by version."
+    },
+    {
+      "id": "min-p-relative-threshold",
+      "claim": "Min-p keeps tokens whose probability is at least min_p multiplied by the maximum token probability in the current distribution.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/api/vllm/sampling_params/",
+      "locator": "min_p parameter documentation",
+      "notes": "The chapter's numeric illustration is derived from this relative threshold."
+    },
+    {
+      "id": "structured-outputs-migration",
+      "claim": "The current Structured Outputs API uses structured_outputs with json, regex, choice, grammar and structural_tag forms; legacy guided_json, guided_regex, guided_choice and related fields were removed in vLLM v0.12.0.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/features/structured_outputs.md",
+      "locator": "Migration warning and Online Serving",
+      "notes": "Supported schema features and regex syntax vary by backend; validate schemas after backend changes."
+    },
+    {
+      "id": "logprobs-response-semantics",
+      "claim": "When logprobs is requested, the response can include the sampled token in addition to the requested number of most likely tokens; logprobs=-1 requests the full vocabulary.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/api/vllm/sampling_params/",
+      "locator": "logprobs parameter documentation",
+      "notes": "Processed versus raw logprob modes affect interpretation; logprobs are not a calibrated truth score."
+    },
+    {
+      "id": "sampling-lab-toy",
+      "claim": "The interactive lab uses six fixed toy logits and a simplified Top-k, Top-p, Min-p filtering sequence; it is not a reproduction of vLLM GPU sampler kernels.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/sample/ops/topk_topp_sampler.py",
+      "locator": "apply_top_k_top_p and optimized sampler dispatch",
+      "notes": "The lab is deterministic and offline; its purpose is conceptual visualization."
+    }
+  ]
+}

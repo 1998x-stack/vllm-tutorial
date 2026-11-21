@@ -1,0 +1,43 @@
+{
+  "chapter": "02",
+  "reviewed_at": "2026-11-20",
+  "scope": "vLLM system role and current documented V1 architecture; process counts are intentionally not generalized.",
+  "claims": [
+    {
+      "id": "vllm-system-role",
+      "claim": "vLLM is an LLM inference and serving system rather than a language model.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm",
+      "locator": "Project overview and documentation",
+      "notes": "The application still needs model weights and may need separate retrieval, identity, authorization and orchestration services."
+    },
+    {
+      "id": "pagedattention-paper-result",
+      "claim": "The original PagedAttention paper reports 2–4× throughput improvements at the same latency versus FasterTransformer and Orca in its evaluated workloads.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2309.06180",
+      "locator": "Abstract and evaluation",
+      "notes": "This is a paper-specific result, not a guarantee for arbitrary model, hardware, workload or vLLM release."
+    },
+    {
+      "id": "v1-engine-architecture",
+      "claim": "The current V1 architecture documentation places scheduling and KV cache management in the Engine Core and model execution in GPU workers.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "Engine Core Process, Scheduler, GPU Worker Processes",
+      "notes": "Actual process topology changes with data, tensor and pipeline parallel settings."
+    },
+    {
+      "id": "token-budget-scheduler",
+      "claim": "The documented V1 scheduler uses a token budget across waiting and running requests.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "Scheduler",
+      "notes": "Version-sensitive implementation detail; re-check before updating CLI or scheduler examples."
+    }
+  ]
+}
