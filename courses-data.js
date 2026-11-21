@@ -293,119 +293,144 @@ window.VLLM_COURSES = {
     },
     {
       "num": "10",
-      "title": "调度器详解",
+      "title": "Scheduler：每轮迭代如何决定执行谁",
       "topics": [
-        "FCFS策略",
-        "Priority优先级",
-        "Preemption抢占",
-        "统一调度器"
+        "统一 token budget",
+        "Running / Waiting 队列",
+        "FCFS 与 Priority",
+        "KV Cache 分配",
+        "Preemption 与 Recompute"
       ],
       "file": "10.html",
       "category": "scheduling",
       "level": "进阶",
-      "durationMinutes": 16,
+      "durationMinutes": 23,
       "prerequisites": [
         "05",
         "08"
       ],
-      "summary": "理解 V1 Scheduler 的 token budget、FCFS / Priority 策略和 KV Cache 不足时的抢占。",
+      "summary": "从 V1 Scheduler.schedule() 追踪 Running 与 Waiting 请求的调度顺序、token budget、KV Cache allocation、FCFS / Priority 和抢占恢复。",
       "learningObjectives": [
-        "描述每轮调度需要做出的决策",
-        "解释 token budget 如何约束一个 step",
-        "理解 preemption 与 recompute 对延迟的影响"
+        "区分每轮 token budget、请求数上限和活跃请求上限",
+        "描述 Running → Waiting → KV allocation → SchedulerOutput 的主路径",
+        "解释 FCFS / Priority 的抢占选择和 PREEMPTED 状态",
+        "根据 waiting、KV 使用率和抢占增量定位调度瓶颈"
       ],
       "tags": [
-        "scheduler",
+        "v1-scheduler",
+        "token-budget",
+        "running-waiting-queues",
         "fcfs",
-        "priority",
-        "preemption"
+        "priority-scheduling",
+        "kv-preemption",
+        "recompute"
       ]
     },
     {
       "num": "11",
-      "title": "Chunked Prefill",
+      "title": "Chunked Prefill：长 Prompt 与 Decode 协同执行",
       "topics": [
-        "长Prompt处理",
-        "吞吐延迟平衡",
-        "Chunk Size选择",
-        "与Prefix Cache配合"
+        "Prefill 与 Decode 计算形态",
+        "动态 token chunk",
+        "max_num_batched_tokens",
+        "TTFT / ITL 权衡",
+        "多模态边界"
       ],
       "file": "11.html",
       "category": "scheduling",
       "level": "进阶",
-      "durationMinutes": 15,
+      "durationMinutes": 21,
       "prerequisites": [
         "05",
         "10"
       ],
-      "summary": "通过长 Prompt 与短 Decode 请求的混合负载，理解 Chunked Prefill 的目标和调参权衡。",
+      "summary": "理解 V1 如何使用每轮剩余 token budget 推进长 Prompt，并与 Decode 工作交错；通过离线预算实验观察 TTFT、ITL 与吞吐之间的权衡。",
       "learningObjectives": [
-        "解释长 Prefill 为什么会影响 Decode 的 ITL",
-        "说明分块 Prefill 如何共享 token budget",
-        "比较不同 token budget 对 TTFT、ITL 和吞吐的影响"
+        "解释长 Prefill 对 Decode ITL 的影响",
+        "区分 token budget、剩余预算与动态 Prefill chunk",
+        "计算简化负载下的每轮 Prefill 预算与迭代数",
+        "识别 long-prefill threshold 和多模态 item 边界"
       ],
       "tags": [
         "chunked-prefill",
+        "max-num-batched-tokens",
         "ttft",
-        "itl"
+        "itl",
+        "prefill-decode-mixing",
+        "multimodal-chunk-boundary"
       ]
     },
     {
       "num": "12",
-      "title": "V1架构上篇",
+      "title": "V1 Process Architecture：从 API 到 GPU Worker",
       "topics": [
-        "1+N多进程",
-        "EngineCore",
-        "ZeroMQ总线",
-        "故障隔离"
+        "API Server",
+        "Engine Core 与 Scheduler",
+        "GPU Worker / Model Runner",
+        "DP Coordinator",
+        "EngineCore step loop",
+        "Async Scheduling 与 Batch Queue"
       ],
       "file": "12.html",
       "category": "scheduling",
       "level": "高级",
-      "durationMinutes": 20,
+      "durationMinutes": 24,
       "prerequisites": [
         "02",
-        "05",
+        "06",
         "10"
       ],
-      "summary": "从进程边界理解 vLLM V1：API Server、Engine Core、Scheduler 与 GPU Workers 如何协作。",
+      "summary": "拆解 V1 多进程架构和通信边界，追踪 API Server、Engine Core、Executor、GPU Worker 与 DP Coordinator 的职责及一次 EngineCore 执行循环。",
       "learningObjectives": [
-        "画出 V1 的主要进程与职责",
-        "追踪请求从 API 到 GPU worker 的执行路径",
-        "识别数据并行时 Engine Core 数量的变化"
+        "画出 V1 核心进程和职责边界",
+        "解释 DP / TP / PP 如何影响典型进程拓扑",
+        "沿着 EngineCore.step() 追踪 schedule → execute → update",
+        "区分 Async Scheduling 与 Pipeline Parallelism 的 Batch Queue"
       ],
       "tags": [
-        "v1",
+        "v1-architecture",
+        "api-server",
         "engine-core",
-        "multiprocessing"
+        "gpu-worker",
+        "model-runner",
+        "data-parallel-coordinator",
+        "multiprocess-executor"
       ]
     },
     {
       "num": "13",
-      "title": "V1架构下篇",
+      "title": "Request Lifecycle：一次请求如何走完整个引擎",
       "topics": [
-        "V0 vs V1性能",
-        "兼容性变化",
-        "特性成熟度",
-        "迁移指南"
+        "请求输入与 Admission",
+        "RequestStatus 状态机",
+        "Prefill / Decode 进度",
+        "等待、抢占与恢复",
+        "OutputProcessor 与资源释放"
       ],
       "file": "13.html",
       "category": "scheduling",
       "level": "高级",
-      "durationMinutes": 16,
+      "durationMinutes": 22,
       "prerequisites": [
+        "05",
+        "10",
         "12"
       ],
-      "summary": "以明确版本为前提比较 V0 与 V1 的架构和迁移差异，避免把历史行为当成当前默认。",
+      "summary": "沿着 Request、Scheduler、EngineCore 和 OutputProcessor 追踪请求入队、执行、远端 KV 等待、抢占恢复、流式输出、Abort 与资源清理。",
       "learningObjectives": [
-        "按版本核验 V0 / V1 行为差异",
-        "区分 API 兼容性与内部架构变化",
-        "制定升级前的验证清单"
+        "追踪请求从 API Server 到 OutputProcessor 的主路径",
+        "解释 Request 进度字段和异步输出占位符",
+        "区分等待、运行、抢占与终止状态",
+        "定位 Abort、远端 KV 和异步清理等非直线路径"
       ],
       "tags": [
-        "v0-v1",
-        "migration",
-        "compatibility"
+        "request-lifecycle",
+        "request-status",
+        "enginecore-output",
+        "output-processor",
+        "preemption-resume",
+        "abort",
+        "streaming"
       ]
     },
     {
@@ -918,5 +943,5 @@ window.VLLM_COURSES = {
     }
   ],
   "schemaVersion": 2,
-  "updatedAt": "2026-11-20"
+  "updatedAt": "2026-11-21"
 };
