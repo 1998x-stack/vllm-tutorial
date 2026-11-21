@@ -98,9 +98,11 @@ Do not reuse the same generic diagram across unrelated chapters. A figure must a
 
 Check especially:
 - Prefill vs decode: decode processes new token queries while attending to cached K/V; do not say that the entire history is recomputed at every step when KV caching is used.
-- KV Cache sizing: account for K and V, layers, KV heads, head dimension, token count, dtype bytes, batch/concurrency, and tensor-parallel sharding assumptions.
+- KV Cache sizing: account for K and V, layers, KV heads, head dimension, token count, dtype bytes, batch/concurrency, and tensor-parallel sharding assumptions. For hybrid models, inspect group-aware capacity rather than multiplying a single block count by one block size.
+- Model identity: pin model, tokenizer, and code revisions separately when they come from different repositories. Treat `trust_remote_code` as a code-execution trust decision, not a compatibility shortcut.
+- Quantization: distinguish method, numeric scheme, and execution kernel. Keep weight quantization separate from KV Cache dtype; verify the actual hardware/backend path rather than only the checkpoint label.
 - Paged KV: distinguish logical block tables, physical blocks, write-slot mapping, and attention backend responsibilities.
-- Prefix caching: explain exact token/block matching, hash inputs, block completeness, reference counts, eviction, and version-specific behavior. Do not describe it as an unqualified pointer-copy trick.
+- Prefix caching: explain exact token/block matching, parent-hash inputs, extra keys, reference counts, eviction, and version-specific behavior. Distinguish physical block size, hash block size, and cache-hit alignment. Fine-grained / partial hits are model-path-specific (for example, hybrid Mamba shared-prefix checkpoints), not a universal token-granularity guarantee. Do not describe APC as an unqualified pointer-copy trick.
 - Continuous batching and scheduling: distinguish iteration-level batching, token budgets, preemption, and chunked prefill.
 - Parallelism: show the split dimension and communication collective; do not treat TP, PP, DP, CP, and EP as interchangeable.
 - Performance: do not promise that one parameter value or GPU-utilization percentage is optimal for all workloads.
