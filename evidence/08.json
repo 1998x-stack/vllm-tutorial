@@ -66,6 +66,15 @@
       "source_url": "https://docs.vllm.ai/en/latest/features/kv_offloading_usage/",
       "locator": "Introduction and Offloading Specs",
       "notes": "Connector, tier and parallelism constraints apply; data movement latency can offset reuse gains."
+    },
+    {
+      "id": "preemption-metric",
+      "claim": "The vLLM metrics endpoint exposes num_preemptions_total as a cumulative counter for preemption events.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/tests/entrypoints/serve/instrumentator/test_metrics.py",
+      "locator": "Expected metric names in metrics endpoint tests",
+      "notes": "Compare counter increases over a time window rather than treating the cumulative value as a current rate."
     }
   ]
 }
