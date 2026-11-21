@@ -137,3 +137,35 @@ A chapter is not complete if any critical technical claim is wrong, if it has no
 | Sources and evidence traceability | 5 |
 
 The score is an editorial aid, not a substitute for factual verification or browser QA.
+
+
+## Production engineering chapter gates (14–18)
+
+### Sampling and decoding
+- Start with a concrete next-token distribution and derive softmax and temperature.
+- Define Top-k as a fixed candidate-count cap, Top-p as a cumulative-probability nucleus, and Min-p as a threshold relative to the highest token probability.
+- Pin defaults and validation ranges to the inspected vLLM version. Temperature zero may enter a special greedy path and can disable truncation filters; never apply the ordinary division formula at T=0.
+- Explain presence / frequency / repetition penalties, seed and stop conditions as distinct mechanisms.
+- Use the current `structured_outputs` API. Call out removed legacy guided fields and backend-specific schema / regex limitations. Explain why valid JSON does not guarantee valid business content.
+- A sampler visualizer must disclose its toy logits and simplified filter sequence; do not claim it reproduces vLLM's fused GPU kernel.
+
+### Production deployment and Kubernetes
+- Model the complete request path: TLS Gateway → auth / quota → Router → vLLM replica → observability.
+- Pin image version / digest, model revision, tokenizer revision and relevant config. Never recommend `latest` as a reproducible production artifact.
+- Separate model weights, KV Cache, runtime workspace, communication buffers and safety margin in capacity discussions. Do not publish universal GPU memory ratios or max concurrency values.
+- Treat shared-memory configuration (`--ipc=host` or `--shm-size`), model cache persistence, non-root execution and secret injection as explicit decisions.
+- For Kubernetes, verify Device Plugin and extended GPU resources. Explain GPU limits / requests rules, MIG and sharing plugin caveats, node topology, probes, rolling update surge capacity and PDB semantics.
+- Describe vLLM Production Stack as an optional reference stack. Pin Chart / CRD versions and distinguish cache-aware routing from load-aware routing.
+
+### Observability
+- Define client-side TTFT, inter-output ITL, request-level TPOT, queue time and E2E by their exact measurement boundaries.
+- Verify every metric name and type against the current official metrics reference and a live `/metrics` endpoint before making operational claims.
+- Teach Prometheus Histogram quantiles using `_bucket`, `rate()` and `histogram_quantile()`. Explain bucket cardinality and avoid user / request IDs, prompts or arbitrary tenant IDs as labels.
+- Separate metrics (aggregates), logs (events) and traces (request timelines). Warn that detailed tracing may add overhead.
+
+### Security and multi-tenancy
+- Read the current vLLM Security document before describing API key coverage; do not imply `--api-key` protects every endpoint.
+- Recommend a Gateway endpoint allowlist, private serving network, restricted metrics and operational endpoints, and isolated distributed / KV transfer networks.
+- State clearly that tenants sharing one vLLM server process share scheduler and caches; `cache_salt` mitigates a specific prefix-cache timing side channel but does not create tenant isolation.
+- Scope cache salts and multimodal UUIDs at a trusted gateway. For strong tenant isolation, consider dedicated serving instances.
+- Put tool authorization, RAG ACLs, generated-code sandboxing and action validation at application execution boundaries, not only in prompts.
