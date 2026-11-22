@@ -1,0 +1,80 @@
+{
+  "chapter": "27",
+  "reviewed_at": "2026-11-22",
+  "scope": "Final course batch source audit; derived and toy examples marked separately.",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "claims": [
+    {
+      "id": "chat-api",
+      "claim": "The OpenAI-compatible vLLM HTTP server supports /v1/chat/completions for text generation models with a chat template.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/online_serving/openai_compatible_server.md",
+      "locator": "Supported APIs / Chat API",
+      "notes": ""
+    },
+    {
+      "id": "api-auth-boundary",
+      "claim": "The vLLM --api-key setting does not protect all HTTP endpoints and an upstream gateway may be required.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/online_serving/openai_compatible_server.md",
+      "locator": "API key authentication warning",
+      "notes": ""
+    },
+    {
+      "id": "prefix-block-scope",
+      "claim": "Prefix caching is a KV reuse mechanism and does not constitute authorization or tenant isolation.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/design/prefix_caching.md",
+      "locator": "Prefix Caching Design",
+      "notes": ""
+    },
+    {
+      "id": "rag-historical",
+      "claim": "Retrieval-Augmented Generation uses an external retrieval component to supply information for generation.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2005.11401",
+      "locator": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "notes": ""
+    },
+    {
+      "id": "toy-retriever",
+      "claim": "The local example is a standard-library token-overlap baseline with public/team ACL; it neither embeds nor reranks documents and does not measure retrieval recall.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://github.com/1998x-stack/vllm-tutorial/blob/feature/chapters-24-28-20261122/examples/rag_demo.py",
+      "locator": "terms, similarity, retrieve",
+      "notes": "Team access flag is pedagogical only; production requires authenticated identity."
+    },
+    {
+      "id": "loopback-client",
+      "claim": "The optional teaching client restricts vLLM calls to an explicit HTTP loopback origin and disables redirects; it is not a production gateway.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://github.com/1998x-stack/vllm-tutorial/blob/feature/chapters-24-28-20261122/examples/rag_demo.py",
+      "locator": "validate_loopback_url, NoRedirect, request_vllm",
+      "notes": ""
+    },
+    {
+      "id": "retrieval-quality",
+      "claim": "The chapter explicitly separates retrieval Recall@k from generated answer faithfulness and valid source ID checks.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://arxiv.org/abs/2005.11401",
+      "locator": "Retrieval+generation evaluation framing",
+      "notes": "Citations provided by a language model are not independent evidence verification."
+    },
+    {
+      "id": "security-tool-boundary",
+      "claim": "User-provided documents must be treated as data not as trusted instructions or authorization, consistent with the documented lack of built-in tenant isolation.",
+      "kind": "recommendation",
+      "status": "derived",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/security.md",
+      "locator": "Multi-Tenant Deployments and API Key Limitations",
+      "notes": ""
+    }
+  ]
+}
