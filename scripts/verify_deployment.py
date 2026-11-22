@@ -6,8 +6,11 @@ import argparse
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
+from pathlib import Path
 from urllib.request import Request, urlopen
 
+
+ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED = (
     "index.html",
@@ -28,7 +31,7 @@ REQUIRED = (
 )
 
 
-def fetch(url: str, attempts: int, interval: int) -> bytes:
+def fetch(url: str, attempts: int, interval: int, expected: bytes | None = None) -> bytes:
     request = Request(url, headers={"User-Agent": "vllm-tutorial-pages-smoke/1.0", "Cache-Control": "no-cache"})
     last_error = None
     for attempt in range(1, attempts + 1):
@@ -36,7 +39,10 @@ def fetch(url: str, attempts: int, interval: int) -> bytes:
             with urlopen(request, timeout=30) as response:
                 if response.status != 200:
                     raise AssertionError(f"HTTP {response.status}: {url}")
-                return response.read()
+                content = response.read()
+                if expected is not None and content != expected:
+                    raise AssertionError(f"Published bytes differ from repository artifact: {url}")
+                return content
         except (HTTPError, URLError, TimeoutError, AssertionError) as exc:
             last_error = exc
             if attempt < attempts:
@@ -57,7 +63,10 @@ def main() -> int:
 
     for path in REQUIRED:
         url = urljoin(base, path)
-        content = fetch(url, args.attempts, args.interval)
+        source_path = ROOT / path
+        if not source_path.is_file():
+            raise AssertionError(f"Missing source file for deployment comparison: {source_path}")
+        content = fetch(url, args.attempts, args.interval, expected=source_path.read_bytes())
         if not content:
             raise AssertionError(f"Empty published asset: {url}")
         if path.endswith(".html") and b"<h1" not in content:
