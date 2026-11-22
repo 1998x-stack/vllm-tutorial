@@ -1,0 +1,71 @@
+{
+  "chapter": "28",
+  "reviewed_at": "2026-11-22",
+  "scope": "Final course batch source audit; derived and toy examples marked separately.",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "claims": [
+    {
+      "id": "v1-runtime-synthesis",
+      "claim": "The curriculum's API Server, Engine Core and GPU Worker conceptual chain is grounded in the official V1 architecture reference.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/design/arch_overview.md",
+      "locator": "V1 Process Architecture",
+      "notes": ""
+    },
+    {
+      "id": "scheduler-kv-link",
+      "claim": "The course's links between KV cache allocation, scheduling and decode are grounded in V1 scheduling source.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/v1/core/sched/scheduler.py",
+      "locator": "Scheduler.schedule",
+      "notes": ""
+    },
+    {
+      "id": "parallel-dimensions",
+      "claim": "The final knowledge map includes TP, PP and DP deployment trade-offs, with EP for MoE contexts.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/parallelism_scaling.md",
+      "locator": "Distributed inference strategies",
+      "notes": ""
+    },
+    {
+      "id": "observability",
+      "claim": "The course Capstone requires metrics aligned with official vLLM production metrics and client benchmarking semantics.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/metrics.md",
+      "locator": "Production Metrics",
+      "notes": ""
+    },
+    {
+      "id": "security",
+      "claim": "Production-serving Capstone guidance calls out API authentication, network boundaries and tenant risks.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/security.md",
+      "locator": "Security Overview",
+      "notes": ""
+    },
+    {
+      "id": "capstone-learning",
+      "claim": "The source-map, capstone checklist and three suggested study routes are original course pedagogy rather than an official certification.",
+      "kind": "recommendation",
+      "status": "derived",
+      "source_url": "https://github.com/1998x-stack/vllm-tutorial/blob/feature/chapters-24-28-20261122/docs/content-roadmap.md",
+      "locator": "Curriculum modernization roadmap",
+      "notes": ""
+    },
+    {
+      "id": "rag-course-integration",
+      "claim": "The chapter 27 retrieval demo is a teaching artifact and does not assert production-grade RAG quality.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://github.com/1998x-stack/vllm-tutorial/blob/feature/chapters-24-28-20261122/examples/rag_demo.py",
+      "locator": "Docstring and CLI entrypoint",
+      "notes": ""
+    }
+  ]
+}
