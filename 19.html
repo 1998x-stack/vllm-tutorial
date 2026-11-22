@@ -2,7 +2,7 @@
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="从矩阵维度出发理解 ColumnParallelLinear、RowParallelLinear、All-Reduce 与 TP 的通信/显存取舍。"><title>第 19 章｜Tensor Parallelism：为什么把一个矩阵拆到多张 GPU？</title>
 <link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script></head>
-<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="AGENTS.md">编写规范</a></nav></div></header>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
 <div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#motivation">19.1 一层矩阵为何放不进单张 GPU？</a></li>
 <li><a href="#column">19.2 列并行：输出特征维度拆开</a></li>
 <li><a href="#row">19.3 行并行：输入维度拆开后求和</a></li>
