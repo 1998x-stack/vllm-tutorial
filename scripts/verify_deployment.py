@@ -16,15 +16,22 @@ REQUIRED = (
     "11.html",
     "14.html",
     "18.html",
+    "19.html",
+    "21.html",
+    "23.html",
     "28.html",
     "courses.json",
     "courses-data.js",
     "theme.css",
     "assets/css/article.css",
     "assets/diagrams/18-security-trust-boundaries.svg",
+    "assets/diagrams/19-tensor-parallel-partitions.svg",
+    "assets/diagrams/21-speculative-acceptance.svg",
+    "assets/diagrams/23-nano-vllm-control-flow.svg",
     "assets/js/kv-cache-calculator.js",
     "assets/js/chunked-prefill-lab.js",
     "assets/js/sampling-lab.js",
+    "assets/js/speculative-lab.js",
 )
 
 
