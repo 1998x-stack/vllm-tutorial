@@ -54,8 +54,8 @@ test("all chapter links remain local and resolve to files", () => {
   assert.doesNotMatch(index, /fetch\s*\(/, "offline index must not fetch remote data");
 });
 
-test("the first eighteen upgraded chapters use semantic HTML and unique SVGs", () => {
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18"]) {
+test("the first twenty-three upgraded chapters use semantic HTML and unique SVGs", () => {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
     assert.match(html, /<main\b/);
@@ -92,6 +92,11 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "16-kubernetes-gpu-scheduling.svg",
     "17-latency-waterfall.svg",
     "18-security-trust-boundaries.svg",
+    "19-tensor-parallel-partitions.svg",
+    "20-parallelism-topology.svg",
+    "21-speculative-acceptance.svg",
+    "22-multimodal-input-path.svg",
+    "23-nano-vllm-control-flow.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
@@ -99,7 +104,7 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     assert.match(svg, /<desc\b/);
     assert.match(svg, /viewBox=/);
   }
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]) {
     const evidence = JSON.parse(fs.readFileSync(path.join(root, "evidence", number + ".json"), "utf8"));
     assert.equal(evidence.chapter, number);
     assert.ok(evidence.claims.length >= 2);
@@ -192,4 +197,47 @@ test("chapters 14–18 cover production, Kubernetes, observability and security 
   assert.match(security, /API Key/);
   assert.match(security, /cache_salt/);
   assert.match(security, /multi-tenancy/i);
+});
+
+test("chapter 21 offline acceptance lab follows the iid geometric-prefix model", () => {
+ const html = fs.readFileSync(path.join(root, "21.html"), "utf8");
+ const script = fs.readFileSync(path.join(root, "assets", "js", "speculative-lab.js"), "utf8");
+ assert.match(html, /assets\/js\/speculative-lab\.js/);
+ assert.match(html, /data-spec-lab/);
+ assert.match(html, /data-spec-field="a"/);
+ assert.match(html, /data-spec-field="k"/);
+ const sandbox={window:{},document:{readyState:"complete",querySelectorAll:()=>[]}};
+ vm.runInNewContext(script,sandbox);
+ const run=sandbox.window.vllmSpecLab.calculate;
+ const a0=run(0,4);
+ assert.equal(a0.accepted,0);
+ assert.equal(a0.advanced,1);
+ const a1=run(1,4);
+ assert.equal(a1.accepted,4);
+ assert.equal(a1.advanced,5);
+ const half=run(0.5,3);
+ assert.equal(half.accepted,0.875);
+ assert.equal(half.advanced,1.875);
+ assert.equal(half.full,0.125);
+ assert.equal(half.prefixProbabilities.length,3);
+ assert.doesNotMatch(html, /https?:\/\/[^"]+\.js/);
+});
+
+test("chapters 19–23 cover TP/PP/DP/EP, speculative correction, multimodal security and pinned nano-vLLM",()=>{
+ const read=n=>fs.readFileSync(path.join(root,n+".html"),"utf8");
+ assert.match(read("19"),/ColumnParallelLinear/);
+ assert.match(read("19"),/All-Reduce/);
+ assert.match(read("20"),/enable-expert-parallel/);
+ assert.match(read("20"),/max-num-queued-reqs/);
+ assert.match(read("21"),/min\(1, p\(x\) \/ q\(x\)\)/);
+ assert.match(read("21"),/residual|残差/);
+ assert.match(read("22"),/allowed-media-domains/);
+ assert.match(read("22"),/limit_mm_per_prompt/);
+ assert.match(read("23"),/nanovllm\/engine\/scheduler\.py/);
+ assert.match(read("23"),/bb823b3e/);
+ for (const n of ["19","20","21","22","23"]) {
+  const ledger=JSON.parse(fs.readFileSync(path.join(root,"evidence",n+".json"),"utf8"));
+  assert.ok(ledger.claims.length>=5);
+  assert.ok(ledger.claims.every(c=>c.source_url.startsWith("https://")));
+ }
 });
