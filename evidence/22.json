@@ -1,0 +1,62 @@
+{
+  "chapter": "22",
+  "reviewed_at": "2026-11-22",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "scope": "Version-aware advanced inference chapter with original diagram and explicit toy/derived claims.",
+  "claims": [
+    {
+      "id": "mm-prompt-shape",
+      "claim": "vLLM offline multimodal generation accepts prompt and multi_modal_data with image, audio and video data according to a model-specific format.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/multimodal_inputs.md",
+      "locator": "Offline Inference / Image Inputs / Audio Inputs",
+      "notes": ""
+    },
+    {
+      "id": "mm-limits",
+      "claim": "limit_mm_per_prompt / --limit-mm-per-prompt constrains allowed multimodal inputs but does not itself set an all-model universal visual-token or pixel budget.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/config/multimodal.py",
+      "locator": "MultiModalConfig limit_mm_per_prompt",
+      "notes": ""
+    },
+    {
+      "id": "mm-ssrf",
+      "claim": "Official multimodal docs recommend allowed-media-domains to reduce SSRF risk from media URL fetching, and VLLM_MEDIA_URL_ALLOW_REDIRECTS=0 to prevent redirect bypass.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/multimodal_inputs.md",
+      "locator": "Security tip / allowed-media-domains",
+      "notes": ""
+    },
+    {
+      "id": "mm-model-matrix",
+      "claim": "Model architecture and preprocessing determine media format, image placeholders, encoded features, audio and video support.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/multimodal_inputs.md",
+      "locator": "Offline Inference and Online Serving",
+      "notes": ""
+    },
+    {
+      "id": "mm-rust-frontend",
+      "claim": "The latest multimodal docs identify model-specific cases where an explicit Rust frontend is required for image/video support.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/multimodal_inputs.md",
+      "locator": "GLM-5.3-Flash",
+      "notes": ""
+    },
+    {
+      "id": "mm-budget-illustrative",
+      "claim": "The chapter's effective token and prefill timing expressions are conceptual accounting diagrams, not execution equations for every multimodal architecture.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/multimodal_inputs.md",
+      "locator": "Model-specific examples",
+      "notes": "Cross-attention and encoder-fusion designs need different accounting."
+    }
+  ]
+}

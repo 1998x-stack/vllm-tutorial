@@ -625,153 +625,188 @@
     },
     {
       "num": "19",
-      "title": "张量并行",
+      "title": "Tensor Parallelism：矩阵切分与通信",
       "topics": [
-        "Megatron-LM算法",
-        "NCCL通信",
-        "NVLINK vs PCIe",
-        "性能分析"
+        "ColumnParallelLinear",
+        "RowParallelLinear",
+        "All-Reduce / All-Gather",
+        "TP通信成本",
+        "NCCL与GPU拓扑"
       ],
       "file": "19.html",
       "category": "parallelism",
       "level": "高级",
-      "durationMinutes": 20,
+      "durationMinutes": 28,
       "prerequisites": [
         "02",
+        "04",
+        "07",
         "12"
       ],
-      "summary": "通过矩阵切分和通信示意图理解 Tensor Parallelism 的收益、代价与硬件拓扑依赖。",
+      "summary": "以二维矩阵推导 TP 列/行切分、collective 语义和 Prefill / Decode 下的通信权衡。",
       "learningObjectives": [
-        "解释线性层权重和激活如何切分",
-        "区分 All-Reduce 与 Reduce-Scatter / All-Gather",
-        "根据 GPU 互联评估 TP 的通信成本"
+        "推导 ColumnParallel 与 RowParallel 的局部矩阵乘法",
+        "区分 All-Reduce、All-Gather 和 Reduce-Scatter",
+        "解释 TP 的带宽与同步成本",
+        "在 vLLM 源码定位 TP 模块和通信实现"
       ],
       "tags": [
         "tensor-parallel",
+        "megatron-lm",
+        "column-parallel",
+        "row-parallel",
+        "all-reduce",
         "nccl",
-        "all-reduce"
+        "nvlink"
       ]
     },
     {
       "num": "20",
-      "title": "流水线与数据并行",
+      "title": "Pipeline、Data 与 Expert Parallelism",
       "topics": [
-        "按层切分",
-        "跨节点PP",
-        "DP吞吐优化",
-        "MoE并行"
+        "Pipeline Parallelism",
+        "Data Parallelism",
+        "Expert Parallelism",
+        "MoE Token Dispatch",
+        "Rank配置与选型"
       ],
       "file": "20.html",
       "category": "parallelism",
       "level": "高级",
-      "durationMinutes": 20,
+      "durationMinutes": 27,
       "prerequisites": [
+        "12",
+        "15",
         "19"
       ],
-      "summary": "比较 Pipeline、Data、Tensor 与 Expert Parallelism，理解多节点和 MoE 的组合方式。",
+      "summary": "比较 TP、PP、DP、EP 的权重切分、流水线气泡、请求并发、MoE 通信和部署资源预算。",
       "learningObjectives": [
-        "解释 PP、DP 与 TP 的切分维度",
-        "识别流水线气泡和跨节点通信开销",
-        "理解 MoE Expert Parallelism 的 All-to-All 通信"
+        "区分 TP、PP、DP、EP 沿哪些维度拆分",
+        "解释 Pipeline Bubble 与 DP rank 级并发",
+        "追踪 MoE token dispatch / combine",
+        "根据硬件和负载选择可验证的并行策略"
       ],
       "tags": [
         "pipeline-parallel",
         "data-parallel",
         "expert-parallel",
-        "moe"
+        "moe",
+        "all-to-all",
+        "load-balancing"
       ]
     },
     {
       "num": "21",
-      "title": "推测解码",
+      "title": "Speculative Decoding：Draft–Verify",
       "topics": [
-        "n-gram方法",
-        "EAGLE",
-        "Medusa",
-        "P-EAGLE展望"
+        "接受–拒绝采样",
+        "Draft & Target",
+        "N-gram / EAGLE / MTP",
+        "接受率数学",
+        "离线期望接受长度实验"
       ],
       "file": "21.html",
       "category": "parallelism",
       "level": "高级",
-      "durationMinutes": 18,
+      "durationMinutes": 29,
       "prerequisites": [
         "01",
         "05",
-        "10"
+        "10",
+        "14"
       ],
-      "summary": "用 Draft–Verify 流程理解推测解码，并分析接受率、验证成本和真实加速边界。",
+      "summary": "从标准拒绝采样的数学保证和校正分布出发，理解推测解码的接受率、验证成本与策略配置。",
       "learningObjectives": [
-        "解释草稿模型与目标模型的分工",
-        "追踪候选 token 的接受与拒绝",
-        "判断推测解码何时可能没有收益"
+        "推导标准 speculative sampling 的接受概率与残差采样",
+        "计算玩具独立接受率下的期望推进长度",
+        "配置 n-gram 并辨识 EAGLE / MTP 的约束",
+        "判断推测解码何时会降低实际性能"
       ],
       "tags": [
         "speculative-decoding",
-        "draft-model",
-        "verification"
+        "rejection-sampling",
+        "ngram",
+        "eagle",
+        "mtp",
+        "draft-verify",
+        "acceptance-metrics"
       ]
     },
     {
       "num": "22",
-      "title": "多模态推理",
+      "title": "Multimodal Inference：图像、视频与音频",
       "topics": [
-        "ViT编码器",
-        "视觉问答",
-        "CUDA Graph加速",
-        "LoRA适配器"
+        "Media Processor / Encoder",
+        "视觉 Token",
+        "音视频输入",
+        "多模态调度和缓存",
+        "SSRF / Media Access"
       ],
       "file": "22.html",
       "category": "parallelism",
       "level": "高级",
-      "durationMinutes": 20,
+      "durationMinutes": 27,
       "prerequisites": [
         "01",
-        "02",
-        "07"
+        "07",
+        "13",
+        "18"
       ],
-      "summary": "梳理图像、视频和音频输入进入模型的路径，并区分多模态、LoRA 与推理优化。",
+      "summary": "追踪媒体输入、预处理、编码、模型融合和生成过程，评估动态 token 成本与媒体服务安全。",
       "learningObjectives": [
-        "描述多模态预处理到模型输入的链路",
-        "识别不同模态对显存和调度的影响",
-        "按模型与 vLLM 版本核验支持矩阵"
+        "解释文本、图像、视频、音频处理路径差异",
+        "将动态视觉/音频特征计入资源预算",
+        "正确使用 multi_modal_data 的模型特定格式",
+        "核验媒体 URL、数量和模型支持限制"
       ],
       "tags": [
         "multimodal",
         "vision",
+        "video",
         "audio",
-        "lora"
+        "media-encoder",
+        "ssrf",
+        "model-compatibility"
       ]
     },
     {
       "num": "23",
-      "title": "nano-vLLM源码剖析",
+      "title": "nano-vLLM Source Walkthrough：源码闭环",
       "topics": [
-        "1200行架构",
-        "Engine/Scheduler",
-        "ModelRunner",
-        "Triton Kernel"
+        "LLMEngine / generate",
+        "Scheduler / Sequence",
+        "BlockManager / Prefix Hash",
+        "ModelRunner / KV Cache",
+        "Triton / CUDA Graph",
+        "教学实现与 vLLM V1 对照"
       ],
       "file": "23.html",
       "category": "source-lab",
       "level": "高级",
-      "durationMinutes": 25,
+      "durationMinutes": 35,
       "prerequisites": [
         "03",
         "04",
         "05",
+        "09",
         "10",
         "12"
       ],
-      "summary": "通过精简推理引擎阅读 Engine、Scheduler、ModelRunner 与 KV Cache 的代码组织。",
+      "summary": "以固定 nano-vLLM 源码版本追踪每个 token 从请求、调度、KV Cache 到 GPU 执行与结束的过程。",
       "learningObjectives": [
-        "把概念映射到实际类和调用路径",
-        "追踪一次请求从调度到模型执行",
-        "识别教学实现与生产级 vLLM 的差异"
+        "追踪 generate、step、schedule、run、postprocess 调用链",
+        "理解 BlockManager 的缓存与引用计数",
+        "定位 ModelRunner 的 Prefill / Decode / CUDA Graph",
+        "区分 nano-vLLM 教学实现与 vLLM V1 生产模块"
       ],
       "tags": [
         "nano-vllm",
         "source-code",
-        "model-runner"
+        "scheduler",
+        "block-manager",
+        "model-runner",
+        "triton",
+        "cuda-graph"
       ]
     },
     {
@@ -989,5 +1024,5 @@
     }
   ],
   "schemaVersion": 2,
-  "updatedAt": "2026-11-21"
+  "updatedAt": "2026-11-22"
 }

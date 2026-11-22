@@ -1,0 +1,72 @@
+{
+  "chapter": "23",
+  "reviewed_at": "2026-11-22",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "nano_source_commit": "bb823b3e06983d71485a8e1f23715ebd87d98ef8",
+  "scope": "Version-aware advanced inference chapter with original diagram and explicit toy/derived claims.",
+  "claims": [
+    {
+      "id": "nano-readme",
+      "claim": "nano-vLLM is a lightweight vLLM-inspired implementation for learning, with a roughly 1200-line codebase described by its README.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/GeeeekExplorer/nano-vllm/blob/bb823b3e06983d71485a8e1f23715ebd87d98ef8/README.md",
+      "locator": "Key Features",
+      "notes": "The line-count statement is project positioning and applies to a changing codebase."
+    },
+    {
+      "id": "nano-engine",
+      "claim": "nanovllm.llm.LLM subclasses LLMEngine, and LLMEngine contains add_request, step and generate.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/GeeeekExplorer/nano-vllm/blob/bb823b3e06983d71485a8e1f23715ebd87d98ef8/nanovllm/engine/llm_engine.py",
+      "locator": "LLMEngine, add_request, step, generate",
+      "notes": ""
+    },
+    {
+      "id": "nano-scheduler",
+      "claim": "The pinned Scheduler has waiting/running deques and schedule, preempt and postprocess methods coordinating BlockManager.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/GeeeekExplorer/nano-vllm/blob/bb823b3e06983d71485a8e1f23715ebd87d98ef8/nanovllm/engine/scheduler.py",
+      "locator": "Scheduler class",
+      "notes": ""
+    },
+    {
+      "id": "nano-blocks",
+      "claim": "The pinned BlockManager owns block allocation, release, prefix hashes and append decisions.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/GeeeekExplorer/nano-vllm/blob/bb823b3e06983d71485a8e1f23715ebd87d98ef8/nanovllm/engine/block_manager.py",
+      "locator": "BlockManager, compute_hash, allocate, can_append",
+      "notes": ""
+    },
+    {
+      "id": "nano-runner",
+      "claim": "The pinned ModelRunner implements prepare_prefill, prepare_decode, allocate_kv_cache, run and capture_cudagraph.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/GeeeekExplorer/nano-vllm/blob/bb823b3e06983d71485a8e1f23715ebd87d98ef8/nanovllm/engine/model_runner.py",
+      "locator": "ModelRunner methods",
+      "notes": ""
+    },
+    {
+      "id": "nano-triton",
+      "claim": "The nano-vLLM Attention implementation includes a Triton store_kvcache_kernel driven by slot_mapping.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/GeeeekExplorer/nano-vllm/blob/bb823b3e06983d71485a8e1f23715ebd87d98ef8/nanovllm/layers/attention.py",
+      "locator": "store_kvcache_kernel",
+      "notes": ""
+    },
+    {
+      "id": "nano-vs-v1",
+      "claim": "The article contrasts a small teaching implementation with production vLLM V1 runtime rather than claiming identical scheduler semantics.",
+      "kind": "recommendation",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/v1/core/sched/scheduler.py",
+      "locator": "Production scheduler / request state",
+      "notes": "Not a line-by-line source equivalence."
+    }
+  ]
+}

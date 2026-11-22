@@ -110,7 +110,7 @@ def inspect_page(browser, base_url: str, chapter: str, width: int, height: int, 
     if failed_local_responses:
         failures.append(f"failed local responses: {failed_local_responses}")
 
-    if screenshot_dir and (chapter in {"01", "08", "11", "14", "18"} and width in {1440, 390}):
+    if screenshot_dir and (chapter in {"01", "08", "11", "14", "18", "19", "21", "23"} and width in {1440, 390}):
         screenshot_dir.mkdir(parents=True, exist_ok=True)
         page.screenshot(
             path=str(screenshot_dir / f"{chapter}-{width}.png"),
@@ -192,13 +192,37 @@ def check_interactions(browser, base_url: str) -> list[dict]:
     results.append({"chapter": "14", "control": "topK", "initial_count": initial, "after_keyboard": after_keyboard})
     page.close()
 
+    # Chapter 21: changing the toy acceptance assumption must update expected length.
+    page = browser.new_page(viewport={"width": 1440, "height": 1000})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(urljoin(base_url, "21.html"), wait_until="networkidle")
+    accepted = page.locator('[data-spec-result="accepted"]')
+    initial = accepted.inner_text()
+    probability = page.locator('[data-spec-field="a"]')
+    probability.focus()
+    probability.press("ArrowRight")
+    after_keyboard = accepted.inner_text()
+    length = page.locator('[data-spec-field="k"]')
+    length.focus()
+    length.press("ArrowRight")
+    after_length = accepted.inner_text()
+    if initial == after_keyboard or after_length == after_keyboard:
+        raise AssertionError(
+            f"Speculative lab interaction failed: initial={initial}, probability={after_keyboard}, length={after_length}"
+        )
+    if errors:
+        raise AssertionError(f"chapter 21 JavaScript errors: {errors}")
+    results.append({"chapter": "21", "control": "a-and-k", "initial": initial, "after_probability": after_keyboard, "after_length": after_length})
+    page.close()
+
     return results
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://127.0.0.1:8765/")
-    parser.add_argument("--chapters", default="01-18")
+    parser.add_argument("--chapters", default="01-23")
     parser.add_argument("--viewports", default="1440,768,390,360")
     parser.add_argument("--report", default="reports/browser-qa.json")
     parser.add_argument("--skip-interactions", action="store_true")
@@ -229,7 +253,7 @@ def main() -> int:
                 if result["failures"]:
                     failures.append(result)
 
-        if not args.skip_interactions and {"08", "11", "14"}.issubset(set(chapters)):
+        if not args.skip_interactions and {"08", "11", "14", "21"}.issubset(set(chapters)):
             report["interactions"] = check_interactions(browser, base_url)
 
         browser.close()

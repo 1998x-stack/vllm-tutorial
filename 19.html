@@ -1,146 +1,53 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第19章 张量并行</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html" class="active">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第19章 张量并行</h2>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="从矩阵维度出发理解 ColumnParallelLinear、RowParallelLinear、All-Reduce 与 TP 的通信/显存取舍。"><title>第 19 章｜Tensor Parallelism：为什么把一个矩阵拆到多张 GPU？</title>
+<link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="AGENTS.md">编写规范</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#motivation">19.1 一层矩阵为何放不进单张 GPU？</a></li>
+<li><a href="#column">19.2 列并行：输出特征维度拆开</a></li>
+<li><a href="#row">19.3 行并行：输入维度拆开后求和</a></li>
+<li><a href="#communication">19.4 All-Reduce 的成本从哪里来？</a></li>
+<li><a href="#implementation">19.5 vLLM 里的模块与部署参数</a></li>
+<li><a href="#decision">19.6 常见误区与决策</a></li><li><a href="#recap">本章自检</a></li><li><a href="#sources">参考与证据</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 19 章 · 并行计算与高级推理</p><h1>Tensor Parallelism：为什么把一个矩阵拆到多张 GPU？</h1><p class="article-dek">从矩阵维度出发理解 ColumnParallelLinear、RowParallelLinear、All-Reduce 与 TP 的通信/显存取舍。</p><div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">源码与官方文档交叉审校</span><span class="meta-chip">离线优先</span></div></header>
+<p class="article-lead">一张 GPU 放不下模型时，我们希望把一层线性变换拆成几块，让多张 GPU 共同计算。真正重要的不是“多卡更快”，而是矩阵如何切分、哪些中间结果必须同步，以及为什么 GPU 互联决定了 TP 的收益。</p>
+<div class="outcomes"><h2>学习目标</h2><ul><li>在二维矩阵上手算列并行与行并行。</li><li>区别 All-Gather、All-Reduce 与 Reduce-Scatter。</li><li>解释 Prefill 与 Decode 下 TP 的通信成本区别。</li><li>知道如何在 vLLM 源码中定位并行线性层。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/19-tensor-parallel-partitions.svg" alt="列并行和行并行线性层在两张 GPU 上的权重切分、局部乘法和最后 All-Reduce 输出合成"><figcaption>图 1：从可计算的矩阵切分理解 TP。局部矩阵乘法可以并行，但行并行结果必须跨 rank 合并。图解采用教学抽象，不等于任意模型在任意硬件上的精确执行计划。</figcaption></figure>
+<section id="motivation"><h2>19.1 一层矩阵为何放不进单张 GPU？</h2>
+<p>假设某线性层权重为 <code>W ∈ R^(8192×32768)</code>，如果使用 BF16，仅该矩阵就占 <code>8192 × 32768 × 2 ≈ 537 MB</code>（十进制），还不包括其他层、KV Cache、激活、工作区和 CUDA Graph。把一个大模型拆给多张 GPU 不是“每张卡运行一个独立模型”，而是多张卡共同完成<strong>同一请求、同一层</strong>的计算。</p>
+<p>Tensor Parallelism（TP）将部分线性层权重按张量维度分片，每个 GPU 计算局部矩阵乘法。数学上等价于原始操作，但计算中引入通信，这正是其收益与代价的共同来源。</p></section>
+<section id="column"><h2>19.2 列并行：输出特征维度拆开</h2>
+<p>采用行向量记法，输入 <code>X ∈ R^(B×H)</code>、权重 <code>W ∈ R^(H×4H)</code>。两张 GPU 按输出维度切开：</p>
+<div class="math-display"><code>W = [W₀ | W₁],  Y₀ = XW₀,  Y₁ = XW₁,  Y = [Y₀ | Y₁]</code></div>
+<p><code>W₀, W₁ ∈ R^(H×2H)</code>，每张卡得到 <code>Yᵢ ∈ R^(B×2H)</code>。如果后续算子（如分片的门控/激活）可以直接使用局部结果，<strong>不必立刻 all-gather</strong>；但若下游要求完整输出，则需要 All-Gather 聚合。</p>
+<p>在 Transformer MLP 中，通常先使用 ColumnParallelLinear 得到分片的中间激活，再由 RowParallelLinear 把局部结果投影回 hidden size。两步组合减少在中间扩维位置汇集大张量的次数。</p>
+<pre><code># 纯数学示意，与具体 tensor layout / fused kernel 无关
+# X: [batch_tokens, H]; W0/W1: [H, 2*H]
+Y0 = X @ W0  # GPU 0
+Y1 = X @ W1  # GPU 1
+Y = concat([Y0, Y1], dim=-1)  # 仅在下游需要全量输出时</code></pre></section>
+<section id="row"><h2>19.3 行并行：输入维度拆开后求和</h2>
+<p>第二个线性层使用 <code>W ∈ R^(4H×H)</code>，按<strong>输入特征</strong>分片：<code>W = [W₀; W₁]</code>，对应输入也分成 <code>X = [X₀ | X₁]</code>。原始矩阵乘法等于各 rank 局部结果之和：</p>
+<div class="math-display"><code>Y = XW = X₀W₀ + X₁W₁</code></div>
+<p>各 rank 得到同形状 <code>Yᵢ ∈ R^(B×H)</code>；为了让后续层看到一致的输出，必须执行求和归约，例如 All-Reduce，或在使用分片输出的实现中采用 Reduce-Scatter。这不是“复制一份输出”，而是把不同输入分片的贡献相加。</p>
+<p>注意有些变体（Sequence Parallelism、Reduce-Scatter/All-Gather Fusion）会改变数据布局和通信时机。讨论 <code>RowParallelLinear</code> 时，必须同时核对 <code>input_is_parallel</code>、<code>reduce_results</code> 等参数，不能把所有层都画成一次固定 All-Reduce。</p></section>
+<section id="communication"><h2>19.4 All-Reduce 的成本从哪里来？</h2>
+<p>每个 rank 本地 GEMM 的工作量可以减少，但通信并不会消失。对理想化 ring all-reduce，若有 <code>p</code> 个 rank、待归约张量大小 <code>S</code> 字节，通信字节数每 rank 近似为 <code>2(p−1)S/p</code>（忽略协议、拓扑与分块细节）：</p>
+<div class="math-display"><code>T_total ≈ T_GEMM(p) + T_collective(p, S, link) + T_sync</code></div>
+<p>长 Prompt 的 Prefill 常包含更大的矩阵乘法，计算分摊可能更划算；逐 token Decode 的 GEMM 规模较小，通信延迟和同步开销可能更显著。NVLink / NVSwitch、PCIe、InfiniBand、NIC 拥塞和机内/跨机拓扑都会改变结果。</p>
+<div class="callout"><p><strong>性能判断：</strong>如果模型能装进一张 GPU，TP 通常不是自动更快的选择。先比较单卡基线，再增加 TP=2/4，分别记录 TTFT、ITL/TPOT、输出吞吐、显存和 collective 时间。</p></div></section>
+<section id="implementation"><h2>19.5 vLLM 里的模块与部署参数</h2>
+<p>上游源码中的 <code>ColumnParallelLinear</code>、<code>RowParallelLinear</code>、<code>QKVParallelLinear</code> 和 <code>MergedColumnParallelLinear</code> 等封装了不同切分逻辑；分布式组由 <code>vllm/distributed/parallel_state.py</code> 管理。TP rank 不是彼此独立接单的服务副本，而是由一个执行请求的模型副本协调运行。</p>
+<pre><code># 前提：已确认模型支持、GPU 内存足够、设备间通信可用
+vllm serve &lt;model-id-or-path&gt; --tensor-parallel-size 2
 
-<p>从这一章开始，咱们进入"高级专题篇"。张量并行（Tensor Parallelism, TP）是 vLLM 解决"模型太大，单 GPU 装不下"的核心方案。它基于 Megatron-LM 提出的算法，将单个 Transformer 层的权重矩阵切分到多个 GPU 上。</p>
-
-<h3>19.1 为什么需要张量并行</h3>
-
-<pre><code>模型大小 vs GPU 显存:
-┌────────────────┬──────────────┬──────────────────┐
-│ 模型            │ FP16 显存需求 │ 单 GPU 能装下吗？ │
-├────────────────┼──────────────┼──────────────────┤
-│ Llama-3-8B     │ ~16 GB       │ ✅ A100-80GB     │
-│ Llama-3-70B    │ ~140 GB      │ ❌ 需要 2×A100   │
-│ DeepSeek-R1    │ ~140 GB(激活)│ ❌ 需要 4×A100   │
-│ Llama-3-405B   │ ~810 GB      │ ❌ 需要 11×A100  │
-└────────────────┴──────────────┴──────────────────┘
-
-张量并行的作用: 把 N 张 GPU 变成"1 张更大的 GPU"</code></pre>
-
-<h3>19.2 张量并行的原理</h3>
-
-<p>核心思想：把一个层的权重矩阵切分到多个 GPU，每 GPU 只存一部分，用通信同步中间结果。</p>
-
-<pre><code>Attention 层的分片 (TP=4, 32 heads):
-
-GPU 0: heads[0:8]  - W_Q_0, W_K_0, W_V_0, W_O_0[0:8]
-GPU 1: heads[8:16] - W_Q_1, W_K_1, W_V_1, W_O_1[8:16]
-GPU 2: heads[16:24] - W_Q_2, W_K_2, W_V_2, W_O_2[16:24]
-GPU 3: heads[24:32] - W_Q_3, W_K_3, W_V_3, W_O_3[24:32]
-
-前向传播:
-1. 输入 X 复制到所有 GPU (每个 GPU 都有完整副本)
-2. 每个 GPU 独立计算自己的 8 个 heads
-3. All-Reduce: 同步合并 O = concat(O_0, O_1, O_2, O_3)
-4. 进入下一层...
-
-MLP 层的分片 (TP=4):
-GPU 0: W_up 的 1/4 列, W_gate 的 1/4 列, W_down 的 1/4 行
-...类似逻辑</code></pre>
-
-<h3>19.3 通信开销：张量并行的代价</h3>
-
-<p>每层需要 2 次 All-Reduce（Attention 后一次，MLP 后一次），通信量取决于 GPU 间带宽：</p>
-
-<table>
-  <tr><th>互联方式</th><th>带宽</th><th>TP 推荐度</th><th>场景</th></tr>
-  <tr><td>NVLINK (A100)</td><td>600 GB/s</td><td>⭐⭐⭐</td><td>单节点 TP=8</td></tr>
-  <tr><td>NVLINK (H100)</td><td>900 GB/s</td><td>⭐⭐⭐</td><td>单节点 TP=8</td></tr>
-  <tr><td>PCIe 4.0 ×16</td><td>~32 GB/s</td><td>⭐⭐</td><td>TP≤2 可接受, TP=4 降速</td></tr>
-  <tr><td>PCIe 5.0 ×16</td><td>~64 GB/s</td><td>⭐⭐</td><td>TP≤4 可接受</td></tr>
-  <tr><td>InfiniBand (跨节点)</td><td>25-50 GB/s</td><td>⭐</td><td>不推荐 TP 跨节点</td></tr>
-  <tr><td>以太网 (跨节点)</td><td>1-10 GB/s</td><td>❌</td><td>不要 TP 跨节点</td></tr>
-</table>
-
-<div class="highlight">
-  <p><strong>黄金法则</strong>：张量并行在同一节点内（有 NVLINK）表现最好。跨节点一定要用流水线并行而不是张量并行。NVLINK 带宽是 PCIe 的 10-30 倍，是跨节点网络的 20-100 倍。</p>
-</div>
-
-<h3>19.4 使用方式</h3>
-
-<pre><code># 2 GPU 张量并行
-vllm serve meta-llama/Llama-3-70B --tensor-parallel-size 2
-
-# 4 GPU 张量并行
-vllm serve meta-llama/Llama-3-70B --tensor-parallel-size 4
-
-# Python API
-from vllm import LLM
-llm = LLM("meta-llama/Llama-3-70B", tensor_parallel_size=4)
-
-# 验证是否用了 NCCL
-# 日志中应看到:
-# NCCL INFO: Using network: NET/IB/GDRDMA  ← 好，用了 RDMA
-# NCCL INFO: Using network: NET/Socket     ← 差，回退 TCP</code></pre>
-
-<div class="warning">
-  <p><strong>踩坑</strong>：Docker 里 TP 通信经常失败，两个常见原因：1) <code>--ipc=host</code> 没加 — NCCL 用共享内存做初始化；2) <code>--shm-size</code> 太小 — 多 GPU NCCL 需要大量共享内存。建议至少 8GB。</p>
-</div>
-
-<h3>19.5 性能分析</h3>
-
-<pre><code>Llama-3-70B, A100-80GB, FP16:
-
-TP=1: ❌ OOM (140GB 权重大于 80GB 显存)
-TP=2: 吞吐 ~800 tok/s, 每 GPU 显存 ~70GB (权重 70GB + KV cache)
-TP=4: 吞吐 ~600 tok/s, 每 GPU 显存 ~50GB (权重 35GB + KV cache)
-       ↑ 吞吐下降是因为 4 GPU 的 All-Reduce 通信开销增大
-
-结论：TP=2 在这个配置下最优（最小通信开销的可用方案）</code></pre>
-
-<p>张量并行搞定了单节点多 GPU。下一章看流水线并行和数据并行——解决跨节点和超高吞吐场景。</p>
-
-        <div class="footer-nav"><a href="18.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="20.html">下一章 →</a></div>
-    </div>
-</div></div>
-</body>
-</html>
+# 若需跨节点，优先实测或评估 TP=每节点卡数、PP=节点数
+vllm serve &lt;model-id-or-path&gt;   --tensor-parallel-size 4   --pipeline-parallel-size 2</code></pre>
+<p>在权重加载时还需要核对 QKV 的 head 数、KV heads 和分组查询注意力（GQA）的切分要求；模型的 quantization kernel、注意力实现和设备类型可能制约可用 TP 值。</p></section>
+<section id="decision"><h2>19.6 常见误区与决策</h2>
+<ul><li><strong>误区：TP=8 就是八倍吞吐。</strong>反例：Decode 阶段 collective 同步和串行环节仍在，每张 GPU 同时占据资源。</li><li><strong>误区：All-Gather 和 All-Reduce 可互换。</strong>前者拼接不同分片，后者对同形数据做归约；其输入形状与输出语义不同。</li><li><strong>误区：TP 一定跨机器。</strong>优先考虑高速互联的单节点；跨节点 TP 会把频繁通信搬上网卡。</li><li><strong>误区：均分权重就均分全部显存。</strong>KV Cache、通信缓冲和临时张量的分布仍要测量。</li></ul>
+<p>建议测量矩阵：TP=1、2、4，固定模型/精度、Prompt 与输出分布，逐项比较容量是否足够、首 token 时间、每 token 时间和成本 / token。只有数据支持时才提高 TP。</p></section>
+<section id="recap"><h2>本章自检</h2><ol><li>为什么列并行的线性层可以先不 All-Reduce，而行并行往往需要对局部结果求和？</li><li>TP=4 是否意味着每个 token 的吞吐一定提升四倍？为什么？</li><li>为什么多个 TP rank 要共同组成一个逻辑 replica？</li><li>如何用实测通信成本判断是否应跨节点使用 TP？</li></ol></section>
+<section id="sources" class="sources"><h2>参考资料与源码入口</h2><ol><li><a href="https://docs.vllm.ai/en/latest/serving/parallelism_scaling/" target="_blank" rel="noopener noreferrer">Parallelism and Scaling</a>：单机 TP、跨节点 TP+PP 与网络互联建议</li><li><a href="https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/model_executor/layers/linear.py" target="_blank" rel="noopener noreferrer">Parallel linear layers</a>：列并行、行并行和 QKV 特殊切分</li><li><a href="https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/distributed/parallel_state.py" target="_blank" rel="noopener noreferrer">Distributed parallel state</a>：TP 进程组与 collective 管理</li><li><a href="https://arxiv.org/abs/1909.08053" target="_blank" rel="noopener noreferrer">Megatron-LM</a>：Transformer 层内切分的经典研究</li></ol><p><small>审校基线：vLLM <code>e72fc9ae50c221180c4b8f4a94c5009714a4b199</code>（2026-11-22）。示例为教学示意；实际模型、GPU 拓扑和运行版本必须单独验证。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="18.html">← 上一章</a><a class="next" href="20.html">下一章 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer>
+</article></main></div></body></html>

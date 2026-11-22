@@ -1,0 +1,62 @@
+{
+  "chapter": "19",
+  "reviewed_at": "2026-11-22",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "scope": "Version-aware advanced inference chapter with original diagram and explicit toy/derived claims.",
+  "claims": [
+    {
+      "id": "tp-matrix-shards",
+      "claim": "ColumnParallelLinear partitions output features while RowParallelLinear partitions input features and reduces partial outputs when reduction is enabled.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/model_executor/layers/linear.py",
+      "locator": "ColumnParallelLinear, RowParallelLinear, reduce_results",
+      "notes": ""
+    },
+    {
+      "id": "tp-collectives",
+      "claim": "vLLM exposes model-parallel process groups and tensor-parallel collectives; model replicas with TP must coordinate ranks to execute one logical request.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/distributed/parallel_state.py",
+      "locator": "initialize_model_parallel and tensor_model_parallel_all_reduce",
+      "notes": ""
+    },
+    {
+      "id": "tp-deployment",
+      "claim": "Official guidance recommends evaluating tensor parallelism within a multi-GPU node and tensor plus pipeline parallelism for models spanning nodes.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/parallelism_scaling.md",
+      "locator": "Distributed inference strategies for a single-model replica",
+      "notes": ""
+    },
+    {
+      "id": "tp-network",
+      "claim": "High-bandwidth GPU-to-GPU and inter-node networking matter to TP performance and collective overhead.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/parallelism_scaling.md",
+      "locator": "Optimizing network communication for tensor parallelism",
+      "notes": ""
+    },
+    {
+      "id": "tp-matrix-derivation",
+      "claim": "The article's column/row split and simplified GEMM communication equations are matrix algebra illustrations, not a vLLM kernel trace.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://arxiv.org/abs/1909.08053",
+      "locator": "Model Parallelism / Transformer blocks",
+      "notes": "Shape H and intermediate 4H are teaching examples, not universal model shapes."
+    },
+    {
+      "id": "ring-reduction-toy",
+      "claim": "The 2(p−1)S/p per-rank ring all-reduce transfer estimate is a simplified bandwidth model, not a latency or kernel guarantee.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://arxiv.org/abs/1802.05799",
+      "locator": "Bandwidth-optimal collectives / ring all-reduce cost",
+      "notes": "Ignored topology, protocol, scale, synchronization and bandwidth/latency variations."
+    }
+  ]
+}
