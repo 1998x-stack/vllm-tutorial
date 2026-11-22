@@ -126,7 +126,7 @@ def inspect_page(browser, base_url: str, chapter: str, width: int, height: int, 
     if failed_local_responses:
         failures.append(f"failed local responses: {failed_local_responses}")
 
-    if screenshot_dir and (chapter in {"01", "08", "11", "14", "18", "19", "21", "23"} and width in {1440, 390}):
+    if screenshot_dir and (chapter in {"01", "08", "11", "14", "18", "19", "21", "23", "24", "25", "27", "28"} and width in {1440, 390}):
         screenshot_dir.mkdir(parents=True, exist_ok=True)
         page.screenshot(
             path=str(screenshot_dir / f"{chapter}-{width}.png"),
@@ -232,13 +232,35 @@ def check_interactions(browser, base_url: str) -> list[dict]:
     results.append({"chapter": "21", "control": "a-and-k", "initial": initial, "after_probability": after_keyboard, "after_length": after_length})
     page.close()
 
+    # Chapter 25: arithmetic updates by keyboard and is identical to the Node formula.
+    page = browser.new_page(viewport={"width": 1440, "height": 1000})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(urljoin(base_url, "25.html"), wait_until="networkidle")
+    rps = page.locator('[data-bench-output="rps"]')
+    tps = page.locator('[data-bench-output="tps"]')
+    failure = page.locator('[data-bench-output="error"]')
+    initial = rps.inner_text()
+    if initial != "1.50 req/s" or tps.inner_text() != "120.0 tok/s" or failure.inner_text() != "25.0%":
+        raise AssertionError("Benchmark lab does not match the declared arithmetic example")
+    field = page.locator('[data-bench-field="success"]')
+    field.focus()
+    field.press("ArrowUp")
+    after_key = rps.inner_text()
+    if after_key == initial or not after_key.startswith("1.55"):
+        raise AssertionError(f"Benchmark lab keyboard interaction failed: before={initial} after={after_key}")
+    if errors:
+        raise AssertionError(f"chapter 25 JavaScript errors: {errors}")
+    results.append({"chapter": "25", "control": "successful-requests", "initial": initial, "after_keyboard": after_key})
+    page.close()
+
     return results
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://127.0.0.1:8765/")
-    parser.add_argument("--chapters", default="01-23")
+    parser.add_argument("--chapters", default="01-28")
     parser.add_argument("--viewports", default="1440,768,390,360")
     parser.add_argument("--report", default="reports/browser-qa.json")
     parser.add_argument("--skip-interactions", action="store_true")
@@ -269,7 +291,7 @@ def main() -> int:
                 if result["failures"]:
                     failures.append(result)
 
-        if not args.skip_interactions and {"08", "11", "14", "21"}.issubset(set(chapters)):
+        if not args.skip_interactions and {"08", "11", "14", "21", "25"}.issubset(set(chapters)):
             report["interactions"] = check_interactions(browser, base_url)
 
         browser.close()
