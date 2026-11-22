@@ -100,3 +100,16 @@ python3 scripts/validate_articles.py
 - 关键事实写入 `evidence/NN.json`，区分官方行为、论文结果、推导、教学示例和建议。
 - 修改章节标题、分类、前置知识或链接时同步更新 `courses.json` 并重新生成 `courses-data.js`。
 - PR 描述应列出实际修改的章节、已执行检查和未执行检查；不虚报浏览器 QA 或 Pages 部署状态。
+
+
+## Publishing and quality gates
+
+The canonical GitHub Pages release target is:
+
+- `https://1998x-stack.github.io/vllm-tutorial/`
+
+Pull requests run the offline catalog checks, static article validation, and Chromium QA for chapters 01–18 at 1440px, 768px, 390px, and 360px. The browser gate checks page errors, console errors, local asset responses, in-page anchors, diagram visibility, and page-level horizontal overflow. It also exercises the KV Cache calculator (chapter 08), Chunked Prefill budget explorer (chapter 11), and Sampling explorer (chapter 14), including keyboard input.
+
+A push to `master` publishes the static course through GitHub Pages and then verifies the public index, representative chapters, course data, stylesheets, diagrams, and interactive scripts. A successful pull-request check is not a deployment result; the Pages job must also complete.
+
+**PDF is not a release artifact for this repository.** The supported deliverable is the offline-first HTML course with local CSS, JavaScript, and SVG assets. PDF export and PDF visual QA are intentionally out of scope unless a future course requirement adds them.
