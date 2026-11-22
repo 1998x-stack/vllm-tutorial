@@ -68,7 +68,8 @@ def retrieve(query: str, corpus: list[dict], scope: str = "public", top_k: int =
         raise ValueError("top_k must be 1..10")
     # Enforce access before scoring and before passage text reaches the prompt.
     visible = [doc for doc in corpus if doc["scope"] == "public" or scope == "team"]
-    matches = [{"doc": doc, "score": similarity(query, doc["title"] + " " + doc["text"])}
+    matches = [{"doc": doc, "score": similarity(query, doc["title"] + " " + doc["text"])
+                + 0.5 * similarity(query, doc["title"])}
                for doc in visible]
     matches = [row for row in matches if row["score"] > 0.0]
     return sorted(matches, key=lambda row: (-row["score"], row["doc"]["id"]))[:top_k]
