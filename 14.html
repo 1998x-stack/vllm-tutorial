@@ -71,7 +71,15 @@
         </table>
       </div>
       <p>概率由 softmax 得到：</p>
-      <div class="math-display"><code>pᵢ = exp(zᵢ) / Σⱼ exp(zⱼ)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="softmax 概率公式，可在窄屏横向滚动查看">
+        <math display="block" aria-label="第 i 个 token 的概率等于 exp(z_i) 除以对所有 j 求和的 exp(z_j)">
+          <msub><mi>p</mi><mi>i</mi></msub><mo>=</mo>
+          <mfrac>
+            <mrow><mi>exp</mi><mo>(</mo><msub><mi>z</mi><mi>i</mi></msub><mo>)</mo></mrow>
+            <mrow><munder><mo>∑</mo><mi>j</mi></munder><mi>exp</mi><mo>(</mo><msub><mi>z</mi><mi>j</mi></msub><mo>)</mo></mrow>
+          </mfrac>
+        </math>
+      </div>
       <p>其中 <code>zᵢ</code> 是第 i 个 token 的 logit。softmax 把任意实数映射成非负且总和为 1 的概率。实际词表可能有数万到数十万个 token，采样器要高效处理整行 logits。</p>
       <p>注意：概率只描述当前模型、当前上下文与当前 logits 处理条件下的下一 token 分布，不是 token 的客观正确率，也不是模型对整段答案的校准置信度。</p>
     </section>
@@ -79,7 +87,15 @@
     <section id="temperature">
       <h2>14.2 Temperature：改变分布的尖锐程度</h2>
       <p>Temperature 对 logits 做缩放，再执行 softmax：</p>
-      <div class="math-display"><code>pᵢ(T) = exp(zᵢ / T) / Σⱼ exp(zⱼ / T)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="带 temperature 的 softmax 公式，可在窄屏横向滚动查看">
+        <math display="block" aria-label="温度为 T 时第 i 个 token 的概率等于 exp(z_i 除以 T) 除以对所有 j 求和的 exp(z_j 除以 T)">
+          <msub><mi>p</mi><mi>i</mi></msub><mo>(</mo><mi>T</mi><mo>)</mo><mo>=</mo>
+          <mfrac>
+            <mrow><mi>exp</mi><mo>(</mo><mfrac><msub><mi>z</mi><mi>i</mi></msub><mi>T</mi></mfrac><mo>)</mo></mrow>
+            <mrow><munder><mo>∑</mo><mi>j</mi></munder><mi>exp</mi><mo>(</mo><mfrac><msub><mi>z</mi><mi>j</mi></msub><mi>T</mi></mfrac><mo>)</mo></mrow>
+          </mfrac>
+        </math>
+      </div>
       <ul>
         <li><strong>T = 1：</strong>保持原始 softmax 分布。</li>
         <li><strong>0 小于 T 小于 1：</strong>放大 logit 差异，概率更集中在高分 token。</li>
@@ -106,7 +122,11 @@
         </table>
       </div>
       <p>Min-p 的规则可以写成：</p>
-      <div class="math-display"><code>保留 token i，当 pᵢ ≥ min_p × maxⱼ(pⱼ)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="Min-p 筛选规则，可在窄屏横向滚动查看">
+        <math display="block" aria-label="保留候选 token i，当且仅当其概率不低于 min_p 乘以最大候选概率">
+          <mtext>保留候选 </mtext><mi>i</mi><mo>:</mo><msub><mi>p</mi><mi>i</mi></msub><mo>≥</mo><mi>min_p</mi><mo>×</mo><munder><mo>max</mo><mi>j</mi></munder><mo>(</mo><msub><mi>p</mi><mi>j</mi></msub><mo>)</mo>
+        </math>
+      </div>
       <p>举例：若最高候选概率为 0.50，<code>min_p=0.1</code>，则低于 0.05 的候选会被过滤。这里的 0.1 是相对阈值，不是“至少 10% 的绝对概率”。</p>
       <p>Top-k 与 Top-p 的差别尤其重要：如果分布非常尖锐，Top-p 可能只保留一两个 token；如果分布很平，Top-p 可能保留更多 token。Top-k 则无论概率分布怎样，候选数量上限固定。</p>
       <p>这些过滤器组合使用时会相互影响。实际 vLLM 会根据设备与采样后端选择优化实现，不能把下面的教学模拟当成所有 GPU kernel 的逐行执行顺序。</p>
@@ -164,7 +184,11 @@ response = client.chat.completions.create(
     <section id="logprobs">
       <h2>14.6 Logprobs：观察概率，不是读取思维</h2>
       <p>Log probability 是概率的自然对数：</p>
-      <div class="math-display"><code>log p(token | context)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="对数概率定义，可在窄屏横向滚动查看">
+        <math display="block" aria-label="给定上下文的 token 的对数概率">
+          <mi>log</mi><mi>p</mi><mo>(</mo><mtext>token</mtext><mo>|</mo><mtext>context</mtext><mo>)</mo>
+        </math>
+      </div>
       <p>例如 <code>log p = -0.2</code> 对应概率约为 <code>exp(-0.2) ≈ 0.819</code>。数值越接近 0，概率越高；概率越小，log probability 越负。</p>
       <p>vLLM 的 <code>logprobs</code> 可请求每个输出位置若干高概率候选及实际采样 token 的 logprob。当前 API 语义遵循 OpenAI 兼容行为：返回结果可能包含所请求数量之外的 sampled token，因此最多可能出现 <code>logprobs + 1</code> 个条目；设为 <code>-1</code> 时会请求整个词表的 logprobs，开销可能很大。</p>
       <p>如果只关心少量指定 token（例如分类标签 A / B / C），可评估 <code>logprob_token_ids</code>，避免请求整个词表。还要确认返回的是 raw 还是 processed logprobs 模式；采样过滤后的分数不一定等于模型原始 softmax 分布。</p>
