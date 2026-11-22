@@ -10,7 +10,7 @@
 <div class="callout"><p>设计边界：所有示例资料都为人工编写的非敏感教学内容；检索算法是词项匹配的透明 baseline，不是专用 embedding / reranker 系统，不声称有生产级召回率。</p></div></section>
 <section id="retrieve"><h2>27.2 分块、检索、上下文预算</h2><p>知识库入库前要做格式清洗、来源登记、时间戳与权限标记。Chunk 切分要保留文档结构边界，避免把无关章节混进同一证据块。最小示例使用中文/英文词项的<strong>可解释匹配</strong>：根据查询与候选文段的重叠词项计分，按分数排序取前 k，记录 document ID，完全不需联网。</p>
 <div class="math-display"><code>score(q, d) = |terms(q) ∩ terms(d)| / √(|terms(q)| · |terms(d)|)</code></div>
-<p>该式仅用于教学 baseline，词项重复、分词、中文单字和文档长度会改变效果。若换成 embedding retrieval、BM25 或 reranker，需要为每个方案设置对应的索引版本、Top-k 和检索/重排延迟，并单独评估质量。</p>
+<p>该式为基础的词项相似度。实际教学排序还对标题相似度增加 <code>0.5 × score(q, title)</code>，让精确匹配标题的文档不容易被偶然提到主题的短文压过；这是明确写出的教学启发式，不是标准 BM25。词项重复、中文拆分和文档长度仍会影响效果。若换成 embedding retrieval、BM25 或 reranker，需要为每个方案设置对应的索引版本、Top-k 和检索/重排延迟，并单独评估质量。</p>
 <p>插入模型 Prompt 时，必须先应用服务端身份验证和文档 ACL，再根据 Tokenizer 计算 Context Budget。这里只提供长度上限的近似字符裁剪，<strong>字符数不等于 token 数</strong>；生产系统应按目标模型的 tokenizer 和 <code>max-model-len</code> 切分。</p></section>
 <section id="flow"><h2>27.3 从 API Gateway 到引用答案</h2><ol><li>Gateway 认证用户，核对文档访问权限；防止用户输入覆盖系统授权。</li><li>Retriever 只查询该用户有权访问的索引，返回候选片段与 doc IDs。</li><li>Context Builder 限制片段数量、长度与可信/非可信数据边界。</li><li>LLM API Client 调用受保护的 <code>/v1/chat/completions</code>，按模型要求使用 Chat Template。</li><li>Answer Validator 检查引用 ID 是否来自检索结果，展示无法证实的回答为不确定，保留审计元数据。</li><li>监控分别记录检索、构造 Prompt、排队/TTFT、生成/E2E 与错误率。</li></ol>
 <p>Prompt Injection 是关键风险。<strong>检索结果只是数据，不是有权指挥工具或读取秘密的系统指令</strong>。模型输出的引用不构成事实验证；至少要核对引用 ID 是否真实存在，进一步使用人工/独立模型评估语义是否被证据支持。</p></section>
