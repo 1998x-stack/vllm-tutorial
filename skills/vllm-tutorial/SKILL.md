@@ -193,3 +193,28 @@ The score is an editorial aid, not a substitute for factual verification or brow
 - Pin nano-vLLM commit independently from vLLM V1. Read real files rather than deriving API behavior from package names.
 - Trace `LLMEngine.step → Scheduler.schedule → ModelRunner.run → Scheduler.postprocess`; separately inspect BlockManager allocation, prefix hashes, refcounts, and Triton KV writes.
 - State which simplifications differ from production V1 and avoid claims of equivalent performance or feature coverage without comparable measurements.
+
+
+## Final batch and publication gates (24–28)
+
+### Troubleshooting
+- Build a symptom-to-evidence triage, not a collection of arbitrary fixes.
+- Separate load-time weight OOM, KV Cache exhaustion during serving, NIC/NCCL rank hangs, CUDA Graph replay problems, and model/config/tokenizer drift.
+- Give safe, scoped debug commands and note logging overhead and privacy risks. Require one changed variable per diagnostic experiment and a rollback hypothesis.
+
+### Benchmarking
+- Distinguish client and server latency measurement boundaries, failed requests and tail latency distribution. Do not equate ITL with TPOT in token-batched output.
+- Specify model revision, GPU, driver, precision, vLLM SHA, input/output distribution, arrival rate, max concurrency, warmup and prefix-cache treatment.
+- Ensure CLI flags exist in pinned docs. Report failed requests and number of repetitions; never invent throughput or universal performance claims.
+- For standalone web experiments, compute only mathematical definitions from user-provided numbers and clearly label them toy examples.
+
+### Roadmap and maturity
+- Each capability claim needs evidence grade: paper/RFC, implemented source, official release documentation, reproducible benchmark or production observation.
+- Avoid ungrounded market rankings, speculative release dates and feature labels that may be obsolete. Prefer a reusable evidence review rubric.
+
+### RAG and capstone
+- Ship executable, third-party-free offline retrieval demo and a non-sensitive corpus, with source IDs, top-k, ACL, bounded context and tests.
+- Optional model execution must be explicit and limited to trusted loopback. Protect against redirect-to-remote endpoints and keep API tokens out of logs.
+- Separate lexical retrieval demo from production retrieval; source-ID validity does not establish answer faithfulness. Test ACL, missing inputs, URL restrictions and no-model behavior.
+- Link the 28-chapter course into 3 meaningful progression paths, with an evidence-backed capstone instead of a marketing-style summary.
+- Include all published examples in Pages artifacts and public verification; preserve offline HTML behavior.
