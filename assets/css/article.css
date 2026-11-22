@@ -155,7 +155,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   background: var(--surface);
   box-shadow: var(--shadow);
 }
-.diagram img { display: block; width: 100%; height: auto; }
+.diagram img, .diagram svg { display: block; width: 100%; height: auto; }
 .diagram figcaption { margin: 12px 4px 0; color: var(--muted); font-size: .88rem; line-height: 1.65; }
 .callout {
   margin: 22px 0;
@@ -199,6 +199,8 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
   text-align: center;
 }
 .math-display code { background: none; color: var(--ink); white-space: nowrap; font-size: 1rem; }
+.math-display[data-math-scroll]:focus-visible { outline: 3px solid #e09b55; outline-offset: 3px; }
+.math-display math { font-size: 1.05rem; }
 .stepper, .lab {
   margin: 24px 0;
   padding: 20px;
