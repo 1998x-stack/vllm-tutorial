@@ -22,19 +22,19 @@
 </tbody></table></div></section>
 <section id="pipeline"><h2>20.2 Pipeline Parallelism：把层堆栈分成阶段</h2>
 <p>假设模型 48 层，PP=2 时 Stage 0 可以承载前 24 层，Stage 1 承载后 24 层。一个 token 的隐藏状态按阶段向前传递，而不是每个阶段各自预测出一个 token：</p>
-<div class="math-display"><code>h₂₄ = f₁…₂₄(x)，  y = f₂₅…₄₈(h₂₄)</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="流水并行分段公式，可在窄屏横向滚动查看"><math display="block" aria-label="流水并行：前 24 层把输入 x 得到隐状态 h24，后 24 层把 h24 得到输出 y"><msub><mi>h</mi><mn>24</mn></msub><mo>=</mo><msub><mi>f</mi><mrow><mn>1</mn><mo>…</mo><mn>24</mn></mrow></msub><mo>(</mo><mi>x</mi><mo>)</mo><mo>,</mo><mspace width="0.6em"/><mi>y</mi><mo>=</mo><msub><mi>f</mi><mrow><mn>25</mn><mo>…</mo><mn>48</mn></mrow></msub><mo>(</mo><msub><mi>h</mi><mn>24</mn></msub><mo>)</mo></math></div>
 <p>如果只有一个小 batch，某个阶段计算时，另一个阶段可能闲置，这就是 pipeline bubble。增大 microbatch 数可以提高占用率，但在线 decode 的短迭代、序列同步和工作负载不均衡会影响收益；不能直接用训练时的流水线效率公式作为推理保证。</p>
 <p>跨节点 PP 的传输通常是阶段边界上的激活，不是每层 TP 都执行完整 All-Reduce，因此在模型超过单节点显存时，官方入门指引常建议让 TP 优先留在节点内、PP 用来跨节点。异构 GPU 或层大小不均时还要考虑非均匀分层。</p></section>
 <section id="data"><h2>20.3 Data Parallelism：多个请求批次独立推进</h2>
 <p>密集模型的 DP 通常在各 rank 上持有模型副本，不同 rank 可以服务不同请求批次。若一次请求已经由单副本运行，简单增加 DP 不会让这个请求的某一层自动并行。</p>
-<div class="math-display"><code>GPU 总需求（简单场景）≈ DP × TP × PP</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="GPU 总需求估算公式，可在窄屏横向滚动查看"><math display="block" aria-label="简单场景下 GPU 总需求约等于数据并行数乘张量并行数乘流水并行数"><mtext>GPU 总需求</mtext><mo>≈</mo><mi>DP</mi><mo>×</mo><mi>TP</mi><mo>×</mo><mi>PP</mi></math></div>
 <p>这里乘积是规划初步资源数量的方便公式；实际多节点 worker、Ray、设备分组和 MoE EP 配置仍需核对。官方部署模式包括 internal、hybrid 和 external load balancing，不要假设 DP 总由单个 API Server 路由。</p>
 <pre><code># 单机示例：4 个 DP ranks × 每 rank 2 张 TP GPU = 8 GPU
 vllm serve &lt;model-id-or-path&gt;   --data-parallel-size 4   --tensor-parallel-size 2</code></pre>
 <p>重要细节：<code>--max-num-seqs</code> 是每个 DP rank 的请求并发上限，而 API Server 的 <code>--max-num-queued-reqs</code> / <code>--max-num-queued-tokens</code> 等 admission 限制可能按整个服务入口计算。不能把每 rank 256 直接解释成 API 入口能同时接受 4×256 个请求。</p></section>
 <section id="experts"><h2>20.4 Expert Parallelism：MoE 不是普通密集网络</h2>
 <p>MoE 把 Feed-Forward 模块分成多个专家，router 对每个 token 选出部分专家执行。假设 8 个专家分布在 4 张 GPU 上，每卡两专家；不同 token 将被 dispatch 到不同设备，对应输出再 combine 回原序列位置。</p>
-<div class="math-display"><code>yₜ = Σₑ gₜ,ₑ · Expertₑ(xₜ)，  仅对选中的 e 求和</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="MoE 专家加权公式，可在窄屏横向滚动查看"><math display="block" aria-label="MoE：第 t 个 token 的输出等于对所有专家求和的门控权重 g t e 乘以专家 e 的输出，仅对选中的专家求和"><msub><mi>y</mi><mi>t</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>e</mi></munder><msub><mi>g</mi><mrow><mi>t</mi><mo>,</mo><mi>e</mi></mrow></msub><mo>·</mo><msub><mtext>Expert</mtext><mi>e</mi></msub><mo>(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>)</mo><mo>,</mo><mspace width="0.6em"/><mtext>仅对选中的 e 求和</mtext></math></div>
 <p>这不是“每个 token 跑过所有专家”。Top-k routing 的 k、expert load imbalance、通信 backend 和 token 数分布决定实际效率。EP 的 all-to-all 与 TP 的 all-reduce 不同：EP 先<strong>搬运 token 到专家</strong>，再<strong>搬回结果</strong>。</p>
 <p>在当前官方 vLLM 文档中启用 <code>--enable-expert-parallel</code> 后，专家并行组大小按 <code>EP_SIZE = TP_SIZE × DP_SIZE</code> 自动计算。注意层类型不同：attention 可采用 DP × TP 的布局，而 experts 可以按 EP 分布；不能简单声称“整个 MoE 都 EP”。</p>
 <pre><code># MoE 配置仅供拓扑概念参考；需核对模型和 EP backend

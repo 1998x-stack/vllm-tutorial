@@ -18,7 +18,7 @@
 <p>Tensor Parallelism（TP）将部分线性层权重按张量维度分片，每个 GPU 计算局部矩阵乘法。数学上等价于原始操作，但计算中引入通信，这正是其收益与代价的共同来源。</p></section>
 <section id="column"><h2>19.2 列并行：输出特征维度拆开</h2>
 <p>采用行向量记法，输入 <code>X ∈ R^(B×H)</code>、权重 <code>W ∈ R^(H×4H)</code>。两张 GPU 按输出维度切开：</p>
-<div class="math-display"><code>W = [W₀ | W₁],  Y₀ = XW₀,  Y₁ = XW₁,  Y = [Y₀ | Y₁]</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="列并行权重切分公式，可在窄屏横向滚动查看"><math display="block" aria-label="列并行：权重按输出维度分成 W 零与 W 一，Y 零等于 X 乘 W 零，Y 一等于 X 乘 W 一，输出按列拼接"><mi>W</mi><mo>=</mo><mo>[</mo><msub><mi>W</mi><mn>0</mn></msub><mo>|</mo><msub><mi>W</mi><mn>1</mn></msub><mo>]</mo><mo>,</mo><mspace width="0.6em"/><msub><mi>Y</mi><mn>0</mn></msub><mo>=</mo><mi>X</mi><msub><mi>W</mi><mn>0</mn></msub><mo>,</mo><mspace width="0.6em"/><msub><mi>Y</mi><mn>1</mn></msub><mo>=</mo><mi>X</mi><msub><mi>W</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.6em"/><mi>Y</mi><mo>=</mo><mo>[</mo><msub><mi>Y</mi><mn>0</mn></msub><mo>|</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>]</mo></math></div>
 <p><code>W₀, W₁ ∈ R^(H×2H)</code>，每张卡得到 <code>Yᵢ ∈ R^(B×2H)</code>。如果后续算子（如分片的门控/激活）可以直接使用局部结果，<strong>不必立刻 all-gather</strong>；但若下游要求完整输出，则需要 All-Gather 聚合。</p>
 <p>在 Transformer MLP 中，通常先使用 ColumnParallelLinear 得到分片的中间激活，再由 RowParallelLinear 把局部结果投影回 hidden size。两步组合减少在中间扩维位置汇集大张量的次数。</p>
 <pre><code># 纯数学示意，与具体 tensor layout / fused kernel 无关
@@ -28,12 +28,12 @@ Y1 = X @ W1  # GPU 1
 Y = concat([Y0, Y1], dim=-1)  # 仅在下游需要全量输出时</code></pre></section>
 <section id="row"><h2>19.3 行并行：输入维度拆开后求和</h2>
 <p>第二个线性层使用 <code>W ∈ R^(4H×H)</code>，按<strong>输入特征</strong>分片：<code>W = [W₀; W₁]</code>，对应输入也分成 <code>X = [X₀ | X₁]</code>。原始矩阵乘法等于各 rank 局部结果之和：</p>
-<div class="math-display"><code>Y = XW = X₀W₀ + X₁W₁</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="行并行求和公式，可在窄屏横向滚动查看"><math display="block" aria-label="行并行：Y 等于 X 乘 W，也等于输入分块 X 零乘 W 零加上 X 一乘 W 一"><mi>Y</mi><mo>=</mo><mi>X</mi><mi>W</mi><mo>=</mo><msub><mi>X</mi><mn>0</mn></msub><msub><mi>W</mi><mn>0</mn></msub><mo>+</mo><msub><mi>X</mi><mn>1</mn></msub><msub><mi>W</mi><mn>1</mn></msub></math></div>
 <p>各 rank 得到同形状 <code>Yᵢ ∈ R^(B×H)</code>；为了让后续层看到一致的输出，必须执行求和归约，例如 All-Reduce，或在使用分片输出的实现中采用 Reduce-Scatter。这不是“复制一份输出”，而是把不同输入分片的贡献相加。</p>
 <p>注意有些变体（Sequence Parallelism、Reduce-Scatter/All-Gather Fusion）会改变数据布局和通信时机。讨论 <code>RowParallelLinear</code> 时，必须同时核对 <code>input_is_parallel</code>、<code>reduce_results</code> 等参数，不能把所有层都画成一次固定 All-Reduce。</p></section>
 <section id="communication"><h2>19.4 All-Reduce 的成本从哪里来？</h2>
 <p>每个 rank 本地 GEMM 的工作量可以减少，但通信并不会消失。对理想化 ring all-reduce，若有 <code>p</code> 个 rank、待归约张量大小 <code>S</code> 字节，通信字节数每 rank 近似为 <code>2(p−1)S/p</code>（忽略协议、拓扑与分块细节）：</p>
-<div class="math-display"><code>T_total ≈ T_GEMM(p) + T_collective(p, S, link) + T_sync</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="总时间分解公式，可在窄屏横向滚动查看"><math display="block" aria-label="总时间约等于 GEMM 计算时间加上集合通信时间再加同步时间"><msub><mi>T</mi><mtext>total</mtext></msub><mo>≈</mo><msub><mi>T</mi><mtext>GEMM</mtext></msub><mo>(</mo><mi>p</mi><mo>)</mo><mo>+</mo><msub><mi>T</mi><mtext>collective</mtext></msub><mo>(</mo><mi>p</mi><mo>,</mo><mi>S</mi><mo>,</mo><mi>link</mi><mo>)</mo><mo>+</mo><msub><mi>T</mi><mtext>sync</mtext></msub></math></div>
 <p>长 Prompt 的 Prefill 常包含更大的矩阵乘法，计算分摊可能更划算；逐 token Decode 的 GEMM 规模较小，通信延迟和同步开销可能更显著。NVLink / NVSwitch、PCIe、InfiniBand、NIC 拥塞和机内/跨机拓扑都会改变结果。</p>
 <div class="callout"><p><strong>性能判断：</strong>如果模型能装进一张 GPU，TP 通常不是自动更快的选择。先比较单卡基线，再增加 TP=2/4，分别记录 TTFT、ITL/TPOT、输出吞吐、显存和 collective 时间。</p></div></section>
 <section id="implementation"><h2>19.5 vLLM 里的模块与部署参数</h2>
