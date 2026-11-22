@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+<title id="title">Chunked Prefill 与 Decode 共享 token budget 的时间线</title>
+<desc id="desc">示例每轮 token budget 为 16，三条 Decode 请求各占一个 token，剩余 13 个 token 用于长 Prompt。40 个 Prompt tokens 被分为 13、13、13、1 四段，跨四轮完成 Prefill。</desc>
+<rect width="1200" height="620" rx="24" fill="#fbfaf7"/>
+<text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">长 Prompt 不必独占一轮：Decode 与 Prefill 可以交错</text>
+<text x="52" y="84" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#60716c">教学示例：每轮 budget = 16；3 条活跃 Decode 请求各使用 1 token；Prompt 共 40 tokens。</text>
+<g font-family="Arial,'PingFang SC',sans-serif">
+ <text x="60" y="143" font-size="17" font-weight="700" fill="#264b45">Step 1</text>
+ <rect x="180" y="112" width="190" height="52" rx="9" fill="#f0effa" stroke="#6d63a8"/>
+ <text x="275" y="144" text-anchor="middle" font-size="15" font-weight="700" fill="#51488c">Decode 3</text>
+ <rect x="380" y="112" width="590" height="52" rx="9" fill="#e5f3ef" stroke="#147d73"/>
+ <text x="675" y="144" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">Prefill chunk 13 · Prompt 剩余 27</text>
+ <text x="60" y="243" font-size="17" font-weight="700" fill="#264b45">Step 2</text>
+ <rect x="180" y="212" width="190" height="52" rx="9" fill="#f0effa" stroke="#6d63a8"/>
+ <text x="275" y="244" text-anchor="middle" font-size="15" font-weight="700" fill="#51488c">Decode 3</text>
+ <rect x="380" y="212" width="590" height="52" rx="9" fill="#e5f3ef" stroke="#147d73"/>
+ <text x="675" y="244" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">Prefill chunk 13 · Prompt 剩余 14</text>
+ <text x="60" y="343" font-size="17" font-weight="700" fill="#264b45">Step 3</text>
+ <rect x="180" y="312" width="190" height="52" rx="9" fill="#f0effa" stroke="#6d63a8"/>
+ <text x="275" y="344" text-anchor="middle" font-size="15" font-weight="700" fill="#51488c">Decode 3</text>
+ <rect x="380" y="312" width="590" height="52" rx="9" fill="#e5f3ef" stroke="#147d73"/>
+ <text x="675" y="344" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">Prefill chunk 13 · Prompt 剩余 1</text>
+ <text x="60" y="443" font-size="17" font-weight="700" fill="#264b45">Step 4</text>
+ <rect x="180" y="412" width="190" height="52" rx="9" fill="#f0effa" stroke="#6d63a8"/>
+ <text x="275" y="444" text-anchor="middle" font-size="15" font-weight="700" fill="#51488c">Decode 3</text>
+ <rect x="380" y="412" width="45" height="52" rx="9" fill="#e5f3ef" stroke="#147d73"/>
+ <text x="402" y="444" text-anchor="middle" font-size="13" font-weight="700" fill="#0d5e58">1</text>
+ <text x="455" y="444" font-size="15" fill="#315d56">Prefill 完成；本轮共 4 tokens</text>
+</g>
+<rect x="60" y="515" width="1080" height="66" rx="13" fill="#fff6df" stroke="#d5a24a"/>
+<text x="84" y="543" font-family="Arial,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#80571a">核心直觉</text>
+<text x="84" y="567" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#80571a">Chunk 长度由每轮剩余 budget 动态决定；这不是固定 chunk_size，也不是完整 Scheduler 仿真。</text>
+</svg>

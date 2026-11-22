@@ -1,84 +1,115 @@
-# 🧠 vLLM 大模型推理引擎 · 从入门到精通
+# vLLM 推理系统：从原理到生产实践
 
-> 📘 28章 实战体系 · 交互式 HTML 课程
+一套面向大学生、研究生和推理工程初学者的中文视觉化课程。课程从自回归生成与 KV Cache 开始，逐步解释 PagedAttention、Continuous Batching、调度器、V1 Engine Core、多 GPU 并行、推测解码、多模态推理和生产部署。
 
-> **English TL;DR:** A 28-chapter, all-Chinese hands-on course on **vLLM**, the high-throughput LLM inference engine. From first principles (autoregressive decode, prefill vs decode, KV cache) through vLLM's core innovations — PagedAttention (virtual-memory blocks), Continuous Batching, chunked prefilling, prefix caching, the V1 architecture — to parallelism (TP/PP/DP), speculative decoding, multimodal, production/K8s deployment, observability, and a nano-vLLM source walkthrough. `nano-vLLM` in ch.23 (1,200 lines). HTML-visualized, zero-install.
+> 学习目标：不仅知道某个参数或术语是什么，还能沿着一次请求的生命周期解释它为什么存在、如何工作、会带来什么代价，以及如何验证它。
 
-## 📖 课程简介
+[打开课程地图](index.html) · [课程作者规范](AGENTS.md) · [vLLM Tutorial Skill](skills/vllm-tutorial/SKILL.md)
 
-本课程从**推理基础**讲到大模型推理引擎 vLLM 的核心机制与生产落地：理解 Prefill vs Decode、KV Cache、显存模型，再到 vLLM 的看家本领——**PagedAttention**（把 KV 缓存按块管理，逼近零碎片）、**Continuous Batching** 与 **Chunked Prefill**（填满 GPU、降延迟）、**Prefix Caching**，深入 V0/V1 两代调度器架构。后半程覆盖张量/流水线/数据并行、推测解码、多模态、K8s 部署、可观测性与排障，并以 23 章的 **nano-vLLM 源码剖析**（约 1200 行）收束原理到工程。
+## 课程设计
 
-## 🎯 主线横幅
+本仓库采用受 Olah 渐进式讲解方法启发的内容结构：先提出一个具体问题，再从最小例子逐步展开机制，最后连接到公式、代码、工程取舍和故障边界。所有图解独立绘制，不复制参考文章的图、文案或代码。
 
-```
-推理基础 → vLLM 核心(PA/批处理/调度) → 并行/推测/多模态 → 生产部署 → nano-vLLM 源码
-```
+每章的基本阅读路径：
 
-## 🚀 快速开始
+1. **先理解问题**：这一章讨论什么，为什么它会影响推理系统。
+2. **看见机制**：用专属 SVG 把数据流、内存映射或调度过程拆成步骤。
+3. **建立定量直觉**：给出公式、张量形状、单位和一个可复算的小例子。
+4. **连接工程实现**：对照官方文档、源码或可运行的最小示例。
+5. **理解边界**：说明版本差异、性能权衡、常见误解和适用条件。
 
-无需安装任何依赖，直接用浏览器打开 `index.html` 即可在线阅读全部章节：
+技术行为会随 vLLM 版本、模型架构、硬件和后端变化。涉及 CLI 默认值、API、调度策略、模型支持或性能数据时，必须核对官方资料并注明版本范围；没有可核验来源的数字不进入正文。
 
-```bash
-open index.html   # macOS；无需启动 HTTP 服务器
-# 或在浏览器中直接打开 index.html
-```
+## 知识分类
 
-## 📖 章节目录
+| 专题 | 章节 | 学习重点 |
+|---|---|---|
+| 推理基础与系统认知 | 01–02 | 自回归生成、Prefill / Decode、vLLM 的设计目标 |
+| KV Cache 与内存管理 | 03–04、08–09 | PagedAttention、Block Table、KV 生命周期、前缀缓存 |
+| 调度、批处理与运行时 | 05、10–13 | Continuous Batching、Scheduler、Chunked Prefill、V1 |
+| 安装、模型接入与生成控制 | 06–07、14 | 安装、模型加载、量化、Sampling、Structured Outputs |
+| 并行计算与高级推理 | 19–22 | TP / PP / DP / EP、推测解码、多模态 |
+| 生产部署、观测与可靠性 | 15–18、24–25 | Docker、Kubernetes、TTFT / ITL、Prometheus、Tracing、安全与排障 |
+| 源码阅读与系统实践 | 23、27 | nano-vLLM、RAG 推理服务 |
+| 趋势判断与学习路径 | 26、28 | 技术成熟度、知识图谱、后续学习路线 |
 
-| # | 章节 | 核心主题 |
-|---|------|----------|
-| 01 | LLM推理基础 | 自回归生成、Prefill vs Decode、KV Cache原理、显存估算 |
-| 02 | vLLM概述 | 发展历程、核心创新、竞品对比、适用场景 |
-| 03 | PagedAttention上篇 | 虚拟内存类比、Block Table、按需分配、Free Block Pool |
-| 04 | PagedAttention下篇 | Slot Mapping、Copy-on-Write、Block Size权衡、Flash Attn配合 |
-| 05 | Continuous Batching | 静态vs动态批处理、Chunked Prefill、调度粒度、性能对比 |
-| 06 | 快速上手 | 安装环境、离线推理、在线API服务、Docker部署 |
-| 07 | 模型加载与配置 | 模型来源、量化加载、显存参数、常见踩坑 |
-| 08 | KV Cache管理 | 显存估算、Free Block Pool、FP8量化、分层存储 |
-| 09 | Prefix Caching | 零开销实现、命中率分析、RAG场景收益、前缀感知路由 |
-| 10 | 调度器详解 | FCFS、Priority优先级、Preemption抢占、统一调度器 |
-| 11 | Chunked Prefill | 长Prompt处理、吞吐延迟平衡、Chunk Size选择 |
-| 12 | V1架构上篇 | 1+N多进程、EngineCore、ZeroMQ总线、故障隔离 |
-| 13 | V1架构下篇 | V0 vs V1、兼容性变化、特性成熟度、迁移指南 |
-| 14 | Sampling | 采样参数全解、Temperature、结构化输出、Logprobs |
-| 15 | 生产级部署 | Docker、显存规划、反向代理、高可用 |
-| 16 | Kubernetes部署 | Production Stack、Helm、前缀感知路由、GPU资源 |
-| 17 | 可观测性 | 三层监控、Prometheus、Grafana告警、链路追踪 |
-| 18 | 安全与访问控制 | API鉴权、Rate Limiting、注入防护、网络安全 |
-| 19 | 张量并行 | Megatron-LM、NCCL通信、NVLINK vs PCIe、性能分析 |
-| 20 | 流水线与数据并行 | 按层切分、跨节点PP、DP吞吐、MoE并行 |
-| 21 | 推测解码 | n-gram、EAGLE、Medusa、Gen-Edge |
-| 22 | 多模态推理 | ViT编码器、视觉问答、CUDA Graph加速、LoRA适配 |
-| 23 | nano-vLLM源码剖析 | 1200行架构、Engine/Scheduler、ModelRunner、Triton Kernel |
-| 24 | 调试与问题排查 | CUDA OOM、NCCL调试、性能退化、错误速查 |
-| 25 | 性能基准测试 | 吞吐/延迟测试、压测工具、Benchmark数据、调优Checklist |
-| 26 | 未来趋势 | Gen-Edge、Model Runner V2、智能路由、竞品 |
-| 27 | 实战项目 | RAG推理服务、端到端搭建、Prefix Cache优化、性能迭代 |
-| 28 | 课程总结 | 知识图谱、核心要点、进阶路径、推荐资源 |
+专题分类用于帮助读者按兴趣跳读；建议初学者仍按章节编号循序学习。每章的难度、预计用时、前置章节和学习目标维护在 `courses.json`，`courses-data.js` 是由脚本生成的离线目录数据，不要手工编辑。
 
-## 📂 项目结构
+## 仓库结构
 
 ```text
 vllm-tutorial/
-├── index.html      # 课程主入口
-├── 01.html ~ 28.html   # 章节正文
-├── courses.json    # 课程元数据
-└── theme.css       # 统一主题
+├── README.md
+├── AGENTS.md
+├── index.html                    # 分类课程地图，支持 file:// 离线打开
+├── 01.html ... 28.html           # 稳定的章节入口
+├── courses.json                  # 分类、标签、难度、前置知识和学习目标
+├── courses-data.js               # 由 courses.json 生成的离线目录
+├── theme.css                     # 旧章节的兼容样式（迁移完成后逐步收敛）
+├── assets/
+│   ├── css/article.css           # 新版文章统一设计系统
+│   ├── js/interactions.js        # 可访问的交互增强
+│   └── diagrams/                 # 按章节命名的原创 SVG
+├── evidence/                     # 每章关键技术主张的来源记录
+├── docs/                         # 扩展阅读与专题技术笔记
+├── skills/vllm-tutorial/          # 适配本课程的写作与审校 Skill
+├── scripts/
+│   └── build_course_data.py
+└── tests/
+    └── offline-catalog.test.cjs
 ```
 
-## 🎯 前置知识与适合人群
+章节仍使用根目录的 `01.html` 至 `28.html`，是为了保持本地双击打开和既有链接稳定。共享 CSS、交互脚本、SVG 和证据记录则集中管理，避免每篇文章重复实现。
 
-- 适合：LLM 推理工程师 / 平台工程师 / 对高效推理好奇的研究者
-- 建议具备：Python 基础 + Transformer / KV Cache 基本概念；无需 GPU（纯 HTML 讲解）
+## 本地阅读与开发
 
-## ✨ 课程特色
+阅读课程不需要安装 Python、Node.js 或 GPU 环境。直接打开：
 
-- **原理 → 源码**：从 PagedAttention 到 nano-vLLM 千行源码逐步拆解
-- **两代调度器对比**：V0 vs V1 架构更迭清晰
-- **生产向完整覆盖**：部署 / K8s / 可观测 / 安全 / 排障
-- **即开即用**：纯静态 HTML，无构建、无服务器
+```bash
+open index.html
+```
 
----
-*本课程由 `vllm-tutorial/` 项目维护。*
+修改课程元数据后，重新生成并校验离线目录：
 
-修改 `courses.json` 后请运行 `python3 scripts/build_course_data.py` 更新离线目录，并使用 `python3 scripts/build_course_data.py --check` 检查同步。回归测试：`node --test tests/offline-catalog.test.cjs`（Node.js 18+）。
+```bash
+python3 scripts/build_course_data.py
+python3 scripts/build_course_data.py --check
+node --test tests/offline-catalog.test.cjs
+python3 scripts/validate_articles.py
+```
+
+如果需要运行代码示例，请按对应章节说明准备 Python、PyTorch、CUDA、模型权重和 vLLM 版本。HTML 阅读本身不依赖这些运行环境。
+
+## 内容升级进度
+
+仓库采用逐章审校，不以一次性换肤代替内容改造。当前升级分支已完成 01–18 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验，14 章提供 Sampling 分布实验。15–18 章覆盖生产部署、Kubernetes、可观测性与安全。19–28 章仍按后续批次推进。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
+
+## 权威参考入口
+
+- [vLLM 官方文档](https://docs.vllm.ai/en/latest/)
+- [vLLM 官方 GitHub 仓库](https://github.com/vllm-project/vllm)
+- [PagedAttention 原始论文（SOSP 2023）](https://arxiv.org/abs/2309.06180)
+- [vLLM 架构概览](https://docs.vllm.ai/en/latest/design/arch_overview/)
+- [Paged Attention 设计文档](https://docs.vllm.ai/en/latest/design/paged_attention/)
+- [Automatic Prefix Caching 设计文档](https://docs.vllm.ai/en/latest/design/prefix_caching/)
+
+## 维护约定
+
+- 先读 [AGENTS.md](AGENTS.md)，再按 [Skill](skills/vllm-tutorial/SKILL.md) 修改。
+- 每次聚焦一章或一个清晰专题；避免未经核验的全局替换。
+- 关键事实写入 `evidence/NN.json`，区分官方行为、论文结果、推导、教学示例和建议。
+- 修改章节标题、分类、前置知识或链接时同步更新 `courses.json` 并重新生成 `courses-data.js`。
+- PR 描述应列出实际修改的章节、已执行检查和未执行检查；不虚报浏览器 QA 或 Pages 部署状态。
+
+
+## Publishing and quality gates
+
+The canonical GitHub Pages release target is:
+
+- `https://1998x-stack.github.io/vllm-tutorial/`
+
+Pull requests run the offline catalog checks, static article validation, and Chromium QA for chapters 01–18 at 1440px, 768px, 390px, and 360px. The browser gate checks page errors, console errors, local asset responses, in-page anchors, diagram visibility, and page-level horizontal overflow. It also exercises the KV Cache calculator (chapter 08), Chunked Prefill budget explorer (chapter 11), and Sampling explorer (chapter 14), including keyboard input.
+
+A push to `master` publishes the static course through GitHub Pages and then verifies the public index, representative chapters, course data, stylesheets, diagrams, and interactive scripts. A successful pull-request check is not a deployment result; the Pages job must also complete.
+
+**PDF is not a release artifact for this repository.** The supported deliverable is the offline-first HTML course with local CSS, JavaScript, and SVG assets. PDF export and PDF visual QA are intentionally out of scope unless a future course requirement adds them.

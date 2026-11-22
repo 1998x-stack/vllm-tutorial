@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+<title id="title">vLLM 简化服务架构</title>
+<desc id="desc">请求进入 API Server 后交给 Engine Core。Engine Core 中的 Scheduler 决定本轮 token 工作，KV Cache Manager 管理块和前缀复用，再把执行计划发送给 GPU Workers。结果回到 API Server 并流式返回客户端。具体进程数量会随并行配置变化。</desc>
+<defs><marker id="a02" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<rect width="1200" height="600" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">vLLM：把一次请求组织成一轮轮 GPU 工作</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">这是帮助理解职责边界的简化图，不代表所有部署配置下的固定进程数量。</text>
+<rect x="55" y="170" width="175" height="110" rx="16" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+<text x="142" y="208" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="20" font-weight="700" fill="#264b45">Client</text>
+<text x="142" y="239" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#60716c">HTTP / OpenAI API</text>
+<path d="M230 225 H290" stroke="#47756d" stroke-width="3" marker-end="url(#a02)"/>
+<rect x="300" y="170" width="190" height="110" rx="16" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+<text x="395" y="208" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="20" font-weight="700" fill="#0d5e58">API Server</text>
+<text x="395" y="239" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#315d56">接收、校验、流式响应</text>
+<path d="M490 225 H550" stroke="#47756d" stroke-width="3" marker-end="url(#a02)"/>
+<rect x="560" y="128" width="310" height="310" rx="20" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+<text x="715" y="165" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="21" font-weight="700" fill="#51488c">Engine Core</text>
+<rect x="590" y="190" width="250" height="92" rx="13" fill="#fff" stroke="#b9b4d8"/>
+<text x="715" y="225" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#51488c">Scheduler</text>
+<text x="715" y="252" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">选择请求与 token budget</text>
+<rect x="590" y="306" width="250" height="98" rx="13" fill="#fff" stroke="#b9b4d8"/>
+<text x="715" y="341" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#51488c">KV Cache Manager</text>
+<text x="715" y="369" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">分配 blocks / 前缀命中 / 回收</text>
+<path d="M715 282 V304" stroke="#6d63a8" stroke-width="2.5" marker-end="url(#a02)"/>
+<path d="M870 225 H940" stroke="#47756d" stroke-width="3" marker-end="url(#a02)"/>
+<rect x="950" y="170" width="195" height="110" rx="16" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+<text x="1047" y="208" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="20" font-weight="700" fill="#9c4d30">GPU Workers</text>
+<text x="1047" y="239" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">模型前向与采样相关计算</text>
+<path d="M1047 280 V345 H870" fill="none" stroke="#c66a46" stroke-width="2.5" stroke-dasharray="7 6"/>
+<text x="1000" y="331" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#9c4d30">执行结果</text>
+<path d="M560 390 H395 V284" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a02)"/>
+<text x="465" y="378" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#53636b">token / 状态回传</text>
+<rect x="55" y="475" width="1090" height="78" rx="15" fill="#fff" stroke="#dce4e1"/>
+<text x="82" y="506" font-family="Arial,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#264b45">围绕这条执行链的关键能力</text>
+<text x="82" y="534" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#53636b">Paged KV Cache 管理　·　Continuous / Iteration-level Batching　·　Prefix Caching　·　并行执行与 Attention Backends</text>
+</svg>

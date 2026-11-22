@@ -1,0 +1,43 @@
+{
+  "chapter": "03",
+  "reviewed_at": "2026-11-20",
+  "scope": "Conceptual explanation of paged KV blocks. Block size 4 and physical IDs are invented teaching values, not vLLM defaults.",
+  "claims": [
+    {
+      "id": "logical-physical-blocks",
+      "claim": "PagedAttention stores logical KV blocks in non-contiguous physical memory blocks and uses block mappings to locate them.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2309.06180",
+      "locator": "PagedAttention design",
+      "notes": "The operating-system paging analogy is conceptual; GPU KV cache implementation details differ from CPU virtual memory."
+    },
+    {
+      "id": "block-table-mapping",
+      "claim": "A logical token position can be mapped to a logical block index, an in-block offset and then a physical block ID.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://docs.vllm.ai/en/latest/design/paged_attention/",
+      "locator": "Paged attention data layout and block access",
+      "notes": "Chapter example uses t=9 and block_size=4: logical block 2, offset 1, physical block 11 from the toy table."
+    },
+    {
+      "id": "block-size-configurable",
+      "claim": "KV cache block size is a configuration parameter and should not be presented as one universal constant.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/api/vllm/config/cache/",
+      "locator": "CacheConfig.block_size",
+      "notes": "Supported values and defaults depend on version, hardware and attention backend."
+    },
+    {
+      "id": "fragmentation-boundary",
+      "claim": "Paged allocation reduces the need for large contiguous KV cache regions, but does not remove all memory overhead or guarantee a fixed utilization percentage.",
+      "kind": "derived",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2309.06180",
+      "locator": "PagedAttention memory management design",
+      "notes": "The final partially filled block and non-KV allocations still consume or strand memory."
+    }
+  ]
+}

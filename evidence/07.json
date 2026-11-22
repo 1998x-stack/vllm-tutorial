@@ -1,0 +1,80 @@
+{
+  "chapter": "07",
+  "reviewed_at": "2026-11-21",
+  "scope": "Model resolution, model identity, weight loading, dtype, quantization semantics and runtime memory parameters.",
+  "upstream_source_commit": "0bf9c07376a4091627e6cb50dd85464361db452c",
+  "claims": [
+    {
+      "id": "architecture-based-model-resolution",
+      "claim": "vLLM resolves Hugging Face compatible models by inspecting the architectures field in config.json and matching a registered model implementation.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/model_resolution/",
+      "locator": "Model Resolution",
+      "notes": "hf_overrides can correct an architecture label but cannot add an unsupported implementation."
+    },
+    {
+      "id": "separate-model-tokenizer-code-revisions",
+      "claim": "Model revision, tokenizer revision and code revision are separate configuration identities and may need independent pinning.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/model.py",
+      "locator": "ModelConfig.revision, tokenizer_revision, code_revision",
+      "notes": "Tokenizer follows model revision by default only when both refer to the same repository."
+    },
+    {
+      "id": "remote-code-trust-default",
+      "claim": "trust_remote_code defaults to false; enabling it is a decision to trust and execute remote model or tokenizer code.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/model.py",
+      "locator": "ModelConfig.trust_remote_code",
+      "notes": "Do not enable it as a generic compatibility workaround."
+    },
+    {
+      "id": "dtype-auto-resolution",
+      "claim": "Current ModelConfig dtype=auto maps FP32 and FP16 model configs to FP16 and BF16 configs to BF16.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/model.py",
+      "locator": "ModelConfig.dtype docstring",
+      "notes": "Hardware and model constraints still apply."
+    },
+    {
+      "id": "quantization-method-scheme-kernel",
+      "claim": "vLLM quantization docs distinguish method (checkpoint loading implementation), scheme (tensor numeric format and scales), and kernel (execution implementation).",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/features/quantization/formats/",
+      "locator": "Terms",
+      "notes": "W4A16 describes 4-bit weights and 16-bit activations; it does not mean total model memory is exactly one quarter."
+    },
+    {
+      "id": "max-model-len-includes-output",
+      "claim": "max_model_len limits the full sequence context including prompt and output; -1 or auto requests automatic selection constrained by available GPU memory.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/model.py",
+      "locator": "ModelConfig.max_model_len",
+      "notes": "Model-declared context capability and cache capacity still constrain the result."
+    },
+    {
+      "id": "gpu-memory-budget-defaults",
+      "claim": "Current CacheConfig documents conditional gpu_memory_utilization defaults: 1.0 with extensible KV cache and 0.92 otherwise; kv_cache_memory_bytes overrides the automatic KV cache budget.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/config/cache.py",
+      "locator": "gpu_memory_utilization and kv_cache_memory_bytes",
+      "notes": "Commit-specific behavior; do not generalize to older releases or unsupported platforms."
+    },
+    {
+      "id": "default-loader-shards",
+      "claim": "The default model loader reads checkpoint weights through weight iterators and loads them into an initialized model before post-load processing.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/0bf9c07376a4091627e6cb50dd85464361db452c/vllm/model_executor/model_loader/default_loader.py",
+      "locator": "DefaultModelLoader",
+      "notes": "Checkpoint formats and optimized paths vary by model and release."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+<title id="title">Automatic Prefix Caching 的哈希链、命中与缓存生命周期</title>
+<desc id="desc">请求 A 和 B 的前两个 token blocks 完全相同时，parent hash 链产生相同 H0 和 H1，可复用 KV。请求分叉后的后缀需要重新计算。命中块增加引用计数，释放后回到 LRU free queue，容量不足时移除 hash 并淘汰。混合 Mamba 的细粒度共享前缀是受约束的特殊路径。</desc>
+<defs><marker id="arr09" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<rect width="1200" height="680" rx="24" fill="#fbfaf7"/>
+<text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">精确 token 前缀 → 相同 parent-hash 链 → 复用已计算 KV</text>
+<text x="52" y="82" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#60716c">示例 block size = 4，仅用于说明；真实边界由模型 KV groups 与当前配置决定。</text>
+<g font-family="Arial,'PingFang SC',sans-serif">
+ <text x="60" y="132" font-size="17" font-weight="700" fill="#264b45">请求 A</text>
+ <rect x="160" y="105" width="230" height="58" rx="10" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="275" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">[S, A, B, C]</text>
+ <rect x="405" y="105" width="230" height="58" rx="10" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="520" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">[D, E, F, G]</text>
+ <rect x="650" y="105" width="230" height="58" rx="10" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <text x="765" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="#9c4d30">[Question A ...]</text>
+ <text x="60" y="212" font-size="17" font-weight="700" fill="#264b45">请求 B</text>
+ <rect x="160" y="185" width="230" height="58" rx="10" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="275" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">[S, A, B, C]</text>
+ <rect x="405" y="185" width="230" height="58" rx="10" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="520" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#0d5e58">[D, E, F, G]</text>
+ <rect x="650" y="185" width="230" height="58" rx="10" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <text x="765" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#9c4d30">[Question B ...]</text>
+ <path d="M275 164 V177 M520 164 V177" stroke="#147d73" stroke-width="2.5"/>
+ <text x="930" y="145" font-size="15" font-weight="700" fill="#0d5e58">相同 token blocks</text>
+ <text x="930" y="171" font-size="14" fill="#53636b">H0、H1 有机会命中</text>
+ <text x="930" y="218" font-size="15" font-weight="700" fill="#9c4d30">不同问题后缀</text>
+ <text x="930" y="244" font-size="14" fill="#53636b">后续 KV 需要继续计算</text>
+</g>
+<path d="M275 243 V274 H470" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#arr09)"/>
+<path d="M520 243 V274 H730" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#arr09)"/>
+<rect x="260" y="284" width="680" height="82" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+<text x="600" y="316" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#51488c">Hash Chain</text>
+<text x="600" y="345" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#625b91">H_i = Hash(parent_hash, block_token_ids, extra_keys)</text>
+<text x="60" y="420" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#264b45">缓存块的生命周期</text>
+<g font-family="Arial,'PingFang SC',sans-serif">
+ <rect x="60" y="444" width="220" height="82" rx="13" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="170" y="476" text-anchor="middle" font-size="17" font-weight="700" fill="#0d5e58">Lookup 命中</text>
+ <text x="170" y="503" text-anchor="middle" font-size="14" fill="#315d56">找到已有 KV block</text>
+ <path d="M280 485 H315" stroke="#47756d" stroke-width="2.5" marker-end="url(#arr09)"/>
+ <rect x="330" y="444" width="220" height="82" rx="13" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <text x="440" y="476" text-anchor="middle" font-size="17" font-weight="700" fill="#51488c">Touch / ref_cnt++</text>
+ <text x="440" y="503" text-anchor="middle" font-size="14" fill="#625b91">活动引用时不可淘汰</text>
+ <path d="M550 485 H585" stroke="#47756d" stroke-width="2.5" marker-end="url(#arr09)"/>
+ <rect x="600" y="444" width="220" height="82" rx="13" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <text x="710" y="476" text-anchor="middle" font-size="17" font-weight="700" fill="#9c4d30">Free / ref_cnt--</text>
+ <text x="710" y="503" text-anchor="middle" font-size="14" fill="#87533f">归零后回到 Free Queue</text>
+ <path d="M820 485 H855" stroke="#47756d" stroke-width="2.5" marker-end="url(#arr09)"/>
+ <rect x="870" y="444" width="270" height="82" rx="13" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <text x="1005" y="476" text-anchor="middle" font-size="17" font-weight="700" fill="#264b45">LRU Eviction</text>
+ <text x="1005" y="503" text-anchor="middle" font-size="14" fill="#53636b">移除 hash，回收物理块</text>
+</g>
+<rect x="60" y="558" width="1080" height="76" rx="13" fill="#fff6df" stroke="#d5a24a"/>
+<text x="84" y="587" font-family="Arial,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#80571a">特殊路径：Hybrid Mamba</text>
+<text x="84" y="613" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#80571a">满足 prefix_match_unit、block 对齐和 shared-prefix checkpoint 约束时，可支持特定 sub-block 共享；不是所有模型的任意 token 命中。</text>
+</svg>

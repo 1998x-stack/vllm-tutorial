@@ -1,157 +1,183 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第18章 安全与访问控制</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="理解 vLLM API Key 的认证边界、未受保护端点、分布式网络隔离、多租户共享进程、Prefix Cache timing side channel 与 cache_salt。">
+  <title>第 18 章｜Security & Multi-tenancy：保护推理服务边界</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html" class="active">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/usage/security/" target="_blank" rel="noopener noreferrer">Security Guide ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#threat">18.1 先定义信任边界</a></li>
+      <li><a href="#apikey">18.2 API Key 不等于完整安全网关</a></li>
+      <li><a href="#network">18.3 分布式通信与网络隔离</a></li>
+      <li><a href="#tenant">18.4 多租户、共享缓存与 cache_salt</a></li>
+      <li><a href="#resource">18.5 资源耗尽与请求限制</a></li>
+      <li><a href="#application">18.6 Prompt Injection、工具权限与供应链</a></li>
+      <li><a href="#checklist">18.7 生产安全检查单</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 18 章 · 生产部署、观测与可靠性</p>
+      <h1>Security & Multi-tenancy：保护推理服务边界</h1>
+      <p class="article-dek">推理服务暴露的不只是一个 Chat Completions URL。它还可能暴露模型信息、指标、运维控制端点、分布式通信端口与共享缓存。安全设计必须同时覆盖网络、身份、资源、数据、模型制品和多租户隔离。</p>
+      <div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">约 25 分钟</span><span class="meta-chip">前置章节：07、12、13、15、17</span><span class="meta-chip">安全审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">一个常见误区是：启动 vLLM 时加上 <code>--api-key</code>，服务就已经安全。实际上，API Key 只保护指定路径前缀中的部分 HTTP API；同一个服务器上还有未受该认证保护的推理、运维和监控端点。更深一层，多个租户如果共享同一个 vLLM 进程，也会共享调度器和缓存状态。要建立安全边界，必须先明确哪些组件和数据可以被谁访问。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>画出 Gateway、vLLM HTTP Server、GPU Worker 和内部通信网络的信任边界。</li>
+        <li>解释当前 vLLM API Key 认证覆盖哪些路径，以及为什么还需要反向代理 allowlist。</li>
+        <li>识别分布式通信、KV transfer 与管理端点的网络风险。</li>
+        <li>区分 cache_salt 的侧信道缓解作用与真正的租户隔离。</li>
+        <li>设计输入限制、工具授权、日志脱敏和模型制品供应链策略。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第18章 安全与访问控制</h2>
 
-<p>vLLM 默认不做任何鉴权——任何人能访问 8000 端口就能调用你的昂贵 GPU。生产环境中，安全是必须加的最后一公里。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/18-security-trust-boundaries.svg" alt="公网用户只能访问 TLS Gateway，Gateway 负责认证、限流和路径 allowlist；Gateway 到内网 vLLM API Server 通过私有网络；分布式 GPU worker 与 KV transfer 网络仅允许可信节点；Prometheus 和管理端点只允许运维网络访问">
+      <figcaption>图 1：最小暴露面的信任边界。公网只应到达经过保护的入口；推理服务、GPU 分布式通信、运维端点和指标抓取应按职责隔离。</figcaption>
+    </figure>
 
-<h3>18.1 安全架构概览</h3>
+    <section id="threat">
+      <h2>18.1 先定义信任边界</h2>
+      <p>把风险按数据流拆成五类：</p>
+      <ul>
+        <li><strong>身份与访问：</strong>谁可以调用哪个模型、使用多少 token、访问哪些 endpoint？</li>
+        <li><strong>网络与控制平面：</strong>谁可以连接 API Server、分布式通信端口、KV transfer、运维控制和 Metrics？</li>
+        <li><strong>资源耗尽：</strong>谁可以发送超长 Prompt、大批多模态媒体、过高并发或大量输出请求？</li>
+        <li><strong>数据隔离：</strong>不同租户是否共享 Prefix Cache、媒体缓存、模型状态和日志？</li>
+        <li><strong>供应链与应用：</strong>镜像、模型权重、Tokenizer、远程代码、工具调用和 RAG 数据是否可信？</li>
+      </ul>
+      <p>安全不是一个开关，而是多个边界共同工作。Gateway 负责外部身份与策略；Kubernetes NetworkPolicy / 防火墙控制可达性；vLLM 参数限制推理资源；应用层控制工具权限与数据访问。</p>
+    </section>
 
-<pre><code>安全分层架构:
-┌─────────────────────────────────┐
-│  外部用户/应用                    │
-└───────────────┬─────────────────┘
-                │ HTTPS (TLS)
-                ▼
-┌─────────────────────────────────┐
-│  反向代理 (Nginx/Envoy)          │
-│  - API 鉴权 (API Key / JWT)     │
-│  - 速率限制 (Rate Limiting)      │
-│  - IP 白名单/黑名单              │
-│  - Prompt Injection 检测         │
-└───────────────┬─────────────────┘
-                │
-                ▼
-┌─────────────────────────────────┐
-│  vLLM 实例 (内网，不暴露公网)      │
-└─────────────────────────────────┘</code></pre>
+    <section id="apikey">
+      <h2>18.2 API Key 不等于完整安全网关</h2>
+      <p>当前 vLLM 的 <code>--api-key</code>（或 <code>VLLM_API_KEY</code>）为 HTTP Server 提供 Bearer Token 认证，但官方 Security 文档明确说明，它只覆盖 <code>/v1</code>、<code>/v2</code>、<code>/inference</code> 和 <code>/cohere</code> 等指定路径前缀。其他端点可能不受该认证保护。</p>
+      <p>未受 API Key 保护的端点类别包括：</p>
+      <ul>
+        <li>部分推理 API，例如 <code>/invocations</code>、<code>/pooling</code>、<code>/classify</code>、<code>/score</code> 和 <code>/rerank</code>。</li>
+        <li>运维控制，例如 <code>/pause</code>、<code>/resume</code>、<code>/abort_requests</code>、<code>/update_weights</code>，以及按配置启用的其他控制接口。</li>
+        <li>实用与健康检查端点，例如 <code>/metrics</code>、<code>/health</code>、<code>/version</code>、<code>/tokenize</code> 等。</li>
+        <li>仅在开发或特定功能开启时暴露的调试、Profiler、Tokenizer 信息等端点。</li>
+      </ul>
+      <p>因此，生产环境应把 vLLM 放在受控私网中，并在 Nginx、Envoy 或 Kubernetes Gateway 上实施显式 endpoint allowlist：只开放业务真正需要的 API，拒绝其余推理与运维路径。Prometheus 抓取 <code>/metrics</code> 应来自受信任的监控网络，而不是公网。</p>
+      <div class="callout warning">
+        <p><strong>API Key 不是 RBAC，也不是租户隔离。</strong>它不能替代每用户身份、模型级授权、租户配额、审计和网络边界。不能因为客户端请求带了 Bearer Token，就允许它访问整个 vLLM HTTP Server。</p>
+      </div>
+    </section>
 
-<h3>18.2 API 鉴权</h3>
+    <section id="network">
+      <h2>18.3 分布式通信与网络隔离</h2>
+      <p>vLLM 的多 GPU / 多节点执行依赖 PyTorch Distributed、NCCL 以及可能的 KV Cache Transfer。官方安全文档指出，这些节点间通信默认并不自动获得端到端加密或完整认证保护；PyTorch TCPStore 等底层服务也可能监听网络接口。</p>
+      <p>建议把网络拆成至少三个逻辑平面：</p>
+      <ol>
+        <li><strong>外部入口平面：</strong>只允许客户端访问 TLS Gateway 的必要端口。</li>
+        <li><strong>推理服务平面：</strong>Gateway / Router 可以访问 vLLM API；普通客户端不能直连 Engine Pod。</li>
+        <li><strong>节点间通信平面：</strong>TP / PP / DP 通信与 KV transfer 只允许可信节点或明确的 Pod 网络范围访问。</li>
+      </ol>
+      <p>在 Kubernetes 中可以使用 NetworkPolicy 控制 Pod ingress / egress；在裸机或多节点部署中使用防火墙和隔离网络。配置 default-deny egress 时，别忘了为 DNS、模型存储、监控与必要的内部服务显式开通流量。</p>
+    </section>
 
-<p>vLLM 支持通过 <code>--api-key</code> 参数启用简单的 token 鉴权：</p>
+    <section id="tenant">
+      <h2>18.4 多租户、共享缓存与 cache_salt</h2>
+      <p>当前 vLLM Security 文档明确指出：共享同一个 vLLM server process 的不同租户之间，没有完整的租户隔离。不同调用者的请求会共同进入调度器并共享缓存。<code>cache_salt</code> 可以缓解特定 Prefix Cache 风险，但不是隔离边界。</p>
+      <p>为什么共享 Prefix Cache 会有安全含义？如果两个租户共享相同前缀的缓存，一个租户可能通过 TTFT 差异推断另一个租户是否访问过某段前缀。这是一种 timing side channel，而不是直接读出 KV Tensor 的攻击。</p>
+      <p><code>cache_salt</code> 会被混入首个 KV Cache block 的哈希。只有携带相同 salt 的请求才能共享相应前缀缓存。安全使用时应：</p>
+      <ul>
+        <li>在 Gateway 端为每个租户生成并注入随机、不可预测的 secret salt。</li>
+        <li>不要把用户名、租户 ID 等可猜测标识直接当作 salt。</li>
+        <li>对需要更强隔离的场景，为租户部署独立 vLLM 实例。</li>
+        <li>对多模态请求，按租户作用域管理客户端提供的媒体 UUID 等缓存标识。</li>
+      </ul>
+      <p>Salt 的代价是降低跨租户缓存复用率。它是隐私与性能之间的权衡机制，不应被描述成“共享进程已经安全隔离”。</p>
+    </section>
 
-<pre><code># vLLM 自带 API Key 鉴权
-vllm serve model --api-key "sk-your-secret-key"
+    <section id="resource">
+      <h2>18.5 资源耗尽与请求限制</h2>
+      <p>GPU 推理是一种昂贵的共享资源。攻击者不一定需要执行代码，只要持续发送长 Prompt、高输出上限、大批媒体或大量并发请求，就可能让其他用户的延迟和可用性恶化。</p>
+      <p>建议在多个层次建立限制：</p>
+      <ul>
+        <li><strong>Gateway：</strong>每身份请求速率、并发连接数、请求体大小、每日 token 配额和模型访问范围。</li>
+        <li><strong>vLLM：</strong>合理设置上下文长度、最大输出 token、并发序列、日志概率请求上限和多模态媒体下载 / 解码限制。</li>
+        <li><strong>应用层：</strong>对上传文件、图片分辨率、音视频时长、批次大小和工具调用次数设定业务约束。</li>
+        <li><strong>观测与告警：</strong>跟踪队列、KV Cache、抢占、请求长度分布和单租户资源消耗。</li>
+      </ul>
+      <p>不要把所有限制只放在模型 Prompt 中。服务端必须在模型开始执行之前验证请求资源预算；客户端声明的用户、租户或 cache_salt 也必须由可信 Gateway 绑定，而不是任由不可信调用者伪造。</p>
+    </section>
 
-# 客户端请求
-curl http://localhost:8000/v1/chat/completions \
-    -H "Authorization: Bearer sk-your-secret-key" \
-    -d '{"model": "...", "messages": [...]}'</code></pre>
+    <section id="application">
+      <h2>18.6 Prompt Injection、工具权限与供应链</h2>
+      <p>Prompt Injection 是应用层的指令与数据边界问题。模型可能把用户输入、检索内容或网页内容当成指令；仅靠 system prompt 分隔符、关键词过滤或输出正则，不能构成可靠的授权系统。</p>
+      <p>对会调用工具的应用，应该把权限放在工具执行层：</p>
+      <ul>
+        <li>工具按用户身份执行授权检查，模型不能自行提升权限。</li>
+        <li>RAG 检索在数据源层执行 ACL 过滤，不能只在 Prompt 中声明“不要读取机密”。</li>
+        <li>模型生成的 SQL、Shell、代码和 URL 在执行前必须经过策略检查或沙箱。</li>
+        <li>结构化输出需要 Schema 校验，但业务语义、数据范围和操作权限仍要二次验证。</li>
+      </ul>
+      <p>供应链方面，固定 Docker image digest 和模型 revision；对 <code>trust_remote_code</code> 保持显式审查；限制镜像仓库、模型存储与下载凭证；不要在生产开启 vLLM Development Mode 或不必要的 Profiler / Tokenizer 信息端点。</p>
+      <p>日志也要按敏感数据处理：优先记录 request ID、模型版本、耗时、token 数、错误类别等必要元数据；Prompt、Completion、Authorization Header、媒体内容和工具输出需要明确的脱敏、保留周期与访问权限。</p>
+    </section>
 
-<p>更复杂的鉴权（JWT、OAuth2、多租户）建议在反向代理层实现：</p>
+    <section id="checklist">
+      <h2>18.7 生产安全检查单</h2>
+      <ol>
+        <li>vLLM API Server 是否只在私网监听，公网是否只能到达 Gateway？</li>
+        <li>Gateway 是否采用 endpoint allowlist，而不是只配置 API Key？</li>
+        <li><code>/metrics</code>、<code>/health</code>、运维控制与调试端点是否仅对受信任网络开放？</li>
+        <li>多节点分布式通信与 KV transfer 是否限制在可信节点网络？</li>
+        <li>多租户是否明确选择独立实例，或由 Gateway 注入租户作用域的 cache_salt / UUID？</li>
+        <li>请求体、上下文、输出长度、多模态负载、并发与 token 配额是否受限？</li>
+        <li>工具、RAG 数据与外部动作是否在应用执行层进行授权？</li>
+        <li>镜像、模型、Tokenizer、远程代码、Secret 与日志是否纳入供应链和数据治理？</li>
+      </ol>
+    </section>
 
-<pre><code># Nginx + JWT 鉴权
-location /v1/ {
-    auth_jwt "vLLM API";
-    auth_jwt_key_file /etc/nginx/jwt-public-key.pem;
-    proxy_pass http://vllm_backend;
-}</code></pre>
+    <section id="recap">
+      <h2>本章自检</h2>
+      <ol>
+        <li>为什么 <code>--api-key</code> 不能作为 vLLM 生产环境唯一的安全措施？</li>
+        <li>为什么分布式通信和 KV transfer 需要单独的网络隔离？</li>
+        <li>cache_salt 能缓解什么风险？它不能解决什么问题？</li>
+        <li>为什么 Prompt Injection 防护必须落实到工具和数据访问授权？</li>
+        <li>哪些内容不适合成为 Prometheus label，却可能需要写入受控 Trace 或日志？</li>
+      </ol>
+      <p>第五批到这里完成：生成控制、生产部署、Kubernetes、可观测性与安全边界形成了从单请求到生产集群的工程闭环。</p>
+    </section>
 
-<h3>18.3 速率限制（Rate Limiting）</h3>
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>vLLM 官方：<a href="https://docs.vllm.ai/en/latest/usage/security/" target="_blank" rel="noopener noreferrer">Security</a>，API Key 限制、未保护端点、网络隔离、多租户与 Cache Salting。</li>
+        <li>Kubernetes：<a href="https://kubernetes.io/docs/concepts/services-networking/network-policies/" target="_blank" rel="noopener noreferrer">Network Policies</a>。</li>
+        <li>vLLM：<a href="https://docs.vllm.ai/en/latest/usage/metrics/" target="_blank" rel="noopener noreferrer">Production Metrics</a>，安全地暴露与抓取监控指标。</li>
+        <li>vLLM 源码：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/docs/usage/security.md" target="_blank" rel="noopener noreferrer">Security implementation guidance</a>。</li>
+        <li>研究背景：<a href="https://arxiv.org/abs/2411.18191" target="_blank" rel="noopener noreferrer">Leaking Secrets from Prefix Caches</a>，Prefix Cache timing side-channel 研究。</li>
+      </ol>
+      <p><small>安全端点列表会随 vLLM 功能和版本变化。部署升级时必须重新检查目标版本 Security 文档，并对实际 HTTP 路由执行访问控制测试。</small></p>
+    </section>
 
-<table>
-  <tr><th>维度</th><th>限制目的</th><th>实现方式</th></tr>
-  <tr><td>每个 API Key 的 QPS</td><td>防止单个用户打满 GPU</td><td>Nginx limit_req_zone / Envoy rate limit</td></tr>
-  <tr><td>每个 IP 的并发连接数</td><td>防止爬虫/恶意调用</td><td>Nginx limit_conn</td></tr>
-  <tr><td>请求 token 总量</td><td>防止超长 prompt 霸占显存</td><td><code>--max-model-len</code> 硬限制</td></tr>
-  <tr><td>每日/每月 token 配额</td><td>成本控制</td><td>API Gateway 层计数</td></tr>
-</table>
-
-<pre><code># Nginx 速率限制示例
-limit_req_zone $binary_remote_addr zone=vllm:10m rate=30r/s;
-
-location /v1/ {
-    limit_req zone=vllm burst=10 nodelay;
-    proxy_pass http://vllm_backend;
-}</code></pre>
-
-<h3>18.4 Prompt Injection 防护</h3>
-
-<p>LLM 服务的特色安全问题——用户可能通过精心构造的 prompt 绕过限制或获取不该访问的信息：</p>
-
-<pre><code># 基础防护措施:
-
-# 1. 限制输入长度（防超长 prompt 攻击）
-# 应用层: 拒绝超过 8000 token 的 prompt
-if len(tokenizer.encode(user_prompt)) > 8000:
-    raise HTTPException(400, "Prompt too long")
-
-# 2. System Prompt 隔离
-# 用特殊分隔符隔离 user prompt 和 system prompt
-# 防止用户通过 prompt 覆盖 system 指令
-
-# 3. 输出过滤
-# 对生成的文本进行关键词/正则检查
-# 防止泄露敏感信息（如 SSN、信用卡号）</code></pre>
-
-<div class="warning">
-  <p><strong>重要</strong>：vLLM 本身不做 Prompt Injection 防护。这是一个应用层问题，需要在 API Gateway 或业务代码中处理。不要直接把 vLLM 暴露给不可信用户而无任何过滤。</p>
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="17.html">← 上一章：Observability</a><a class="next" href="19.html">下一章：Parallelism →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
 </div>
-
-<h3>18.5 网络安全最佳实践</h3>
-
-<ul>
-  <li><strong>vLLM 实例只监听内网 IP</strong>：<code>--host 127.0.0.1</code>（单机）或 <code>--host 10.0.0.x</code>（内网），永远不要 <code>--host 0.0.0.0</code> 到公网</li>
-  <li><strong>TLS 终结在反向代理</strong>：Nginx/Envoy 处理 HTTPS，vLLM 和代理之间用 HTTP</li>
-  <li><strong>最小权限原则</strong>：vLLM 容器不要以 root 运行，用 <code>USER 1000</code></li>
-  <li><strong>网络隔离</strong>：vLLM Pod 放在 K8s 的 private subnet，只允许 API Gateway 访问</li>
-</ul>
-
-<div class="tip">
-  <p><strong>快速检查清单</strong>：上生产前确认——(1) 有没有鉴权层？(2) 公网能直接访问 vLLM 吗？(3) 有没有速率限制？(4) 对用户输入长度有限制吗？四项都是 Yes 才算安全基线。</p>
-</div>
-
-<p>第三部分"部署运维篇"结束。从下一章开始进入"高级专题篇"——张量并行、推测解码、多模态推理，帮你把 vLLM 的性能推到极限。</p>
-
-        <div class="footer-nav"><a href="17.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="19.html">下一章 →</a></div>
-    </div>
-</div></div>
 </body>
 </html>

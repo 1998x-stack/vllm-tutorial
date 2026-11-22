@@ -1,0 +1,43 @@
+{
+  "chapter": "01",
+  "reviewed_at": "2026-11-20",
+  "scope": "Transformer autoregressive inference; KV Cache sizing example is explicitly illustrative and uses the stated Llama 3 8B structure assumptions.",
+  "claims": [
+    {
+      "id": "autoregressive-generation",
+      "claim": "Autoregressive generation predicts a next token conditioned on previously available tokens.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/1706.03762",
+      "locator": "Decoder architecture and masked self-attention",
+      "notes": "Tokenization units are model-tokenizer dependent; token is not synonymous with a word or Chinese character."
+    },
+    {
+      "id": "prefill-decode-characteristics",
+      "claim": "Prefill processes prompt tokens and Decode advances generation using cached key/value states.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/configuration/optimization/",
+      "locator": "Chunked Prefill section",
+      "notes": "Compute- versus memory-bound behavior depends on sequence length, batch size, hardware, backend and configuration."
+    },
+    {
+      "id": "kv-cache-formula",
+      "claim": "For standard attention KV storage, bytes scale with 2 × layers × KV heads × head dimension × cached tokens × bytes per element.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://huggingface.co/meta-llama/Meta-Llama-3-8B/blob/main/config.json",
+      "locator": "num_hidden_layers, num_key_value_heads, hidden_size, num_attention_heads",
+      "notes": "The chapter's 128 KiB/token and 1 GiB/8192-token figures are arithmetic derived from 32 layers, 8 KV heads, head_dim 128 and FP16. Excludes runtime overhead and deployment-specific sharding."
+    },
+    {
+      "id": "serving-metrics",
+      "claim": "TTFT, ITL/TPOT, end-to-end latency and throughput describe different aspects of inference service quality.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/",
+      "locator": "Metrics and benchmarking documentation",
+      "notes": "Definitions and aggregation windows should be checked against the selected benchmark tool."
+    }
+  ]
+}

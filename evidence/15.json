@@ -1,0 +1,62 @@
+{
+  "chapter": "15",
+  "reviewed_at": "2026-11-21",
+  "scope": "Production container deployment, resource planning, routing, health checks and availability design.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "official-docker-image",
+      "claim": "vLLM publishes official Docker images for running the OpenAI-compatible server; the Docker guide documents shared-memory configuration using either --ipc=host or --shm-size.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/deployment/docker/",
+      "locator": "Pre-built images and shared memory notes",
+      "notes": "Image tags, platforms and dependencies vary across releases; pin a tested version and preferably a digest."
+    },
+    {
+      "id": "nonroot-container",
+      "claim": "The official CUDA vLLM image runs as root by default for backward compatibility and is also prepared to run as the built-in vllm user, subject to writable cache-volume permissions.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/deployment/docker/",
+      "locator": "Run as a non-root user",
+      "notes": "Non-root support and paths should be checked against the selected image variant."
+    },
+    {
+      "id": "production-routing-cache-locality",
+      "claim": "Production Stack prefix-aware routing sends requests with matching prompt prefixes to the same instance to improve local KV Cache reuse; load-aware routing can trade cache-hit benefit against live endpoint load.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/loadaware-routing.html",
+      "locator": "How It Works",
+      "notes": "Routing policy is workload-dependent; no universal cache-hit percentage is claimed."
+    },
+    {
+      "id": "kubernetes-probe-roles",
+      "claim": "Kubernetes startup probes gate liveness and readiness probes until startup succeeds; readiness controls whether traffic is sent to a Pod; liveness can trigger restart on repeated failure.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+      "locator": "Probe types and when to use each probe",
+      "notes": "Probe endpoints, thresholds and startup budgets must be validated for the model and deployment."
+    },
+    {
+      "id": "production-capacity-budget",
+      "claim": "The chapter's GPU memory budget separates weights, KV Cache, runtime workspace and safety margin as an engineering accounting model.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/cache.py",
+      "locator": "KV cache and memory configuration concepts",
+      "notes": "This is not an exact allocator equation or a universal memory split; measure on the target model, hardware and workload."
+    },
+    {
+      "id": "retry-can-duplicate-work",
+      "claim": "A failed replica can interrupt in-flight generation; retrying a generation request may repeat inference work unless the application adds idempotency and request-state handling.",
+      "kind": "recommendation",
+      "status": "verified",
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9110.html#name-idempotent-methods",
+      "locator": "Idempotent Methods",
+      "notes": "POST is not defined as an idempotent method by default; retry behavior should be made safe by application-level request IDs and idempotency handling where required."
+    }
+  ]
+}

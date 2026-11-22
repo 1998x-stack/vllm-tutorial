@@ -1,157 +1,200 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第12章 V1架构上篇</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; }
-        h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; }
-        ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; }
-        .warning { background: #fee2e2; border-left: 6px solid #ef4444; }
-        .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="拆解 vLLM V1 多进程架构：API Server、Engine Core、Scheduler、GPU Workers、Model Runner、DP Coordinator 与进程通信边界。">
+  <title>第 12 章｜V1 Process Architecture：从 API 到 GPU Worker</title>
+  <link rel="stylesheet" href="assets/css/article.css">
+  <script defer src="assets/js/interactions.js"></script>
 </head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html" class="active">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
+<body class="article-page">
+<header class="site-header"><div class="site-header-inner">
+  <a class="brand" href="index.html">vLLM <span>Learning Map</span></a>
+  <nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview ↗</a></nav>
+</div></header>
+<div class="reading-layout">
+  <nav class="chapter-toc" aria-label="本章目录">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#why">12.1 为什么要拆成多个进程</a></li>
+      <li><a href="#processes">12.2 四类核心进程与职责</a></li>
+      <li><a href="#topology">12.3 单机 TP 与多 DP 拓扑</a></li>
+      <li><a href="#step">12.4 EngineCore 的一次执行循环</a></li>
+      <li><a href="#overlap">12.5 异步调度与 Batch Queue</a></li>
+      <li><a href="#version">12.6 V1 与旧版架构阅读边界</a></li>
+      <li><a href="#recap">本章自检</a></li>
+    </ol>
+  </nav>
+  <main id="content" class="article-content"><article>
+    <header class="article-header">
+      <p class="chapter-kicker">第 12 章 · 调度、批处理与运行时</p>
+      <h1>V1 Process Architecture：从 API 到 GPU Worker</h1>
+      <p class="article-dek">一次 HTTP 请求并不会直接调用 GPU Kernel。它会穿过 API Server、Engine Core、Scheduler、Executor、GPU Worker 和 Model Runner。理解进程边界，才能正确分析 CPU 开销、通信、并行拓扑与故障定位。</p>
+      <div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">约 24 分钟</span><span class="meta-chip">前置章节：02、06、10</span><span class="meta-chip">源码审校：V1</span></div>
+    </header>
+
+    <p class="article-lead">把 vLLM 想成一个分工明确的推理工厂：API Server 接收客户订单并准备输入；Engine Core 负责排产、管理 KV Cache 并协调执行；GPU Worker 真正运行模型；当 Data Parallelism 打开时，还有 Coordinator 协调不同 Engine Core。它们不是一个 Python 函数里顺序执行的四行代码，而是具有明确职责和通信边界的运行时系统。</p>
+
+    <div class="outcomes">
+      <h2>读完这一章，你应该能够</h2>
+      <ul>
+        <li>画出 V1 API Server、Engine Core、GPU Worker 和 DP Coordinator 的进程关系。</li>
+        <li>解释 Scheduler 为什么运行在 Engine Core，而模型 forward 发生在 GPU Worker。</li>
+        <li>估算典型 TP / PP / DP 配置下的进程数量。</li>
+        <li>沿着 <code>EngineCore.step()</code> 追踪 schedule → execute → update 的执行循环。</li>
+        <li>区分 Async Scheduling 与 Pipeline Parallelism 的 Batch Queue。</li>
+      </ul>
     </div>
-    <div class="main-content">
-        <h2>第12章 V1架构上篇：多进程与EngineCore</h2>
 
-<p>2025 年 1 月，vLLM 发布了 V1 Alpha——这是一次彻底的架构重写。V0 被正式弃用。这一章咱们理解 V1 最核心的架构变化：多进程引擎和执行核心（EngineCore）。</p>
+    <figure class="diagram">
+      <img src="assets/diagrams/12-v1-process-topology.svg" alt="V1 多进程架构图：API Server 通过 ZMQ 与 Engine Core 通信；Engine Core 内部包含 Scheduler 和 KV Cache 管理，并通过 Executor 与 GPU Worker 交互；GPU Worker 中运行 Model Runner 和模型；Data Parallel Coordinator 在 DP 大于 1 时协调多个 Engine Core">
+      <figcaption>图 1：V1 的职责边界。API Server 负责请求入口与输出，Engine Core 负责调度和协调，GPU Worker 负责模型执行；DP Coordinator 是条件性组件。</figcaption>
+    </figure>
 
-<h3>12.1 为什么要重写整个架构</h3>
+    <section id="why">
+      <h2>12.1 为什么要拆成多个进程？</h2>
+      <p>如果 HTTP 请求处理、Tokenizer、KV Cache 管理、Scheduler 和 GPU forward 都挤在同一个进程里，某个阶段的 CPU 工作就可能阻塞其他阶段；GPU 执行和输入处理也难以独立扩展。多进程架构把不同职责隔离开来，让系统可以分别管理 CPU 线程、GPU 资源、进程故障和通信。</p>
+      <p>V1 的核心设计原则是把控制平面与执行平面分开：</p>
+      <ul>
+        <li><strong>控制与调度：</strong>收集请求、维护队列、规划本轮 token 和 KV Cache 分配。</li>
+        <li><strong>模型执行：</strong>准备张量、执行 forward、采样或产生模型输出。</li>
+        <li><strong>请求入口与结果处理：</strong>处理 HTTP、输入预处理、输出反解码与流式响应。</li>
+      </ul>
+      <p>这不意味着每个模块都必须独立部署成微服务。它们可以在同一台机器上通过进程和消息队列协作；进程边界首先是运行时隔离与资源管理边界。</p>
+    </section>
 
-<p>V0 是一个"原型级"实现——它能跑、性能也好，但随着功能增加，代码库变得越来越难维护：</p>
+    <section id="processes">
+      <h2>12.2 四类核心进程与职责</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>进程 / 组件</th><th>核心职责</th><th>主要输入与输出</th></tr></thead>
+          <tbody>
+            <tr><td><strong>API Server</strong></td><td>HTTP / OpenAI-compatible API、输入校验、Tokenization、多模态数据准备、流式响应</td><td>接收客户端请求；把 Engine Core 输出整理成客户端可见结果</td></tr>
+            <tr><td><strong>Engine Core</strong></td><td>运行 Scheduler、管理 KV Cache、组织执行步骤、处理请求状态和结果</td><td>接收已准备的 EngineCoreRequest；输出 EngineCoreOutputs</td></tr>
+            <tr><td><strong>GPU Worker</strong></td><td>管理单个加速设备上的模型执行环境、权重、Model Runner 和 GPU 内存</td><td>接收 SchedulerOutput；执行模型并返回 ModelRunnerOutput</td></tr>
+            <tr><td><strong>DP Coordinator</strong></td><td>在启用 Data Parallelism 时协调 DP ranks 的负载和特定同步执行</td><td>在多个 Engine Core / DP rank 之间协调</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>API Server：请求入口不等于模型执行</h3>
+      <p>API Server 负责接收 HTTP 请求，处理输入并进行 Tokenization；多模态请求还可能涉及媒体加载与预处理。它通过 ZMQ 等 IPC 通道与 Engine Core 交互，随后把输出转换成文本或结构化响应并流式返回。</p>
+      <h3>Engine Core：运行时的控制中心</h3>
+      <p>Engine Core 是 V1 的核心内循环。它拥有 Scheduler 和 KV Cache 管理逻辑，接收请求事件、规划每轮执行，再调用 Executor。每个 Data Parallel rank 对应一个 Engine Core。</p>
+      <h3>GPU Worker：模型真正运行的地方</h3>
+      <p>每个 GPU Worker 管理一个加速设备。Worker 中的 Model Runner 准备模型输入、调用模型 forward，并处理执行相关输出。Tensor Parallel 与 Pipeline Parallel 会让同一个逻辑模型的执行分布到多个 Worker。</p>
+      <h3>DP Coordinator：只有启用 DP 才需要</h3>
+      <p>Data Parallelism 会创建多个 Engine Core rank。V1 架构中的 DP Coordinator 负责跨 rank 的负载协调，并在需要时协调 MoE 模型的同步 forward。它不是每个单 GPU 服务都必然存在的进程。</p>
+    </section>
 
-<ul>
-  <li><strong>单进程</strong>：所有逻辑（API 服务、调度、模型执行）挤在一个进程里</li>
-  <li><strong>硬编码两阶段</strong>：prefill 和 decode 的调度器是两个独立实现，代码里有大量 if-else</li>
-  <li><strong>耦合严重</strong>：改 KV cache 管理可能影响 API 路由，改调度器可能影响模型加载</li>
-  <li><strong>新功能开发困难</strong>：每加一个新特性（如推测解码、多模态 encoder），要在多个模块间穿线</li>
-</ul>
+    <section id="topology">
+      <h2>12.3 单机 TP 与多 DP 拓扑</h2>
+      <p>在官方 V1 多进程架构文档描述的典型配置中，进程数量可以用以下关系建立初步直觉：</p>
+      <div class="math-display"><code>GPU Worker 数量 = DP × PP × TP</code></div>
+      <p>其中 API Server 数量会受 DP 和 <code>--api-server-count</code> 等配置影响；Engine Core 数量对应 DP ranks；DP Coordinator 只在 DP 大于 1 时出现。以下是官方架构文档给出的典型示例：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>配置</th><th>API Server</th><th>Engine Core</th><th>GPU Worker</th><th>DP Coordinator</th><th>总数</th></tr></thead>
+          <tbody>
+            <tr><td>4 GPU，TP=4、DP=1、PP=1</td><td>1</td><td>1</td><td>4</td><td>0</td><td><strong>6</strong></td></tr>
+            <tr><td>8 GPU，TP=2、DP=4、PP=1</td><td>4</td><td>4</td><td>8</td><td>1</td><td><strong>17</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>这个数量关系适用于文档所描述的典型多进程部署拓扑，不是所有启动模式下的通用进程数公式。实际部署还可能包含额外的前端进程、媒体加载线程、监控进程、执行器差异或多节点 Worker。</p>
+      <div class="callout">
+        <p><strong>TP / PP / DP 的区别：</strong>TP 把层内张量切分到多个 Worker；PP 把模型层分配到不同 Worker；DP 则复制模型执行实例并行处理不同请求。三者影响的进程拓扑不同，不能只看 GPU 总数来推断请求调度方式。</p>
+      </div>
+    </section>
 
-<div class="highlight">
-  <p><strong>重写决策</strong>：V1 的 RFC #18571 讨论了 3 个月。最终结论是——与其在 V0 上修修补补，不如重写。目标是建立一个能支撑未来 5-10 年发展的架构。</p>
+    <section id="step">
+      <h2>12.4 EngineCore 的一次执行循环</h2>
+      <p>进程图回答“谁和谁通信”；真正理解运行时，还要跟着一次 Engine Core step 走。当前 V1 的核心 <code>step()</code> 可以概括为：</p>
+      <pre><code>if not scheduler.has_requests():
+    return no_outputs
+
+scheduler_output = scheduler.schedule()
+
+future = model_executor.execute_model(
+    scheduler_output,
+    non_block=True,
+)
+
+model_output = wait_for_output(future)
+
+engine_outputs = scheduler.update_from_output(
+    scheduler_output,
+    model_output,
+)
+
+return engine_outputs</code></pre>
+      <p>上面是教学伪代码，不是可直接运行的完整实现。它省略了 Grammar Mask、错误上下文、Speculative Decoding、KV Connector、日志统计和其他扩展路径，但保留了 V1 最重要的职责边界：</p>
+      <ol>
+        <li><strong>Schedule：</strong>Scheduler 选择本轮请求和 token，并生成 SchedulerOutput。</li>
+        <li><strong>Execute：</strong>Engine Core 把计划交给 Model Executor；多进程执行器再把工作分发给 GPU Workers。</li>
+        <li><strong>Wait / collect：</strong>等待或收集 ModelRunnerOutput。</li>
+        <li><strong>Update：</strong>Scheduler 根据输出更新 token 进度、请求状态、KV Cache 和完成事件。</li>
+        <li><strong>Return：</strong>EngineCoreOutputs 进入输出队列，前端处理并返回客户端。</li>
+      </ol>
+      <p>EngineCore 的 busy loop 会先处理输入队列，再执行一个 Engine step，并在执行前后发布必要的请求计数。若当前没有工作，它会等待新的输入，而不是无条件持续执行 GPU batch。</p>
+      <figure class="diagram">
+        <img src="assets/diagrams/12-enginecore-step-loop.svg" alt="EngineCore busy loop 处理输入队列后调用 step；step 内依次执行 Scheduler.schedule、Executor.execute_model、收集模型输出和 Scheduler.update_from_output，再把 EngineCoreOutputs 放入输出队列">
+        <figcaption>图 2：EngineCore 的执行闭环。Scheduler 负责计划，Executor 负责执行，Scheduler 再根据执行结果更新状态。</figcaption>
+      </figure>
+    </section>
+
+    <section id="overlap">
+      <h2>12.5 异步调度与 Batch Queue：两种重叠，不是一回事</h2>
+      <p>在 V1 中，CPU 调度与 GPU 执行之间可以通过不同机制重叠工作，但要区分两个概念：</p>
+      <h3>Async Scheduling：用占位信息提前规划下一步</h3>
+      <p>启用异步调度时，Scheduler 可以在上一轮 GPU 输出尚未完全返回时，基于已知的输出占位信息提前规划后续工作。请求对象会记录 <code>num_output_placeholders</code> 和相关 in-flight 进度；等真实 token 返回后，再把占位状态修正为实际输出。</p>
+      <h3>Batch Queue：为 Pipeline Parallelism 重叠多个 batch</h3>
+      <p>Engine Core 还可以根据 <code>max_concurrent_batches</code> 配置启用 batch queue。这个队列保存已经调度、等待执行或等待输出的批次信息，用于支持异步执行多个 batch，尤其帮助 Pipeline Parallelism 减少 pipeline bubbles。</p>
+      <div class="callout warning">
+        <p><strong>不要把二者混成同一个开关。</strong>Async Scheduling 关注的是 Scheduler 如何处理尚未返回的 token 输出；Batch Queue 关注的是 Engine Core 如何组织多个已调度 batch 的执行与流水线重叠。它们可以在特定配置下共同出现，但概念和实现职责不同。</p>
+      </div>
+    </section>
+
+    <section id="version">
+      <h2>12.6 V1 与旧版架构阅读边界</h2>
+      <p>vLLM 的内部架构经历过演进。阅读旧文章时，常会看到以旧版 <code>LLMEngine</code> 或旧版 Scheduler 为中心的调用关系；而当前 V1 代码的关键路径围绕 <code>EngineCore</code>、<code>SchedulerInterface</code>、<code>ModelExecutor</code> 和新的 Request / Output 结构展开。</p>
+      <p>对版本敏感的技术内容，应该同时核对：</p>
+      <ul>
+        <li>当前官方架构文档中的进程和职责描述。</li>
+        <li>目标 vLLM tag / commit 中的实际类名和调用路径。</li>
+        <li>启动参数、Executor 模式和并行配置是否改变了默认拓扑。</li>
+        <li>论文或旧版教程描述的是设计动机，还是仍然适用于当前实现的行为。</li>
+      </ul>
+      <p>本章不把 V0 与 V1 简化成“一个快、一个慢”的性能对比。架构重构的价值要从代码边界、请求生命周期、执行器、调度和具体工作负载来理解。</p>
+    </section>
+
+    <section id="recap">
+      <h2>本章自检</h2>
+      <ol>
+        <li>为什么 API Server 不应该被当作执行模型 forward 的 GPU Worker？</li>
+        <li>Engine Core 与 GPU Worker 分别负责什么？</li>
+        <li>为什么 TP=4、DP=1 的典型架构会包含 1 个 Engine Core，而 DP=4 会包含 4 个？</li>
+        <li><code>EngineCore.step()</code> 中 Scheduler、Executor 和 update_from_output 的先后关系是什么？</li>
+        <li>Async Scheduling 与 Batch Queue 分别解决什么重叠问题？</li>
+      </ol>
+      <p>下一章把进程架构还原成单条请求的生命周期：请求如何进入队列、获得 KV Cache、被执行、被抢占、恢复、流式输出，最终释放资源。</p>
+    </section>
+
+    <section class="sources" id="sources">
+      <h2>参考资料与源码入口</h2>
+      <ol>
+        <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — V1 Process Architecture</a>：API Server、Engine Core、GPU Worker、DP Coordinator 与 Scheduler 的职责。</li>
+        <li>源码：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/engine/core.py" target="_blank" rel="noopener noreferrer">EngineCore</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/executor/multiproc_executor.py" target="_blank" rel="noopener noreferrer">MultiprocExecutor</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/worker/gpu_worker.py" target="_blank" rel="noopener noreferrer">GPU Worker</a>。</li>
+        <li>调度接口：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/interface.py" target="_blank" rel="noopener noreferrer">SchedulerInterface</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/output.py" target="_blank" rel="noopener noreferrer">SchedulerOutput</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/async_scheduler.py" target="_blank" rel="noopener noreferrer">AsyncScheduler</a>。</li>
+      </ol>
+      <p><small>源码审校基线：vLLM commit <code>c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf</code>。进程数量是典型多进程拓扑示例，不代表所有执行器、启动方式和部署环境下的固定总数。</small></p>
+    </section>
+
+    <footer class="chapter-footer">
+      <nav class="chapter-nav" aria-label="章节导航"><a href="11.html">← 上一章：Chunked Prefill</a><a class="next" href="13.html">下一章：Request Lifecycle →</a></nav>
+      <a class="back-to-top" href="#content">回到顶部 ↑</a>
+    </footer>
+  </article></main>
 </div>
-
-<h3>12.2 "1+N" 多进程架构</h3>
-
-<pre><code>┌──────────────────────────────────────────────────────┐
-│                   Master 进程                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
-│  │  API 路由     │  │  健康检查     │  │  资源监控   │  │
-│  └──────────────┘  └──────────────┘  └────────────┘  │
-│                         │                             │
-│          ZeroMQ 消息总线（10万+ 请求/秒）              │
-│                         │                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
-│  │  Worker 1    │  │  Worker 2    │  │  Worker 3   │  │
-│  │  EngineCore  │  │  EngineCore  │  │  EngineCore │  │
-│  └──────────────┘  └──────────────┘  └────────────┘  │
-└──────────────────────────────────────────────────────┘</code></pre>
-
-<table>
-  <tr><th>组件</th><th>职责</th><th>技术</th></tr>
-  <tr><td>Master 进程</td><td>API 路由、健康检查、资源监控、请求分发</td><td>FastAPI + asyncio</td></tr>
-  <tr><td>ZeroMQ 消息总线</td><td>Master ↔ Worker 高速通信</td><td>ZeroMQ (zmq)</td></tr>
-  <tr><td>Worker 进程 × N</td><td>每个独立加载模型副本，承载 EngineCore</td><td>multiprocessing (单节点) / Ray (多节点)</td></tr>
-  <tr><td>EngineCore</td><td>每个 Worker 内的推理核心（调度+执行）</td><td>双线程设计</td></tr>
-</table>
-
-<h3>12.3 故障隔离：最大的架构收益</h3>
-
-<p>在 V0 的单进程架构中，任何未捕获异常都会导致整个服务崩溃——API 端口关闭，所有请求丢失，需要重启。</p>
-
-<p>在 V1 中：</p>
-
-<pre><code>Worker 2 崩溃 (OOM / CUDA error / segfault):
-  ├── Master 检测到 Worker 2 不响应
-  ├── 自动将 Worker 2 的请求重新路由到 Worker 1/3
-  ├── 重启 Worker 2（加载模型需要 30s-2min）
-  └── Worker 2 恢复后重新加入服务
-
-在此期间：
-  ✅ API 端口正常运行
-  ✅ Worker 1/3 继续服务
-  ✅ 用户请求丢到已崩溃 Worker 2 的可能失败，但整体服务没挂</code></pre>
-
-<div class="tip">
-  <p><strong>生产价值</strong>：这个故障隔离对在线服务极其重要。我在 V0 时代见过一个 CUDA OOM 导致整个 API 服务挂了 3 分钟——所有用户都受影响。V1 中同样的 OOM 只影响一个 Worker，系统自动恢复。</p>
-</div>
-
-<h3>12.4 EngineCore 双线程设计</h3>
-
-<pre><code>EngineCore 内部：
-
-主线程（控制面）:
-  ├── 接收 Master 发来的请求
-  ├── 运行调度器（决定 batch 组成）
-  ├── 管理 Block Table（分配/回收）
-  └── 将准备好的 batch 交给计算线程
-
-计算线程（数据面）:
-  ├── GPU 模型前向传播
-  ├── CUDA Graph 回放
-  └── 将结果返回给主线程 → Master → 用户</code></pre>
-
-<p>双线程的好处：主线程在做"下一轮怎么调度"的决策时，计算线程在并行跑当前的 GPU 推理。这就是 V1 的"近乎零 CPU 开销"——GPU 不用等 CPU 做调度决策。</p>
-
-<h3>12.5 多 Worker 的模型共享</h3>
-
-<p>如果 N 个 Worker 跑同一个模型，每个 Worker 需要独立加载模型吗？不——vLLM 支持同一进程组的模型共享：</p>
-
-<pre><code># 所有 Worker 共享一份模型权重（在 GPU 显存中）
-# 但每个 Worker 有自己的 KV Cache 和调度状态
-
-# 对于张量并行场景：
-vllm serve model --tensor-parallel-size 4
-# 4 个 GPU 组成 1 个 EngineCore（而非 4 个 EngineCore）</code></pre>
-
-<p>下一章咱们对比 V0 和 V1 的实际性能，以及迁移时需要注意的兼容性问题。</p>
-
-        <div class="footer-nav">
-            <a href="11.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="13.html">下一章 →</a>
-        </div>
-    </div>
-</div></div>
 </body>
 </html>

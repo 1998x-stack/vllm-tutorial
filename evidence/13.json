@@ -1,0 +1,62 @@
+{
+  "chapter": "13",
+  "reviewed_at": "2026-11-21",
+  "scope": "V1 request admission, RequestStatus, progress fields, preemption, output processing, abort and cleanup.",
+  "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
+  "claims": [
+    {
+      "id": "request-status-set",
+      "claim": "The current V1 RequestStatus enum includes waiting states for structured-output grammar, remote KV transfer and streaming sessions, plus RUNNING, PREEMPTED and multiple terminal finish states.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/request.py",
+      "locator": "RequestStatus enum",
+      "notes": "These are implementation-level statuses and not every request passes through every state."
+    },
+    {
+      "id": "request-progress-fields",
+      "claim": "V1 Request tracks num_computed_tokens, num_in_flight_tokens, output placeholders, prefill-chunk state and preemption counts to coordinate scheduling and asynchronous execution.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/request.py",
+      "locator": "Request initialization fields",
+      "notes": "Progress may be optimistically advanced at scheduling time and reconciled when outputs return."
+    },
+    {
+      "id": "request-preempt-requeue",
+      "claim": "Preemption frees request KV blocks, sets status to PREEMPTED, resets num_computed_tokens, increments preemption count and prepends the request to the waiting queue.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "_preempt_request",
+      "notes": "PREEMPTED is resumable and not a terminal state."
+    },
+    {
+      "id": "request-output-processor",
+      "claim": "V1 OutputProcessor consumes EngineCoreOutputs, updates request statistics, detokenizes token IDs, applies stop checks, constructs RequestOutput and sends it to a streaming queue or synchronous caller.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/engine/output_processor.py",
+      "locator": "OutputProcessor.process_outputs",
+      "notes": "Some requests use pooling outputs rather than text detokenization."
+    },
+    {
+      "id": "request-abort-path",
+      "claim": "EngineCore handles ABORT messages by invoking abort_requests; Scheduler.finish_requests removes the request from queues, sets a terminal status and frees request resources.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/engine/core.py",
+      "locator": "_handle_client_request ABORT",
+      "notes": "In-flight model execution and asynchronous KV transfer can delay some cleanup."
+    },
+    {
+      "id": "kv-release-can-be-delayed",
+      "claim": "Scheduler request cleanup can delay KV block freeing when connectors report pending transfers or other asynchronous work.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "finish_requests, _free_request and _free_blocks",
+      "notes": "Client-visible completion and physical cache reuse need not be simultaneous in every connector path."
+    }
+  ]
+}

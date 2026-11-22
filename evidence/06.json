@@ -1,0 +1,61 @@
+{
+  "chapter": "06",
+  "reviewed_at": "2026-11-20",
+  "scope": "Quickstart commands checked against vLLM Stable documentation available on 2026-11-20; NVIDIA Linux example is explicitly platform-scoped.",
+  "claims": [
+    {
+      "id": "stable-quickstart-python-range",
+      "claim": "The current Stable Quickstart lists Linux and Python 3.11–3.14, while installation paths differ by hardware platform.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/getting_started/quickstart/",
+      "locator": "Prerequisites and Installation",
+      "notes": "The chapter uses Python 3.12 for the official NVIDIA uv example; other platforms must follow their own installation tab."
+    },
+    {
+      "id": "uv-nvidia-install",
+      "claim": "The Stable Quickstart demonstrates uv venv with Python 3.12, uv pip install vllm --torch-backend=auto, and vllm download-kernels for the NVIDIA path.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/getting_started/quickstart/",
+      "locator": "Installation",
+      "notes": "CUDA wheel selection and supported drivers depend on the installed platform; do not reuse this command unchanged for ROCm, XPU, TPU or Apple Silicon."
+    },
+    {
+      "id": "download-kernels-startup",
+      "claim": "vllm download-kernels installs precompiled kernels that can avoid download or compilation work at startup and should be refreshed after relevant upgrades.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/getting_started/installation/gpu/index.html?device=cuda",
+      "locator": "Pre-built wheels / FlashInfer kernels",
+      "notes": "The exact package and supported CUDA combinations are release-specific."
+    },
+    {
+      "id": "openai-compatible-serving",
+      "claim": "vLLM provides an OpenAI-compatible API server through vllm serve and exposes model-list and chat-completion endpoints.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/getting_started/quickstart/",
+      "locator": "Online Serving and Chat Completions API",
+      "notes": "The chapter's Qwen2.5-1.5B-Instruct example follows the current Stable Quickstart."
+    },
+    {
+      "id": "docker-shared-memory",
+      "claim": "The official vLLM Docker guide documents the vllm/vllm-openai image, Hugging Face cache mounting and shared-memory configuration via --ipc=host or --shm-size.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/deployment/docker/",
+      "locator": "Pre-built images",
+      "notes": "The chapter binds the host port to 127.0.0.1 for local development and recommends pinning a release tag for reproducibility."
+    },
+    {
+      "id": "local-api-security",
+      "claim": "An OpenAI-compatible local endpoint should not be exposed publicly without authentication and network controls.",
+      "kind": "recommendation",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/latest/usage/security/",
+      "locator": "Security documentation",
+      "notes": "The article presents this as an operational security recommendation, not as a default server enforcement claim."
+    }
+  ]
+}
