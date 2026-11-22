@@ -234,7 +234,7 @@ test("chapters 19–23 cover TP/PP/DP/EP, speculative correction, multimodal sec
  assert.match(read("19"),/All-Reduce/);
  assert.match(read("20"),/enable-expert-parallel/);
  assert.match(read("20"),/max-num-queued-reqs/);
- assert.match(read("21"),/min\(1, p\(x\) \/ q\(x\)\)/);
+ assert.match(read("21"),/<mi>min<\/mi><mo>\(<\/mo><mn>1<\/mn><mo>,<\/mo><mfrac>/);
  assert.match(read("21"),/residual|残差/);
  assert.match(read("22"),/allowed-media-domains/);
  assert.match(read("22"),/limit_mm_per_prompt/);
