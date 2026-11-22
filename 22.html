@@ -10,7 +10,7 @@
 <section id="path"><h2>22.1 多模态数据不是“把 JPEG 当文字 token”</h2>
 <p>文本路径通常先 tokenize 再映射为 token embeddings；图像路径会经历解码、Resize/Crop/patchify、视觉 encoder 或 projector，并与文本 token embedding 对齐/融合；音频可能涉及声学特征、音频 encoder、timestamp/chunk 边界；视频则包含帧采样与跨帧顺序。<strong>具体融合形式由模型架构定义</strong>，不能把所有 VLM 都画成“ViT 后直接拼在开头”。</p>
 <p>在 LLaVA 等典型模型中，文本模板里的图像占位符表示嵌入插入位置；某些视觉模型允许多个裁剪或动态 patch 数。相同“1 张图片”可能展开为大量视觉 tokens，视觉 token 数受分辨率、裁剪策略和 processor 决定。</p>
-<div class="math-display"><code>T_prefill ≈ T_media_decode + T_encoder + T_projector + T_language_prefill</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="多模态 Prefill 时间分解公式，可在窄屏横向滚动查看"><math display="block" aria-label="多模态请求的 Prefill 总时间约等于媒体解码、编码器、投影器和语言模型 Prefill 四段之和"><msub><mi>T</mi><mtext>prefill</mtext></msub><mo>≈</mo><msub><mi>T</mi><mtext>media_decode</mtext></msub><mo>+</mo><msub><mi>T</mi><mtext>encoder</mtext></msub><mo>+</mo><msub><mi>T</mi><mtext>projector</mtext></msub><mo>+</mo><msub><mi>T</mi><mtext>language_prefill</mtext></msub></math></div>
 <p>这个式子是延迟的概念分解，不是所有模型都按这些阶段严格串行，也不代表每种架构都有单独 projector；GPU 并行和重叠执行会改变总时间。</p></section>
 <section id="inputs"><h2>22.2 真实请求与数据类型的映射</h2>
 <p>vLLM 离线 API 以 <code>prompt</code> 搭配 <code>multi_modal_data</code> 表示包含媒体的请求；媒体可以是 PIL 图片、视频帧列表、音频数组或经过模型支持的预处理形式。OpenAI 兼容在线 API 通常使用 Chat Completions 消息里的媒体 content parts。</p>
@@ -28,7 +28,7 @@ result = llm.generate([{
 <p>示例中的模板用于特定模型家族；其他模型需要使用其官方 Chat Template，不能照抄 <code>&lt;image&gt;</code>。音频输入通常包含 waveform 与采样率，视频输入包含帧顺序与时间信息，且支持矩阵会随 vLLM 版本、前端和模型后端变化。</p></section>
 <section id="memory"><h2>22.3 为什么多模态会增加内存和排队成本？</h2>
 <p>输入长度不能只按用户文字字符数计。视觉 token 扩展、音频帧、视频采样、encoder activation 和多模态缓存均可能增加内存、TTFT 和调度压力。</p>
-<div class="math-display"><code>N_effective ≈ N_text + N_image_embeddings + N_audio/video_embeddings</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="有效序列长度估算公式，可在窄屏横向滚动查看"><math display="block" aria-label="有效序列长度约等于文本 token 数加上图像嵌入数与音视频嵌入数"><msub><mi>N</mi><mtext>effective</mtext></msub><mo>≈</mo><msub><mi>N</mi><mtext>text</mtext></msub><mo>+</mo><msub><mi>N</mi><mtext>image_embeddings</mtext></msub><mo>+</mo><msub><mi>N</mi><mtext>audio/video_embeddings</mtext></msub></math></div>
 <p>这里是统一计算预算的抽象概念，<strong>不是所有架构真正执行一条相同长度的注意力序列</strong>。有些 encoder 先融合媒体、有些使用交叉注意力或特殊模型路径。需要实际查看目标模型的 profiling 日志、prompt tokens 与运行时多模态指标。</p>
 <p><code>limit_mm_per_prompt</code> / <code>--limit-mm-per-prompt</code> 用于配置每个模态项的数量或尺寸提示（取决于版本）。限制图片 count 不等于限制图片像素，也不等于限制总视觉 token 数；生产入口应同时设定媒体大小、格式、URL 来源、音视频时长和并发预算。</p></section>
 <section id="scheduling"><h2>22.4 从队列到模型执行：调度如何变化？</h2>

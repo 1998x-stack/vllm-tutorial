@@ -101,7 +101,7 @@ docker run --rm --gpus all \
         <li>Activation、临时张量、CUDA Graph、通信缓冲区与运行时工作区。</li>
         <li>碎片、峰值和版本 / 模型路径变化所需的安全余量。</li>
       </ul>
-      <div class="math-display"><code>M_GPU ≈ M_weights + M_KV + M_runtime + M_workspace + M_margin</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="GPU 显存占用分解公式，可在窄屏横向滚动查看"><math display="block" aria-label="GPU 显存占用约等于权重、KV Cache、运行时、工作区和余量之和"><msub><mi>M</mi><mtext>GPU</mtext></msub><mo>≈</mo><msub><mi>M</mi><mtext>weights</mtext></msub><mo>+</mo><msub><mi>M</mi><mtext>KV</mtext></msub><mo>+</mo><msub><mi>M</mi><mtext>runtime</mtext></msub><mo>+</mo><msub><mi>M</mi><mtext>workspace</mtext></msub><mo>+</mo><msub><mi>M</mi><mtext>margin</mtext></msub></math></div>
       <p>这个式子是容量预算，不是 vLLM 内部的精确显存分配公式。若已知每 token 的 KV Cache 字节数，可先用第 08 章的公式估算理论 token 容量，再通过真实模型启动、负载回放和显存指标校正。</p>
       <p><code>--gpu-memory-utilization</code>、<code>--max-model-len</code>、<code>--max-num-seqs</code> 和 <code>--max-num-batched-tokens</code> 是相互关联的配置。提高并发上限不等于免费增加吞吐；长上下文和并发请求会竞争 KV blocks，最终可能表现为排队、抢占或更高延迟。</p>
       <div class="callout warning">

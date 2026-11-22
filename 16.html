@@ -194,7 +194,7 @@ helm install vllm vllm/vllm-stack \
         <li><strong>负载均衡：</strong>避免所有热门前缀都挤在同一个实例，造成队列积压。</li>
       </ul>
       <p>Production Stack 的 Load-aware Routing 给出一种示例评分形式：</p>
-      <div class="math-display"><code>score(i) = matched_tokens(i) / prompt_tokens − β × relative_load(i)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="请求调度得分公式，可在窄屏横向滚动查看"><math display="block" aria-label="请求 i 的调度得分等于匹配 token 数除以 prompt token 数再减去 β 乘相对负载"><mtext>score</mtext><mo>(</mo><mi>i</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mtext>matched_tokens</mtext><mo>(</mo><mi>i</mi><mo>)</mo></mrow><mtext>prompt_tokens</mtext></mfrac><mo>−</mo><mi>β</mi><mo>×</mo><mtext>relative_load</mtext><mo>(</mo><mi>i</mi><mo>)</mo></math></div>
       <p>其中缓存匹配比例代表潜在复用收益，relative_load 表示当前实例相对负载，β 控制负载与缓存收益之间的权衡。这个公式是该 Router 的具体实现策略，不是所有 vLLM 部署的通用路由标准。</p>
       <p>扩缩容时也不要只看 GPU utilization。可结合等待队列、TTFT、请求速率、KV Cache 使用情况和副本冷启动时间；新副本需要分配 GPU、拉取模型、加载权重和预热，扩容动作本身有延迟。若请求很快消失，盲目扩缩容还可能产生抖动。</p>
     </section>
