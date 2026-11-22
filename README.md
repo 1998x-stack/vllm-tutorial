@@ -50,6 +50,7 @@ vllm-tutorial/
 │   ├── css/article.css           # 新版文章统一设计系统
 │   ├── js/interactions.js        # 可访问的交互增强（含第 21 章离线实验）
 │   └── diagrams/                 # 按章节命名的原创 SVG
+├── examples/                     # 第27章最小 RAG 教学代码和非敏感示例文档
 ├── evidence/                     # 每章关键技术主张的来源记录
 ├── docs/                         # 扩展阅读与专题技术笔记
 ├── skills/vllm-tutorial/          # 适配本课程的写作与审校 Skill
@@ -76,13 +77,14 @@ python3 scripts/build_course_data.py
 python3 scripts/build_course_data.py --check
 node --test tests/offline-catalog.test.cjs
 python3 scripts/validate_articles.py
+python3 -m unittest discover -s tests -p 'test_rag_demo.py' -v
 ```
 
 如果需要运行代码示例，请按对应章节说明准备 Python、PyTorch、CUDA、模型权重和 vLLM 版本。HTML 阅读本身不依赖这些运行环境。
 
 ## 内容升级进度
 
-仓库采用逐章审校，不以一次性换肤代替内容改造。当前升级分支已完成 01–23 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验，14 章提供 Sampling 分布实验。15–18 章覆盖生产部署、Kubernetes、可观测性与安全；19–23 章覆盖 TP/PP/DP/EP、推测解码、多模态和 nano-vLLM 源码阅读，21 章提供推测接受率交互实验。24–28 章仍按下一批推进。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
+仓库采用逐章审校，不以一次性换肤代替内容改造。当前主课程升级已经完成全部 01–28 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验，14 章提供 Sampling 分布实验。15–18 章覆盖生产部署、Kubernetes、可观测性与安全；19–23 章覆盖 TP/PP/DP/EP、推测解码、多模态和 nano-vLLM 源码阅读，21 章提供推测接受率交互实验。24–28 章进一步补齐排障流程、Benchmark、技术成熟度、可运行 RAG 示例与知识图谱。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
 
 ## 权威参考入口
 
@@ -108,8 +110,17 @@ The canonical GitHub Pages release target is:
 
 - `https://1998x-stack.github.io/vllm-tutorial/`
 
-Pull requests run the offline catalog checks, static article validation, and Chromium QA for chapters 01–23 at 1440px, 768px, 390px, and 360px. The browser gate checks page errors, console errors, local asset responses, in-page anchors, diagram visibility, and page-level horizontal overflow. It also exercises the KV Cache calculator (chapter 08), Chunked Prefill budget explorer (chapter 11), and Sampling explorer (chapter 14), and Speculative Decoding acceptance lab (chapter 21), including keyboard input.
+Pull requests run the offline catalog checks, static article validation, and Chromium QA for chapters 01–28 at 1440px, 768px, 390px, and 360px. The browser gate checks page errors, console errors, local asset responses, in-page anchors, diagram visibility, and page-level horizontal overflow. It also exercises the KV Cache calculator (chapter 08), Chunked Prefill budget explorer (chapter 11), and Sampling explorer (chapter 14), and Speculative Decoding acceptance lab (chapter 21), and Benchmark arithmetic lab (chapter 25), including keyboard input.
 
 A push to `master` publishes the static course through GitHub Pages and then verifies the public index, representative chapters, course data, stylesheets, diagrams, and interactive scripts. A successful pull-request check is not a deployment result; the Pages job must also complete.
 
 **PDF is not a release artifact for this repository.** The supported deliverable is the offline-first HTML course with local CSS, JavaScript, and SVG assets. PDF export and PDF visual QA are intentionally out of scope unless a future course requirement adds them.
+
+
+## 最终课程交付说明
+
+- 28 篇稳定 HTML，原创章节 SVG，28 份 `evidence/NN.json` 审核资料，以及 `courses.json` 与生成目录同步。
+- 第 08 / 11 / 14 / 21 / 25 章带纯本地交互实验；本地双击阅读不依赖服务器或 CDN。
+- 第 27 章标准库 RAG 教学样例：`python3 examples/rag_demo.py --query "Prefix Cache"`。只执行公开教学数据检索，不假装已调用模型；可选通过 `--serve-url http://127.0.0.1:8000 --model MODEL_ID` 访问明确授权的本地 vLLM。
+- 对 RAG 文档 ACL、媒体与工具信任边界、模拟统计与性能真值保持明确区分。教学检索算法不代表生产级向量检索。
+- 完整发布以 PR 静态/浏览器门禁、合并后的主分支 Pages Workflow 和公共资源逐项字节校验为准；未开展 GPU Benchmark 不可宣称具体加速结果。

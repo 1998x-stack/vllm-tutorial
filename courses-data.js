@@ -812,165 +812,198 @@ window.VLLM_COURSES = {
     },
     {
       "num": "24",
-      "title": "调试与问题排查",
+      "title": "Troubleshooting：从症状到根因",
       "topics": [
-        "CUDA OOM",
-        "NCCL调试",
-        "性能退化",
-        "常见错误速查"
+        "CUDA OOM/显存预算",
+        "模型下载与权重加载",
+        "NCCL / 网卡诊断",
+        "CUDAGraph / torch.compile",
+        "回归记录"
       ],
       "file": "24.html",
       "category": "production",
       "level": "进阶",
-      "durationMinutes": 18,
+      "durationMinutes": 27,
       "prerequisites": [
         "06",
         "07",
-        "15"
+        "08",
+        "16",
+        "17"
       ],
-      "summary": "用症状—证据—假设—验证的流程排查 OOM、NCCL、加载失败和性能退化。",
+      "summary": "基于官方问题分类建立从症状到证据、单变量实验与修复验收的流程，避免盲目参数调整。",
       "learningObjectives": [
-        "从错误日志定位故障层级",
-        "设计最小化复现与排除实验",
-        "避免只靠盲目调参掩盖根因"
+        "区分启动 OOM、请求运行 OOM 和 KV 缓存压力",
+        "根据 NCCL、CUDAGraph、torch.compile 的日志制定最小复现实验",
+        "用延迟、吞吐与版本信息验证修复并保留回滚条件"
       ],
       "tags": [
-        "debugging",
+        "troubleshooting",
         "cuda-oom",
         "nccl",
-        "troubleshooting"
+        "torch-compile",
+        "cuda-graph",
+        "incident-response"
       ]
     },
     {
       "num": "25",
-      "title": "性能基准测试",
+      "title": "Benchmarking：可复现性能基准",
       "topics": [
-        "吞吐/延迟测试",
-        "压测工具",
-        "Benchmark数据",
-        "调优Checklist"
+        "TTFT/ITL/TPOT/E2E",
+        "vllm bench serve / throughput",
+        "request-rate 与 max-concurrency",
+        "Prefix Cache 测试污染",
+        "离线性能统计实验"
       ],
       "file": "25.html",
       "category": "production",
       "level": "进阶",
-      "durationMinutes": 18,
+      "durationMinutes": 30,
       "prerequisites": [
-        "17"
+        "09",
+        "14",
+        "17",
+        "24"
       ],
-      "summary": "设计可复现的推理 Benchmark，正确比较吞吐、TTFT、ITL 与资源利用率。",
+      "summary": "按模型、负载、缓存与测量边界设计 Benchmark；区分在线延迟、吞吐、失败率与符合业务 SLO 的 Goodput。",
       "learningObjectives": [
-        "区分吞吐、请求延迟与 token 延迟",
-        "控制模型、输入分布、并发和硬件变量",
-        "报告基准结果的置信边界和局限"
+        "定义 TTFT、ITL、TPOT、请求与 Token 吞吐",
+        "设计受控的请求到达率、并发和冷/热缓存实验",
+        "使用离线计算器复算 throughput / failure rate 并设计可追溯报告"
       ],
       "tags": [
         "benchmark",
         "latency",
         "throughput",
+        "ttft",
+        "itl",
+        "tpot",
+        "goodput",
         "reproducibility"
       ]
     },
     {
       "num": "26",
-      "title": "未来趋势",
+      "title": "Inference Systems Roadmap：证据与成熟度",
       "topics": [
-        "P-EAGLE",
-        "Model Runner V2",
-        "智能路由",
-        "竞品格局"
+        "研究证据阶梯",
+        "Speculative/长上下文方向",
+        "MoE与分布式",
+        "多模态与异构",
+        "Release/RFC/Benchmark审查"
       ],
       "file": "26.html",
       "category": "roadmap",
       "level": "高级",
-      "durationMinutes": 15,
+      "durationMinutes": 22,
       "prerequisites": [
         "12",
         "19",
+        "20",
         "21",
-        "22"
+        "22",
+        "25"
       ],
-      "summary": "按问题、证据和成熟度观察推理系统趋势，避免把研究原型误写成生产默认能力。",
+      "summary": "用论文、源码、官方 release、实验和生产观测判断技术成熟度，不将研究原型等同于稳定产品能力。",
       "learningObjectives": [
-        "识别推理系统的主要演进方向",
-        "区分论文结果、实验功能和稳定功能",
-        "建立跟踪官方 release 与设计文档的方法"
+        "区分 paper/RFC、源码合入、正式支持与生产验证",
+        "按版本和工作负载审查性能和兼容性结论",
+        "制定有回滚和 SLO 验收条件的技术跟踪流程"
       ],
       "tags": [
-        "roadmap",
         "research",
-        "release-tracking"
+        "roadmap",
+        "version-tracking",
+        "evidence-maturity",
+        "benchmark-policy"
       ]
     },
     {
       "num": "27",
-      "title": "实战项目",
+      "title": "RAG End-to-End：检索与生成实践",
       "topics": [
-        "RAG推理服务",
-        "端到端搭建",
-        "Prefix Cache优化",
-        "性能迭代"
+        "透明词项检索 baseline",
+        "Document ACL",
+        "受信文档与不可信 Prompt",
+        "可选 Loopback vLLM Chat API",
+        "Recall@k与答案忠实度"
       ],
       "file": "27.html",
       "category": "source-lab",
       "level": "高级",
-      "durationMinutes": 25,
+      "durationMinutes": 36,
       "prerequisites": [
         "06",
         "07",
         "09",
         "15",
         "17",
-        "18"
+        "18",
+        "25"
       ],
-      "summary": "搭建一个包含检索、推理 API、缓存、监控与安全边界的最小 RAG 服务。",
+      "summary": "提供可离线运行的检索代码、ACL 和可信上下文构造；可选连接受控本地 vLLM，并分离检索质量与生成忠实度。",
       "learningObjectives": [
-        "设计 RAG 请求与 vLLM 服务的端到端数据流",
-        "实现基础检索、生成和错误处理",
-        "测量缓存、延迟与输出质量"
+        "运行标准库 RAG 检索示例及其单元测试",
+        "对文档应用访问控制并避免 Prompt Injection 越权",
+        "可选连接本地受保护的 Chat Completions API",
+        "独立评估 Recall@k、引用有效性与端到端质量"
       ],
       "tags": [
         "rag",
-        "end-to-end",
-        "deployment",
+        "retrieval",
+        "acl",
+        "prompt-injection",
+        "source-citations",
+        "python-demo",
         "evaluation"
       ]
     },
     {
       "num": "28",
-      "title": "课程总结",
+      "title": "Course Synthesis：28 章知识图谱",
       "topics": [
-        "知识图谱",
-        "核心要点",
-        "进阶学习路径",
-        "推荐资源"
+        "请求端到端链路",
+        "六条课程主线",
+        "源码/运维/研究三路径",
+        "Capstone",
+        "持续质量治理"
       ],
       "file": "28.html",
       "category": "roadmap",
       "level": "综合",
-      "durationMinutes": 12,
+      "durationMinutes": 22,
       "prerequisites": [
         "01",
-        "02",
         "03",
         "05",
-        "06",
+        "08",
+        "09",
+        "10",
         "12",
+        "14",
         "15",
+        "17",
+        "18",
         "19",
         "21",
         "23",
+        "24",
+        "25",
         "27"
       ],
-      "summary": "把 28 章串成知识图谱，并根据目标选择系统、部署或源码方向的后续学习路线。",
+      "summary": "以知识图谱、三条进阶路线与可复现的 Capstone 把 28 章串成完整的推理系统学习闭环。",
       "learningObjectives": [
-        "复述 vLLM 从模型执行到生产服务的核心链路",
-        "识别自己尚未掌握的关键子系统",
-        "制定下一阶段的阅读、实验与项目计划"
+        "复原从 API、Prefill、KV Cache 到 Decode 的完整数据流",
+        "根据知识关系选择并验证自己的进阶路线",
+        "编制含版本、测量、错误、回滚与证据的最终 Capstone"
       ],
       "tags": [
         "knowledge-map",
+        "capstone",
         "learning-path",
-        "review"
+        "source-reading",
+        "course-review"
       ]
     }
   ],

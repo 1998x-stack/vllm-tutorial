@@ -7,7 +7,7 @@ The 28 chapter numbers and root HTML URLs remain stable while the reading experi
 - Course metadata: 8 categories, learning objectives, prerequisites, tags, difficulty and estimated reading time.
 - Shared article design system, accessible stepper enhancement and offline-first interactive labs.
 - Adapted tutorial-authoring Skill and repository instructions.
-- **Chapters 01–23:** technical rewrite, original topic-specific SVGs, source sections, evidence ledgers and semantic HTML.
+- **Chapters 01–28:** technical rewrite, original topic-specific SVGs, source sections, evidence ledgers and semantic HTML.
 - Chapter 08: offline KV Cache capacity calculator.
 - Chapter 11: offline Chunked Prefill budget explorer.
 - Chapter 14: offline Sampling / Decoding distribution explorer.
@@ -16,14 +16,17 @@ The 28 chapter numbers and root HTML URLs remain stable while the reading experi
 - Chapter 21: speculative rejection sampling and an offline expected-accepted-length experiment.
 - Chapter 22: multimodal preprocessing, latency, cost and media URL security.
 - Chapter 23: pinned nano-vLLM source walkthrough, compared with production vLLM V1.
-- Static article / local-link validation, course manifest generation and offline catalog tests.
+- Chapter 24: evidence-first troubleshooting for memory, NCCL, model loading and CUDA Graph failures.
+- Chapter 25: reproducible benchmark protocol and a zero-dependency arithmetic lab.
+- Chapter 26: research maturity rubric tied to papers, fixed source, releases and real workloads.
+- Chapter 27: executable, standard-library RAG retrieval with scoped sample ACL and loopback-only optional vLLM call.
+- Chapter 28: complete knowledge map, three reading tracks, and reproducible capstone.
+- Static article / local-link validation, course manifest generation, offline catalog tests, and a separate unittest suite for the executable RAG example.
 - GitHub Actions validation workflow.
 
 ## Remaining chapter batches
 
-| Batch | Chapters | Main review focus |
-|---|---|---|
-| 7 | 24–28 | Troubleshooting, benchmarking, roadmap, RAG project, synthesis |
+All 28 chapters are now covered by the modernization batch. Future work is quality maintenance, version drift review, and model/hardware-backed evaluation rather than unverified expansion.
 
 ## Completion gate
 

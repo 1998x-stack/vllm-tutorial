@@ -1,119 +1,35 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第26章 未来趋势</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html" class="active">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第26章 未来趋势</h2>
-
-<p>vLLM 在 2025 年完成了 V1 架构重写，2026 年的演进方向更加清晰。这一章咱们看看未来 1-2 年推理引擎会往哪里走，以及如何保持技术视野。</p>
-
-<h3>26.1 2026 年四大方向</h3>
-
-<table>
-  <tr><th>方向</th><th>核心变化</th><th>预期收益</th><th>当前状态</th></tr>
-  <tr><td>P-EAGLE 并行解码</td><td>多分支并行推测 + 动态置信度</td><td>8192 tok 场景 6.7× 加速</td><td>🟡 研究中</td></tr>
-  <tr><td>Model Runner V2</td><td>控制/数据/存储平面解耦</td><td>QPS 1200 → 5800</td><td>🟡 架构设计中</td></tr>
-  <tr><td>智能路由</td><td>语义路由器，简单→小模型，复杂→大模型</td><td>成本 30-60%↓，延迟持平</td><td>🟡 Semantic Router v0.2</td></tr>
-  <tr><td>Vision CUDA Graph</td><td>ViT 编码器纳入 CUDA Graph</td><td>P99 延迟 -84.9%</td><td>🟢 已发布</td></tr>
-</table>
-
-<h3>26.2 从"推理引擎"到"智能中枢"</h3>
-
-<p>vLLM 的定位正在发生根本性转变：</p>
-
-<pre><code>2023-2024: 推理加速引擎
-  "怎么让一个模型跑得最快？"
-  核心: PagedAttention, Continuous Batching
-
-2025-2026: AI 部署基础设施
-  "怎么在复杂场景中管理多个模型、多模态、多节点？"
-  核心: V1 架构, Production Stack, 多模态, 智能路由
-
-2027+: 全栈式 AI 中枢
-  "怎么让推理、训练、数据处理在统一平台上协作？"
-  预测: 推理-训练融合, 自动化模型选择, 跨云部署</code></pre>
-
-<div class="highlight">
-  <p><strong>范式转变</strong>：推理引擎不再是"加速器"，而是"操作系统"。就像 Linux 从一台机器上的内核变成了数据中心的操作系统，vLLM 正从单 GPU 推理引擎演变为 AI 工作负载的通用平台。</p>
-</div>
-
-<h3>26.3 竞品格局</h3>
-
-<table>
-  <tr><th>引擎</th><th>2025 核心优势</th><th>2026 威胁/机会</th></tr>
-  <tr><td>vLLM</td><td>生态最大，模型最全，V1 架构</td><td>社区驱动 vs 大厂产品的速度竞争</td></tr>
-  <tr><td>SGLang</td><td>RadixAttention 前缀树，编程模型灵活</td><td>追赶 V1 的功能完善度</td></tr>
-  <tr><td>TensorRT-LLM</td><td>NVIDIA 深度优化，极致单卡性能</td><td>仅限于 NVIDIA，安装复杂</td></tr>
-  <tr><td>HuggingFace TGI</td><td>HF 生态集成，易上手</td><td>性能差距，创新速度慢</td></tr>
-</table>
-
-<h3>26.4 值得关注的技术趋势</h3>
-
-<ul>
-  <li><strong>长上下文推理</strong>：128K-1M token 窗口成为标配，KV cache 压力剧增 → 需要更好的压缩/分层/智能逐出</li>
-  <li><strong>端侧推理</strong>：ARM/Qualcomm/Apple Silicon 适配，模型量化到 2-4 bit</li>
-  <li><strong>推理-训练一体化</strong>：推理过程中收集反馈数据 → 在线训练/微调 → 更新模型（闭环）</li>
-  <li><strong>Agentic 推理</strong>：不再是单轮问答，而是多步推理 + 工具调用 + 反思循环。对推理引擎提出更复杂的调度需求</li>
-</ul>
-
-<h3>26.5 保持技术敏锐度</h3>
-
-<pre><code>关注这些信息源:
-├── vLLM RFC (GitHub Discussions): 每个大功能都有 RFC 讨论
-├── vLLM Blog: https://blog.vllm.ai/ (技术深度文章)
-├── SGLang Blog: 了解竞品思路
-├── arXiv 论文: PagedAttention, Eagle, Medusa, Flash Attention 系列
-└── Twitter/X 上关注 @woosuk_kwon (vLLM 创始人), @lmzheng (SGLang)</code></pre>
-
-<p>技术演进很快，但原理不会过时——PagedAttention 的"分页思想"来自 1960 年代的 OS，至今有效。下一章咱们做一个完整的实战项目来融会贯通。</p>
-
-        <div class="footer-nav"><a href="25.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="27.html">下一章 →</a></div>
-    </div>
-</div></div>
-</body>
-</html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="用官方 release、代码、论文与可复现数据解释推理系统的演进方向，而不是预测一个没有证据的功能排行榜。"><title>第 26 章｜Inference Systems Roadmap：怎样判断技术成熟度？</title><link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#question">26.1 为什么“最新功能”不是生产选型理由</a></li><li><a href="#matrix">26.2 用证据阶梯给技术打标签</a></li><li><a href="#themes">26.3 五条值得持续观察的研究方向</a></li><li><a href="#decision">26.4 技术候选的审查问卷</a></li><li><a href="#release">26.5 建立可重复的版本追踪机制</a></li><li><a href="#recap">本章自检</a></li><li><a href="#sources">资料与证据</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 26 章 · 研究与工程能力</p><h1>Inference Systems Roadmap：怎样判断技术成熟度？</h1><p class="article-dek">用官方 release、代码、论文与可复现数据解释推理系统的演进方向，而不是预测一个没有证据的功能排行榜。</p><div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">固定版本审校</span><span class="meta-chip">渐进式图解</span></div></header><p class="article-lead">研究进展很快，但工程决策不能仅凭一条论文摘要或发布视频。本章把方法放在未来预测之前：比较算法证据、实现状态、版本稳定性、真实硬件负载和回滚条件，建立可以长期维护的技术雷达。</p>
+<div class="outcomes"><h2>学习目标</h2><ul><li>区分论文原型、源码实现、官方支持与生产验证。</li><li>识别解码、KV、MoE、多模态和请求编排的研究问题。</li><li>复查 release notes 和兼容性差异。</li><li>建立风险可控的探索、测量与回滚路径。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/26-evidence-roadmap.svg" alt="用论文、固定实现、官方发布、复现实验和生产观测五个证据层级判断技术成熟度。" loading="lazy"><figcaption>用论文、固定实现、官方发布、复现实验和生产观测五个证据层级判断技术成熟度。 这是本课程绘制的概念图，不是外部项目性能或成熟度评估结果。</figcaption></figure>
+<section id="question"><h2>26.1 为什么“最新功能”不是生产选型理由</h2><p>部署团队关心可复现的 <strong>质量 × 延迟 × 吞吐 × 成本 × 故障风险</strong>；研究团队关心新算法是否在定义清楚的工作负载上突破限制。同一种功能在论文、原型、特定模型路径和稳定发布中的状态可能完全不同。<strong>版本变化是需要审计的事实，不是产品宣传语。</strong></p><p>本章不把研究中的 P-EAGLE、下一代 Model Runner 或某个特定 Accelerator 方案称为“已是生产默认功能”；这些术语在不同提交和配置下的含义可能变动。我们采用官方文档、release、代码、benchmark 四级证据判定。</p></section>
+<section id="matrix"><h2>26.2 用证据阶梯给技术打标签</h2><div class="table-wrap"><table><thead><tr><th>证据等级</th><th>可以支持什么陈述</th><th>仍需验证什么</th></tr></thead><tbody>
+<tr><td>论文 / RFC</td><td>算法思想、实验条件下的观察</td><td>是否已合并、是否普遍兼容</td></tr>
+<tr><td>PR / 源码</td><td>某 commit 已有实现/接口</td><td>功能是否默认启用，边界是否稳定</td></tr>
+<tr><td>官方文档 / Release</td><td>该版本公开支持的功能和限制</td><td>模型 × 硬件组合的真实结果</td></tr>
+<tr><td>复现报告</td><td>一组确定条件下的正确性/性能</td><td>扩展至其他业务负载的外推风险</td></tr>
+<tr><td>生产观测</td><td>真实请求下的 SLO 与故障情况</td><td>业务变化、长期维护与回滚</td></tr>
+</tbody></table></div>
+<p>例：某个 speculative method 在论文中取得加速，不等于当前 vLLM 在任何模型上都可以启用。必须检查当前 <code>SpeculativeConfig</code>、checkpoint 兼容、TP/PP 组合、目标分布保持语义和基准复现。对于兼容性不确定的功能，应标为“待验证”，而非“未来必然会实现”。</p></section>
+<section id="themes"><h2>26.3 五条值得持续观察的研究方向</h2><ol>
+<li><strong>Decode 加速：</strong>Speculative Decoding、MTP、EAGLE 与动态接受策略，在低并发与高并发时的收益边界不同。</li>
+<li><strong>长上下文与内存：</strong>Prefix Cache、KV Offloading、分层/混合 Attention 缓存与压缩。在输出质量、复用率、显存与 CPU/网络代价间平衡。</li>
+<li><strong>分布式与 MoE：</strong>TP/PP/DP/EP 组合、All-to-All、expert load balancing、Prefill/Decode disaggregation 与跨节点传输。</li>
+<li><strong>异构和多模态：</strong>视觉 Encoder、音频视频、不同 GPU/加速器的 kernel 和 compiler 组合，探索更严格的资源预算。</li>
+<li><strong>生产编排：</strong>Cache-aware routing、负载感知路由、请求 admission、性能与安全观测；多租户共享 Cache 还要考虑隔离。</li></ol>
+<p>这些是<strong>研究与工程关注方向</strong>，不是统一功能 roadmap，也不代表全部已经成为稳定默认能力。核验时回到第 09、12、16、17、19–22 章所建立的原理与指标。</p></section>
+<section id="decision"><h2>26.4 技术候选的审查问卷</h2><p>每当看到“性能提升 X%”的新闻或博文，先答六个问题：</p><ol><li>研究或项目对应哪个 Git commit、release 和日期？</li><li>比较对象是不是同一个模型、精度、GPU、Token 分布和请求到达率？</li><li>结论讨论的是 TTFT、TPOT、输出 tok/s，还是成功请求的 Goodput？</li><li>是否保持生成质量/采样分布？关闭或简化哪些功能才得到提升？</li><li>用到哪些只在特定模型/硬件受支持的 Kernel/Backend？</li><li>配置若出问题，能否自动/人工回滚？现网观测如何判断收益？</li></ol>
+<div class="callout"><p><strong>反例：</strong>某实现使用热 Prefix Cache 且 Prompt 高度重复，另一个实现是冷缓存；这不是公平的“引擎快慢”对比。第 25 章可用于重构正确的 Benchmark 条件。</p></div></section>
+<section id="release"><h2>26.5 建立可重复的版本追踪机制</h2><p>建议以“候选—证据—实验—决策”四列维护一个简短更新表，而不是不停追加未证实的功能名。一个工作周只选择少数与业务相关的变化：记录 release notes、对应 PR 和受影响 API，检查 <code>AGENTS.md</code>、课程 evidence 和示例命令是否有版本漂移。</p>
+<pre><code># 只读本地查询，用于核对安装的 vLLM 版本
+python -c "import vllm; print(vllm.__version__)"
+# 代码审查时记录 model revision、image digest 与 Git SHA
+# 比对某个 release 的官方 changelog 与对应 diff 后再设计回归实验
+</code></pre>
+<p>始终维护稳定基线；新特性先在小流量或离线 Benchmark 中验证正确性与回滚，随后在真实负载下复查 P95/P99 与错误率。在没有访问到模型与 GPU 的场景下，本章不生成任何伪造的趋势排名或性能预测数字。</p></section>
+<section id="recap"><h2>本章自检</h2><ol><li>一项研究特性如何从论文结果变成可安全上线的生产功能？</li><li>为什么不能把不同模型、硬件与缓存条件下的 Benchmark 放入同一榜单？</li><li>如何从 vLLM release notes 找到潜在兼容破坏？</li><li>为什么更复杂的推理功能不一定优于简单的高质量服务？</li></ol></section>
+<section id="sources" class="sources"><h2>权威资料与证据入口</h2><ol><li><a href="https://github.com/vllm-project/vllm/releases" target="_blank" rel="noopener noreferrer">vLLM Releases</a>：查版本发布、变更与兼容性说明</li><li><a href="https://docs.vllm.ai/en/latest/features/speculative_decoding/" target="_blank" rel="noopener noreferrer">Speculative Decoding</a>：方法边界与标准拒绝采样保证</li><li><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview</a>：V1 架构与调度器</li><li><a href="https://docs.vllm.ai/en/latest/features/multimodal_inputs/" target="_blank" rel="noopener noreferrer">Multimodal Inputs</a>：设备/模型特定支持</li><li><a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" target="_blank" rel="noopener noreferrer">Benchmark CLI</a>：可复现负载与测量边界</li><li><a href="https://github.com/vllm-project/vllm/tree/e72fc9ae50c221180c4b8f4a94c5009714a4b199/" target="_blank" rel="noopener noreferrer">vLLM fixed source</a>：固定提交的实际实现</li></ol><p><small>vLLM 上游审校基线：<code>e72fc9ae50c221180c4b8f4a94c5009714a4b199</code>；日期 2026-11-22。发展趋势和第三方技术应随版本重新核验。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="25.html">← 上一章</a><a class="next" href="27.html">下一章 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer></article></main></div></body></html>

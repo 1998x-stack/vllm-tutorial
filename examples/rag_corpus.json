@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "description": "Artificial public and team-scoped vLLM tutorial snippets; no confidential user data.",
+  "documents": [
+    {
+      "id": "kv-cache",
+      "title": "KV Cache 的存储角色",
+      "scope": "public",
+      "text": "KV Cache 保存历史 token 的 Key 和 Value，减少下一 token 解码重复计算。实际占用受层数、KV heads、head_dim、dtype、序列长度与并发影响。"
+    },
+    {
+      "id": "paged-attention",
+      "title": "PagedAttention 与 Block Table",
+      "scope": "public",
+      "text": "PagedAttention 将逻辑 KV blocks 映射到物理缓存 block。Block Table 支持不连续物理分配。它并不意味着 CUDA 显存按单个 token 自动连续存储。"
+    },
+    {
+      "id": "prefix-cache",
+      "title": "Prefix Cache / Automatic Prefix Caching",
+      "scope": "public",
+      "text": "Prefix Cache 在内容与哈希键匹配时复用已经计算过的完整 KV blocks。安全隔离还需要考虑 tenant salt、可信网关与跨租户共享风险。"
+    },
+    {
+      "id": "scheduler",
+      "title": "V1 Scheduler 的 Token Budget",
+      "scope": "public",
+      "text": "Scheduler 在有限 token budget 和 KV Cache capacity 下选择处理哪些请求。Prefill 与 Decode 能在同一迭代预算中竞争，运行请求可能被 preempt 并重新排队。"
+    },
+    {
+      "id": "metrics",
+      "title": "TTFT ITL 和吞吐",
+      "scope": "public",
+      "text": "TTFT 是请求到第一个输出事件的时间，ITL 是流式相邻输出事件时间。Benchmark 需要明确 P95、P99、输入长度、输出长度、Prefix Cache 热冷状态和错误率。"
+    },
+    {
+      "id": "security",
+      "title": "推理网关与鉴权",
+      "scope": "public",
+      "text": "生产部署应通过可信网关实现入口 ACL、速率限制与端点 allowlist。vLLM --api-key 不能保护所有 HTTP endpoint，外部不能直接暴露内部网络与敏感运维端点。"
+    },
+    {
+      "id": "team-budget",
+      "title": "Team 容量演示",
+      "scope": "team",
+      "text": "这是仅供 team scope 读取的虚构教学片段。示例描述 GPU 节点容量规划，不代表任何公司真实配置。"
+    },
+    {
+      "id": "team-rotation",
+      "title": "Team 发布记录演示",
+      "scope": "team",
+      "text": "这是虚构教学记录：上线前需要回归 TTFT、ITL、失败率，并留出模型版本回滚方案。Public scope 不得检索到此记录。"
+    }
+  ]
+}

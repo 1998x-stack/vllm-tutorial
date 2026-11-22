@@ -1,135 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第28章 课程总结</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li>
-            <li><a href="28.html" class="active">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第28章 课程总结</h2>
-
-<p>28 章，从头走到尾。从"什么是 LLM 推理"到"怎么搭一个生产级 RAG 服务"，咱们把 vLLM 从里到外拆了一遍。最后一章做一个系统性的回顾和进阶指南。</p>
-
-<h3>28.1 知识图谱</h3>
-
-<pre><code>vLLM 知识体系:
-                        ┌─────────────────┐
-                        │   vLLM 推理引擎   │
-                        └────────┬────────┘
-                                 │
-        ┌────────────────────────┼────────────────────────┐
-        ▼                        ▼                        ▼
-┌───────────────┐       ┌───────────────┐       ┌───────────────┐
-│   怎么存？     │       │   怎么跑？     │       │   怎么部署？   │
-│ PagedAttention│       │ Cont. Batching│       │ 生产栈 K8s    │
-│ KV Cache管理  │       │ 调度器         │       │ 可观测性      │
-│ Prefix Caching│       │ Chunked Prefill│      │ 安全 & 鉴权   │
-└───────┬───────┘       └───────┬───────┘       └───────┬───────┘
-        │                       │                       │
-        └───────────────────────┼───────────────────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    ▼                       ▼
-            ┌──────────────┐       ┌──────────────┐
-            │  怎么加速？   │       │  怎么调优？   │
-            │ 张量/流水并行 │       │ 基准测试      │
-            │ 推测解码      │       │ 性能 checklist│
-            │ 多模态推理    │       │ 问题排查      │
-            └──────────────┘       └──────────────┘</code></pre>
-
-<h3>28.2 核心要点回顾</h3>
-
-<table>
-  <tr><th>序号</th><th>一句话总结</th><th>对应章节</th></tr>
-  <tr><td>1</td><td>LLM 推理瓶颈是显存，不是计算</td><td>第1章</td></tr>
-  <tr><td>2</td><td>PagedAttention = OS 虚拟内存思想搬到 GPU 显存</td><td>第3-4章</td></tr>
-  <tr><td>3</td><td>Continuous Batching 让 GPU 永不闲置</td><td>第5章</td></tr>
-  <tr><td>4</td><td>Prefix Caching 是 RAG 场景的省钱密码</td><td>第9章</td></tr>
-  <tr><td>5</td><td>V1 的 1+N 多进程架构 = 故障隔离 + 热更新</td><td>第12章</td></tr>
-  <tr><td>6</td><td>FP8 KV Cache 是"性价比最高"的显存优化</td><td>第8章</td></tr>
-  <tr><td>7</td><td>生产环境三层架构：推理引擎 + 反向代理 + 可观测性</td><td>第15-17章</td></tr>
-  <tr><td>8</td><td>张量并行只适合单节点（NVLINK），跨节点用流水线并行</td><td>第19-20章</td></tr>
-  <tr><td>9</td><td>n-gram 推测解码零成本，试了再说</td><td>第21章</td></tr>
-  <tr><td>10</td><td>一次只改一个参数，改完跑 benchmark</td><td>第25章</td></tr>
-</table>
-
-<h3>28.3 进阶学习路径</h3>
-
-<p>学完这门课，你已经具备了生产级 vLLM 部署和调优的能力。如果想进一步深入：</p>
-
-<ul>
-  <li><strong>源码级理解</strong>：读 nano-vLLM（1200 行），然后读 vLLM 源码中的 scheduler 和 model_runner</li>
-  <li><strong>底层优化</strong>：学习 CUDA 编程、Triton kernel 编写，理解 PagedAttention kernel 的实现细节</li>
-  <li><strong>系统设计</strong>：研究 vLLM Production Stack 的多模型管理、LMCache、前缀感知路由</li>
-  <li><strong>学术追踪</strong>：SOSP/OSDI/MLSys 会议中关于推理系统的论文</li>
-</ul>
-
-<h3>28.4 推荐资源</h3>
-
-<table>
-  <tr><th>类型</th><th>资源</th></tr>
-  <tr><td>论文</td><td>PagedAttention (SOSP 2023), Flash Attention (NeurIPS 2022), EAGLE, Medusa</td></tr>
-  <tr><td>代码</td><td>vllm-project/vllm, GeeeekExplorer/nano-vllm, sgl-project/sglang</td></tr>
-  <tr><td>文档</td><td>docs.vllm.ai, blog.vllm.ai</td></tr>
-  <tr><td>课程</td><td>DeepLearning.AI "Fast & Efficient LLM Inference with vLLM"</td></tr>
-  <tr><td>社区</td><td>vLLM Slack, GitHub Discussions, discuss.vllm.ai</td></tr>
-</table>
-
-<div class="highlight">
-  <p><strong>最后的建议</strong>：技术更迭很快，但原理不会过时。PagedAttention 的"分页思想"源自 1960 年代的 OS，到今天依然是最优解。学好原理，再看什么新框架都只是"旧思想的新组合"。祝你在 LLM 推理系统的道路上越走越远！</p>
-</div>
-
-<p style="text-align:center; margin-top:40px; color:#6d28d9; font-size:1.2rem;"><strong>—— 全课程完 ——</strong></p>
-
-        <div class="footer-nav">
-            <a href="27.html">← 上一章</a>
-            <a href="index.html">📖 返回目录</a>
-            <a href="javascript:void(0)">下一章 →</a>
-        </div>
-    </div>
-</div></div>
-</body>
-</html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="将 28 章连接为从 Transformer 数学、内存与调度，到并行、生成控制、部署、排障与 RAG 的系统能力。"><title>第 28 章｜Course Synthesis：28 章形成一张知识地图</title><link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#map">28.1 28 章知识图谱：从 Token 到用户响应</a></li><li><a href="#knowledge">28.2 六条主线和学习检验</a></li><li><a href="#paths">28.3 三条进阶实践路线</a></li><li><a href="#capstone">28.4 最终 Capstone：证明一个推理服务可信</a></li><li><a href="#limits">28.5 课程边界与持续维护</a></li><li><a href="#recap">本章自检</a></li><li><a href="#sources">资料与证据</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 28 章 · 研究与工程能力</p><h1>Course Synthesis：28 章形成一张知识地图</h1><p class="article-dek">将 28 章连接为从 Transformer 数学、内存与调度，到并行、生成控制、部署、排障与 RAG 的系统能力。</p><div class="article-meta"><span class="meta-chip">综合</span><span class="meta-chip">固定版本审校</span><span class="meta-chip">渐进式图解</span></div></header><p class="article-lead">学完一门推理课程后，真正的能力不是记住所有 CLI flags，而是看到一个请求/故障时能从模型、缓存、调度、GPU、网络和 API 一步步解释现象，并设计实验验证自己的判断。</p>
+<div class="outcomes"><h2>学习目标</h2><ul><li>在脑中复原完整请求生命周期。</li><li>通过知识关系定位前置知识。</li><li>按系统、生产或研究应用目标选择学习路径。</li><li>用可复现 Capstone 验证理解，而非记忆术语。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/28-course-knowledge-map.svg" alt="从基础、KV Cache、调度、GPU 并行和生成控制连接到生产服务、诊断、Benchmark 与 RAG 项目。" loading="lazy"><figcaption>从基础、KV Cache、调度、GPU 并行和生成控制连接到生产服务、诊断、Benchmark 与 RAG 项目。 这是本课程绘制的概念图，不是外部项目性能或成熟度评估结果。</figcaption></figure>
+<section id="map"><h2>28.1 28 章知识图谱：从 Token 到用户响应</h2><p>课程中出现的概念其实构成一条从基础数学到生产请求的因果链，而不是 28 个相互独立的术语：</p>
+<div class="math-display"><code>用户请求 → Tokenizer → Prefill → KV Cache → Scheduler → Decode → Sampling → Streaming</code></div>
+<p>把链路加上外层工程组件：<strong>API Server / Gateway</strong> 负责外部请求、认证和输出；<strong>Engine Core / Scheduler</strong> 负责预算和排队；<strong>GPU Workers / Model Runner</strong> 执行矩阵计算和 Attention；<strong>Metrics/Tracing</strong> 负责证据观察；多 GPU 通过 TP/PP/DP/EP 拓展容量/吞吐。</p>
+<p>当前 28 篇文章按课程地图分类，核心互相依赖：<a href="01.html">01 自回归</a> → <a href="03.html">03 PagedAttention</a> → <a href="05.html">05 Continuous Batching</a> → <a href="10.html">10 Scheduler</a> → <a href="12.html">12 V1 Architecture</a> → <a href="13.html">13 Lifecycle</a>。若其中一环不清楚，先回到相应章节做最小实验。</p></section>
+<section id="knowledge"><h2>28.2 六条主线和学习检验</h2><div class="table-wrap"><table><thead><tr><th>主线</th><th>章节</th><th>应能做的事</th></tr></thead><tbody>
+<tr><td>计算与显存</td><td>01–04、08–09</td><td>算出 KV Cache 估算并画出 Block Table</td></tr>
+<tr><td>调度与请求</td><td>05、10–13</td><td>跟踪 Prefill、Decode、抢占、终止</td></tr>
+<tr><td>生成控制</td><td>06–07、14、21</td><td>解释 Sampling、结构化输出和 Draft–Verify</td></tr>
+<tr><td>分布式与模态</td><td>19–20、22–23</td><td>分析 TP/PP/DP/EP 和 Media path</td></tr>
+<tr><td>生产可靠性</td><td>15–18、24–25</td><td>设计部署、排障、SLO 和 Benchmark</td></tr>
+<tr><td>研究与应用</td><td>26–28</td><td>判断成熟度，构建可验证的 RAG 实验</td></tr>
+</tbody></table></div>
+<p>掌握一项技术不以“阅读完成”判断，而以“可以做最小实验、解释反例、给出版本和来源”为准。不同目标可按前置知识导航选择跳读路线。</p></section>
+<section id="paths"><h2>28.3 三条进阶实践路线</h2><h3>系统与源码路线</h3><p><a href="03.html">03 PagedAttention</a> → <a href="09.html">09 Prefix Cache</a> → <a href="10.html">10 Scheduler</a> → <a href="12.html">12 V1</a> → <a href="23.html">23 nano-vLLM</a>。实验：固定一个源码 commit，记录一个序列的 block 分配、GPU slot mapping 和 preemption 状态。</p>
+<h3>生产运维路线</h3><p><a href="06.html">06 Quickstart</a> → <a href="15.html">15 Docker</a> → <a href="16.html">16 Kubernetes</a> → <a href="17.html">17 Metrics</a> → <a href="18.html">18 Security</a> → <a href="24.html">24 Troubleshooting</a> → <a href="25.html">25 Benchmark</a>。实验：设计有版本、日志、负载、SLO、回滚条件的发布验收单。</p>
+<h3>研究与应用路线</h3><p><a href="14.html">14 Sampling</a> → <a href="21.html">21 Speculative</a> → <a href="22.html">22 Multimodal</a> → <a href="26.html">26 Trends</a> → <a href="27.html">27 RAG</a>。实验：对同一负载做严格 A/B，记录算法保证、兼容性与输出质量；将有证据的 RAG 样本变成回归集。</p></section>
+<section id="capstone"><h2>28.4 最终 Capstone：证明一个推理服务可信</h2><p>用自己有权访问的模型和 GPU，建立完整实验记录：</p><ol><li>固定 model/revision、Tokenizer、vLLM SHA、Docker digest、GPU、CUDA driver。</li><li>对一个最小请求解释用户入口 → Prefill → KV Cache → Decode → Sampling 的内部路径。</li><li>设计并执行至少两组可重复负载，记录成功率、吞吐、TTFT/ITL/E2E 分位数和缓存状态。</li><li>为服务配置可信网关、Endpoint allowlist、请求限流与日志脱敏。</li><li>故意制造一个可控故障（如过小上下文预算），按 24 章流程排查，记录回滚。</li><li>运行第 27 章的 RAG demo 并扩展检索质量与引用评估，不把模型输出当作证据本身。</li></ol>
+<p><strong>结束条件：</strong>任何一位同学都可以根据你的代码、数据、配置和命令重放实验，并得到同类型的结果；若不能重放，就不能把结果当作可靠工程证据。</p></section>
+<section id="limits"><h2>28.5 课程边界与持续维护</h2><p>本课程提供 28 个离线 HTML 入口，原创机制图、版本钉住的来源登记与若干教学用交互实验。它不是 vLLM 全部 CUDA kernel 的数学证明，也不是所有云 GPU 与模型的部署兼容测试。论文与工程特性会演进，所以每一轮新增内容都需要经过“官方资料搜索 → 仓库去重 → Evidence → 构建/测试 → 浏览器 → Pages”流程。</p>
+<p>请将修正建议附带：受影响章节、上游 source/commit、可复现的反例、期望行为以及对应测试。持续维护比一次性追求更多页面数量更重要。</p>
+<p>开始新学习循环：回到 <a href="index.html">课程地图</a>，选择一条还不能独立解释的机制，做一次简短、能保存证据的实验。</p></section>
+<section id="recap"><h2>本章自检</h2><ol><li>解释一次请求从输入到 Prefill、KV Cache、Decode 和流式响应。</li><li>如果线上 TTFT 突然上升，最先关联哪三类指标？</li><li>TP 与 DP 对单请求时延和整体吞吐分别有什么影响？</li><li>请选择一条自己的实践路径，并列出可以复现的验收证据。</li></ol></section>
+<section id="sources" class="sources"><h2>权威资料与证据入口</h2><ol><li><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">vLLM Architecture Overview</a>：系统模块与请求执行</li><li><a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" target="_blank" rel="noopener noreferrer">vLLM Benchmark CLI</a>：测量边界和复现</li><li><a href="https://docs.vllm.ai/en/latest/usage/metrics/" target="_blank" rel="noopener noreferrer">vLLM Production Metrics</a>：观测指标体系</li><li><a href="https://docs.vllm.ai/en/latest/usage/security/" target="_blank" rel="noopener noreferrer">vLLM Security</a>：部署隔离与多租户限制</li><li><a href="https://github.com/vllm-project/vllm/releases" target="_blank" rel="noopener noreferrer">vLLM GitHub releases</a>：后续版本变动的追踪入口</li></ol><p><small>vLLM 上游审校基线：<code>e72fc9ae50c221180c4b8f4a94c5009714a4b199</code>；日期 2026-11-22。发展趋势和第三方技术应随版本重新核验。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="27.html">← 上一章</a><a class="next" href="index.html">回课程首页 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer></article></main></div></body></html>

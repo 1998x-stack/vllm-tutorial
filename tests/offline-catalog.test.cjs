@@ -54,8 +54,8 @@ test("all chapter links remain local and resolve to files", () => {
   assert.doesNotMatch(index, /fetch\s*\(/, "offline index must not fetch remote data");
 });
 
-test("the first twenty-three upgraded chapters use semantic HTML and unique SVGs", () => {
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]) {
+test("all twenty-eight chapters use semantic HTML and unique SVGs", () => {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"]) {
     const html = fs.readFileSync(path.join(root, number + ".html"), "utf8");
     assert.match(html, /<h1\b/);
     assert.match(html, /<main\b/);
@@ -97,6 +97,11 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     "21-speculative-acceptance.svg",
     "22-multimodal-input-path.svg",
     "23-nano-vllm-control-flow.svg",
+    "24-debugging-triage.svg",
+    "25-benchmark-design.svg",
+    "26-evidence-roadmap.svg",
+    "27-rag-trust-boundaries.svg",
+    "28-course-knowledge-map.svg",
   ];
   for (const filename of expected) {
     const svg = fs.readFileSync(path.join(root, "assets", "diagrams", filename), "utf8");
@@ -104,7 +109,7 @@ test("chapter diagrams and evidence records are independently inspectable", () =
     assert.match(svg, /<desc\b/);
     assert.match(svg, /viewBox=/);
   }
-  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]) {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"]) {
     const evidence = JSON.parse(fs.readFileSync(path.join(root, "evidence", number + ".json"), "utf8"));
     assert.equal(evidence.chapter, number);
     assert.ok(evidence.claims.length >= 2);
@@ -240,4 +245,44 @@ test("chapters 19–23 cover TP/PP/DP/EP, speculative correction, multimodal sec
   assert.ok(ledger.claims.length>=5);
   assert.ok(ledger.claims.every(c=>c.source_url.startsWith("https://")));
  }
+});
+
+test("chapter 25 offline benchmark formula handles failures and zero-request cases", () => {
+  const html = fs.readFileSync(path.join(root, "25.html"), "utf8");
+  const source = fs.readFileSync(path.join(root, "assets/js/benchmark-lab.js"), "utf8");
+  assert.match(html, /assets\/js\/benchmark-lab\.js/);
+  assert.match(html, /data-bench-lab/);
+  const scope={window:{},document:{readyState:"complete",querySelectorAll:()=>[]}};
+  vm.runInNewContext(source,scope);
+  const f=scope.window.vllmBenchmarkLab.calculate;
+  const demo=f({success:30,failure:10,seconds:20,tokens:2400});
+  assert.equal(demo.valid,true);
+  assert.equal(demo.rps,1.5);
+  assert.equal(demo.tps,120);
+  assert.equal(demo.failureRate,0.25);
+  const empty=f({success:0,failure:0,seconds:20,tokens:0});
+  assert.equal(empty.noRequests,true);
+  assert.equal(f({success:-1,failure:0,seconds:20,tokens:0}).valid,false);
+  assert.equal(f({success:1,failure:0,seconds:0,tokens:20}).valid,false);
+  assert.doesNotMatch(html,/https?:\/\/[^"]+\.js/);
+});
+
+test("chapters 24–28 contain failure boundaries, benchmark protocol and executable RAG references", () => {
+  const read=num=>fs.readFileSync(path.join(root,num+".html"),"utf8");
+  assert.match(read("24"),/NCCL_DEBUG/);
+  assert.match(read("24"),/enforce-eager/);
+  assert.match(read("25"),/request-rate/);
+  assert.match(read("25"),/max-concurrency/);
+  assert.match(read("26"),/证据/);
+  assert.match(read("27"),/examples\/rag_demo\.py/);
+  assert.match(read("27"),/Recall@k/);
+  assert.match(read("28"),/Capstone/);
+  assert.ok(fs.existsSync(path.join(root,"examples","rag_demo.py")));
+  assert.ok(fs.existsSync(path.join(root,"examples","rag_corpus.json")));
+  for(const n of ["24","25","26","27","28"]){
+    const ledger=JSON.parse(fs.readFileSync(path.join(root,"evidence",n+".json"),"utf8"));
+    assert.equal(ledger.chapter,n);
+    assert.ok(ledger.claims.length>=5);
+    assert.ok(ledger.claims.every(item=>item.source_url.startsWith("https://")));
+  }
 });

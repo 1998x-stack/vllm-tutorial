@@ -1,150 +1,46 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第24章 调试与问题排查</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html" class="active">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第24章 调试与问题排查</h2>
-
-<p>跑 vLLM 总会遇到各种奇怪的问题。这一章是我这几年踩过的坑和对应的排查思路——从 CUDA OOM 到 NCCL 超时，从模型加载失败到性能突然退化。好记性不如烂笔头，记下来省得下次再踩。</p>
-
-<h3>24.1 常见错误速查表</h3>
-
-<table>
-  <tr><th>错误信息</th><th>可能原因</th><th>解法</th></tr>
-  <tr><td><code>torch.cuda.OutOfMemoryError</code></td><td>KV cache 或模型权重超出显存</td><td>降低 gpu-memory-utilization / 启用 FP8 / 减少 max-model-len</td></tr>
-  <tr><td><code>NCCL WARN: Failed to initialize shm</code></td><td>Docker 共享内存太小</td><td>加 --ipc=host 或 --shm-size=8g</td></tr>
-  <tr><td><code>NCCL timeout</code></td><td>GPU 间通信异常</td><td>检查 NCCL_DEBUG=INFO 日志，确认 NVLINK 状态</td></tr>
-  <tr><td><code>Connection reset by peer</code></td><td>客户端在推理完成前断开</td><td>增加 proxy_read_timeout</td></tr>
-  <tr><td><code>Model not found</code></td><td>HF Hub 下载失败/无网络</td><td>手动下载到本地路径，或用 HF_ENDPOINT 镜像</td></tr>
-  <tr><td>启动卡在 "Loading model..."</td><td>模型下载慢或权重转换中</td><td>等（首次加载 2-10min）；检查磁盘和网络</td></tr>
-  <tr><td>输出乱码或重复</td><td>采样参数不当</td><td>降低 temperature，加 repetition_penalty</td></tr>
-</table>
-
-<h3>24.2 CUDA OOM 排查流程</h3>
-
-<pre><code># 1. 确认显存使用情况
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="把 OOM、NCCL、模型加载、CUDA Graph、编译与性能退化串成一套可复现的排查路径。">
+<title>第 24 章｜Troubleshooting：按证据排查推理故障</title><link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#triage">24.1 症状 → 证据 → 可证伪假设</a></li><li><a href="#oom">24.2 OOM：不是所有显存问题都来自 KV Cache</a></li><li><a href="#nccl">24.3 NCCL / 多进程卡住：先确认所有 rank 在哪里</a></li><li><a href="#cuda">24.4 CUDA Graph、Triton、torch.compile 错误如何隔离</a></li><li><a href="#regression">24.5 同时跑性能与质量的回归定位</a></li><li><a href="#playbook">24.6 复现与复盘记录模板</a></li><li><a href="#recap">学习自测</a></li><li><a href="#sources">权威资料</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 24 章 · 从原理到可复现实验</p><h1>Troubleshooting：按证据排查推理故障</h1><p class="article-dek">把 OOM、NCCL、模型加载、CUDA Graph、编译与性能退化串成一套可复现的排查路径。</p><div class="article-meta"><span class="meta-chip">进阶 / 工程实践</span><span class="meta-chip">官方资料交叉核验</span><span class="meta-chip">离线可读</span></div></header>
+<p class="article-lead">推理服务故障常在不同层级表现为类似的超时或崩溃。有效排障不是“尝试很多参数”，而是从日志、请求分布、GPU 状态和版本证据中提出可证伪的假设，并用最小实验排除错误方向。</p><div class="outcomes"><h2>学习目标</h2><ul><li>根据现象判断故障处于哪一层。</li><li>区别启动 OOM 与高负载运行 OOM。</li><li>定位 NCCL 和 CUDAGraph 的受控调试方法。</li><li>产出含环境、负载、假设与验收结果的记录。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/24-debugging-triage.svg" alt="症状沿模型加载、通信、调度、GPU 路径分流，随后记录证据、单变量实验、修复与回归。" loading="lazy"><figcaption>症状沿模型加载、通信、调度、GPU 路径分流，随后记录证据、单变量实验、修复与回归。 图中的数值和步骤用于教学；实际顺序要结合现场日志与部署版本判断。</figcaption></figure>
+<section id="triage"><h2>24.1 症状 → 证据 → 可证伪假设</h2><p>排障不要先随手修改 <code>gpu_memory_utilization</code>、增加 TP 或降低 batch。第一步确定失败发生的层次：<strong>模型下载 / 权重加载、启动与 compile、分布式初始化、请求调度、GPU 运行时、网关与客户端</strong>。</p>
+<div class="table-wrap"><table><thead><tr><th>现象</th><th>先收集什么</th><th>下一步实验</th></tr></thead><tbody>
+<tr><td>启动 OOM</td><td>GPU 余量、权重大小、加载阶段日志</td><td>单卡小模型验证环境，再分辨权重和 KV 预算</td></tr>
+<tr><td>运行 OOM</td><td>请求长度 / 并发、KV Cache usage、抢占</td><td>控制并发与最大上下文长度，仅改一个参数</td></tr>
+<tr><td>NCCL 超时</td><td>world_size、rank、网卡地址和各进程最后日志</td><td>单卡基线、网络连通性、正确网卡选择</td></tr>
+<tr><td>TTFT 变慢</td><td>请求排队、Prompt tokens、Prefill 与缓存命中</td><td>固定输出长度，将请求率和输入分布分开控制</td></tr>
+<tr><td>Decode 抖动</td><td>ITL / TPOT、KV 使用、GPU collectives</td><td>比较 TP、采样、队列与 GPU 利用率</td></tr>
+<tr><td>输出品质异常</td><td>模型 revision、Tokenizer、Chat Template、generation_config</td><td>对齐 sampling seed / stop 和模板</td></tr>
+</tbody></table></div><p>记录最小复现所需元数据：<code>git SHA / image digest / model revision / tokenizer / GPU / driver / CUDA / torch / vLLM args</code>，并保存失败请求的脱敏统计特征，避免把真实 Prompt 和密钥写进 issue。</p></section>
+<section id="oom"><h2>24.2 OOM：不是所有显存问题都来自 KV Cache</h2><p>近似把显存占用拆成 <code>Weights + KV Cache + runtime/activations + graph/workspaces + fragmentation</code>。启动时即失败和数小时后随请求增长失败，排查路径不同。不要把 <code>gpu_memory_utilization=0.9</code> 理解成“模型权重只占 90%”。它主要用于给模型执行与 KV 管理划定实例可用显存预算，真实内存分配依版本和实现。</p>
+<ol><li>确认 <code>nvidia-smi</code> 中其他进程占用，记录显卡型号/容量和 vLLM 版本。</li><li>辨别模型权重加载、profile、KV 分配、CUDA Graph capture 或请求运行阶段；分析对应日志。</li><li>先缩小 <code>--max-model-len</code>、输入长度、请求并发，或考虑适用的 TP / PP / 量化；每次只改变一个变量。</li><li>如仍失败，可与官方 <a href="https://docs.vllm.ai/en/latest/configuration/conserving_memory/">节约显存指南</a>逐项核对 KV Cache dtype、CPU offload 和 graph 捕获等选项，并量化吞吐与延迟代价。</li></ol>
+<pre><code># 观察工具：只读、无需改动线上配置
 nvidia-smi
-# 看 "Memory-Usage" 列: 如果有进程已占大量显存，可能是上一个实例没释放
-
-# 2. 精确显存计算
-# 模型权重 + KV cache 预留 + CUDA context ≈ 总显存需求
-# 模型权重: ~2 × 参数量 (FP16, 单位 bytes)
-# KV cache: 2 × 层数 × KV头数 × 头维度 × max_model_len × max_num_seqs × dtype_bytes
-
-# 3. 渐进式排查
-vllm serve model \
-    --gpu-memory-utilization 0.80 \   # 先降到 0.80
-    --max-model-len 4096 \            # 先减少一半
-    --max-num-seqs 64                 # 先减少一半
-# 如果 OK → 逐步回增参数
-
-# 4. 查看 vLLM 日志中的显存分配细节
-# INFO: "GPU KV cache size: XXX tokens" → 这是 KV cache 占了多少
-# 如果这个数很小但 OOM，说明模型权重本身太大</code></pre>
-
-<h3>24.3 NCCL 调试</h3>
-
-<pre><code># 启用 NCCL 详细日志
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+# 在已授权的测试环境中打开更详细日志
+VLLM_LOGGING_LEVEL=DEBUG vllm serve &lt;tested-model&gt; --max-model-len 2048</code></pre>
+<p>若小模型能稳定加载而目标模型不能，优先检查模型与权重/缓存需求。若极小并发即可运行，压力增加时失败，重点观察 KV 容量、输入 token 分布和重复请求，避免以单纯扩大 <code>max-num-seqs</code> 应对。</p></section>
+<section id="nccl"><h2>24.3 NCCL / 多进程卡住：先确认所有 rank 在哪里</h2><p>TP、PP、DP/EP 的 collective 需要参与 rank 的通信次序与通信域一致。某个 rank 提前 OOM、异常退出，其他 rank 也可能卡在 collective，表面看起来像 NCCL bug。</p>
+<pre><code># 仅在受控测试环境临时启用（会增加日志量）
 export NCCL_DEBUG=INFO
-export NCCL_DEBUG_SUBSYS=INIT,NET
-
-# 关键检查:
-# 1. NCCL 版本 vs CUDA 版本兼容吗？
-# 2. GPU 之间有 NVLINK 吗？→ nvidia-smi topo -m
-# 3. Docker 里 IPC_LOCK 和 SYS_ADMIN 权限加了吗？
-
-# 验证多 GPU 通信
-python -c "
-import torch
-import torch.distributed as dist
-dist.init_process_group('nccl')
-"</code></pre>
-
-<h3>24.4 性能退化排查</h3>
-
-<pre><code>症状: "之前 2000 tok/s，突然变成 800 tok/s"
-
-排查清单:
-☐ nvidia-smi → GPU 都在满频率跑吗？有没有降频(thermal throttling、P-state)？
-☐ 模型变了吗？（新版本可能有更多的层/参数）
-☐ 请求 pattern 变了吗？（更多短请求→更多调度开销；更多长请求→KV cache 压力）
-☐ Prefix Cache 命中率下降？（检查 vllm:prefix_cache_hit_rate 指标）
-☐ free_blocks 经常耗尽？（增加 max-num-seqs 或降低 max-model-len）
-☐ CPU 占用异常高？（V0 的 prefix cache 有数据拷贝，V1 修复了）
-
-# vLLM 性能分析
-vllm serve model --disable-log-requests  # 关闭请求日志（减少 I/O）
-export VLLM_LOGGING_LEVEL=WARNING        # 减少日志级别</code></pre>
-
-<div class="warning">
-  <p><strong>真实案例</strong>：一个生产服务的吞吐突然从 2100 → 900 tok/s。排查发现上游改了一个参数——原来 system prompt 是固定的（所有请求相同），改成每个用户个性化的。prefix cache 命中率从 78% 跌到 3%，所有 prompt 要重新计算。恢复了 system prompt 的统一性就好转了。</p>
-</div>
-
-<h3>24.5 模型加载问题</h3>
-
-<pre><code># 问题: 下载模型卡住不动
-export HF_ENDPOINT=https://hf-mirror.com    # 用镜像
-# 或者先手动下载
-huggingface-cli download model-id --local-dir /models/
-vllm serve /models/
-
-# 问题: safetensors 不兼容
-# 如果模型只有 .bin 格式（旧 PyTorch checkpoint）
-vllm serve model --load-format pt
-
-# 问题: 模型架构不支持
-# 检查 vLLM 支持列表:
-# https://docs.vllm.ai/en/latest/models/supported_models/</code></pre>
-
-<p>问题排查到这里。下一章做性能基准测试——用数据说话，不同配置到底差多少。</p>
-
-        <div class="footer-nav"><a href="23.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="25.html">下一章 →</a></div>
-    </div>
-</div></div>
-</body>
-</html>
+export VLLM_LOGGING_LEVEL=DEBUG
+# 网络环境复杂时，核对实际网卡后再指定：
+# export NCCL_SOCKET_IFNAME=eth0
+# export GLOO_SOCKET_IFNAME=eth0
+# export VLLM_HOST_IP=10.x.x.x
+</code></pre>
+<p>按 <code>单 GPU → 同节点 TP=2 → 同节点 TP=4 → 跨节点</code>构造递增复现；记录 rank、拓扑、网卡、driver、NCCL/PyTorch 版本。官方文档对不正确 IP 和网卡选择提供了明确排查步骤。<strong>不要在没有排查证据的情况下长期设置特殊 NCCL 环境变量</strong>，也不要为解决通信问题开放不必要的公网端口。</p></section>
+<section id="cuda"><h2>24.4 CUDA Graph、Triton、torch.compile 错误如何隔离</h2><p>如果堆栈停在 <code>self.graph.replay()</code>，出错的 kernel 可能在此前的异步操作中发生。诊断时可以临时使用 <code>--enforce-eager</code> 禁用图捕获，再结合 <code>CUDA_LAUNCH_BLOCKING=1</code> 将错误定位到更接近实际的位置；这会影响速度，不应该作为常态优化。</p>
+<p>若错误来自 <code>torch.compile</code> / Triton / PTX，先核对 GPU compute capability、CUDA 驱动、PyTorch、Triton 和 vLLM wheel 的兼容关系。硬件不支持的量化 kernel 不应通过盲目升级一个包来修复；记录矩阵并使用官方兼容版本。</p>
+<div class="callout warning"><p><strong>诊断模式会改变运行行为。</strong>例如 <code>VLLM_TRACE_FUNCTION=1</code> 可能产生极高的开销。切勿将其直接用于繁忙生产节点；对敏感日志和堆栈输出执行脱敏。</p></div></section>
+<section id="regression"><h2>24.5 同时跑性能与质量的回归定位</h2><p>模型加载成功并不意味着端到端正确。典型回归包括：使用模型作者提供的 <code>generation_config.json</code> 与此前中性 sampling 默认值不同；Chat Template 或 Tokenizer revision 变更；模型量化 kernel 回退；Prefix Cache 命中率改变；客户端重试放大负载。</p>
+<p>采用 A/B 矩阵，每次固定数据集、模型 revision、最大长度、随机种子、GPU 和软件版本，只调整一个配置。必要时比较 <code>--generation-config vllm</code>，注意这会改变 sampling 行为，不能用来“证明模型没有问题”。</p>
+<p>在第 17 章的 Prometheus 指标中，将 queue time、TTFT、ITL、E2E 与 KV Cache 指标关联；第 25 章将给出如何量化回归而不误读 benchmark 的方法。</p></section>
+<section id="playbook"><h2>24.6 复现与复盘记录模板</h2><div class="table-wrap"><table><thead><tr><th>记录项</th><th>必须包含</th></tr></thead><tbody><tr><td>故障影响</td><td>发生时间、受影响请求数、错误类别、是否回滚</td></tr><tr><td>版本</td><td>镜像 digest、commit、模型与 tokenizer revision</td></tr><tr><td>环境</td><td>GPU / CPU / 内存 / 网络 / driver / CUDA / torch</td></tr><tr><td>负载</td><td>并发、Token 分布、请求到达率、缓存状态</td></tr><tr><td>实验</td><td>假设、唯一修改变量、结果和重复次数</td></tr><tr><td>修复验收</td><td>静态测试、真实请求、P95/P99、回滚条件</td></tr></tbody></table></div>
+<p>完整排障报告应留下“证据与反例”，而不只是最终配置；它可以作为以后对照版本升级的依据。</p></section>
+<section id="recap"><h2>学习自测</h2><ol><li>单次 CUDA OOM 与高并发 KV Cache 不足应收集哪些不同证据？</li><li>什么条件下可以通过 --enforce-eager 定位 CUDAGraph 问题？</li><li>如何证明 NCCL 卡住是网络而非某个 rank 已经崩溃？</li><li>为什么禁用安全防护或无限加大 GPU 配额不是正确的第一步？</li></ol></section>
+<section id="sources" class="sources"><h2>权威资料与证据入口</h2><ol><li><a href="https://docs.vllm.ai/en/latest/usage/troubleshooting/" target="_blank" rel="noopener noreferrer">vLLM Troubleshooting</a>：官方 OOM、NCCL、CUDAGraph、Torch Compile、模型配置和日志排查</li><li><a href="https://docs.vllm.ai/en/latest/configuration/conserving_memory/" target="_blank" rel="noopener noreferrer">Conserving Memory</a>：权重与 KV 预算的配置权衡</li><li><a href="https://docs.vllm.ai/en/latest/usage/metrics/" target="_blank" rel="noopener noreferrer">Production Metrics</a>：排队/缓存/延迟客观信号</li><li><a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview</a>：定位 API Server、Engine Core 与 GPU Worker</li><li><a href="https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/config/cache.py" target="_blank" rel="noopener noreferrer">vLLM cache config</a>：版本相关显存与 KV 参数</li></ol><p><small>本文按 vLLM 上游提交 <code>e72fc9ae50c221180c4b8f4a94c5009714a4b199</code> 核对，文档审校日期 2026-11-22。命令用于诊断或实验，不替代现网变更审查。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="23.html">← 上一章</a><a class="next" href="25.html">下一章 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer></article></main></div></body></html>
