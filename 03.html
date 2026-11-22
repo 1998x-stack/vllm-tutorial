@@ -91,10 +91,10 @@
 逻辑块 1 → 物理块 2
 逻辑块 2 → 物理块 11
 逻辑块 3 → 物理块 4</code></pre>
-        <p>现在要访问逻辑 token 位置 (t=9)。首先求它属于第几个逻辑块，再求它在块内的偏移：</p>
-        <div class="math-display">
+        <p>现在要访问逻辑 token 位置 <em>t</em>=9。首先求它属于第几个逻辑块，再求它在块内的偏移：</p>
+        <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="块表映射公式，可在窄屏横向滚动查看">
           <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="逻辑块编号等于 token 位置除以块大小向下取整，块内偏移等于 token 位置对块大小取模">
-            <mrow><msub><mi>block</mi><mtext>logical</mtext></msub><mo>=</mo><mo>⌊</mo><mi>t</mi><mo>/</mo><mi>B</mi><mo>⌋</mo></mrow>
+            <mrow><msub><mi>block</mi><mtext>logical</mtext></msub><mo>=</mo><mo>⌊</mo><mfrac><mi>t</mi><mi>B</mi></mfrac><mo>⌋</mo></mrow>
             <mspace width="1em"/>
             <mrow><mi>offset</mi><mo>=</mo><mi>t</mi><mo>mod</mo><mi>B</mi></mrow>
           </math>
