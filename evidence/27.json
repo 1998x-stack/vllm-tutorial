@@ -47,7 +47,7 @@
       "status": "illustrative",
       "source_url": "https://github.com/1998x-stack/vllm-tutorial/blob/feature/chapters-24-28-20261122/examples/rag_demo.py",
       "locator": "terms, similarity, retrieve",
-      "notes": "Team access flag is pedagogical only; production requires authenticated identity."
+      "notes": "Lexical overlap score is normalized by term-set size; final retrieval also adds 0.5 times title-only similarity to favor source documents whose title matches the query. This is a pedagogical heuristic, not a vector/BM25 retriever."
     },
     {
       "id": "loopback-client",
