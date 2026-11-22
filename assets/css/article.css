@@ -532,3 +532,13 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
 .spec-lab-track i{display:block;background:var(--accent);height:100%;border-radius:999px;transition:width .15s ease}
 .spec-lab-bar strong{font-variant-numeric:tabular-nums;text-align:right;color:var(--accent-dark)}
 @media(max-width:600px){.spec-lab{padding:12px}.spec-lab-controls,.spec-lab-results{grid-template-columns:1fr}.spec-lab-bar{grid-template-columns:55px minmax(0,1fr) 55px;gap:7px}}
+
+
+/* Long mixed English/Chinese titles must wrap on 360px screens rather than widen the page. */
+@media (max-width: 560px) {
+  .article-header h1,
+  .article-content h2 {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+}
