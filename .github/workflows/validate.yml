@@ -1,4 +1,4 @@
-name: Validate vLLM tutorial
+name: Validate and publish vLLM tutorial
 
 on:
   pull_request:
@@ -6,11 +6,16 @@ on:
   push:
     branches: [master]
 
+concurrency:
+  group: vllm-pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
 permissions:
   contents: read
 
 jobs:
   validate:
+    name: Static, browser and interaction QA
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,3 +34,81 @@ jobs:
         run: python3 scripts/validate_articles.py
       - name: Run offline catalog tests
         run: node --test tests/offline-catalog.test.cjs
+      - name: Install Playwright
+        run: python -m pip install playwright
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Start local static server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/vllm-static.log 2>&1 &
+          echo $! > /tmp/vllm-static.pid
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/index.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/vllm-static.log
+          exit 1
+      - name: Run Chromium QA on chapters 01–18 at desktop, tablet and mobile widths
+        run: |
+          python3 scripts/browser_qa.py \
+            --base-url http://127.0.0.1:8765/ \
+            --chapters 01-18 \
+            --viewports 1440,768,390,360 \
+            --report reports/browser-qa.json
+      - name: Upload browser QA reports and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vllm-browser-qa
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Stage the static HTML course for Pages
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp ./*.html courses.json courses-data.js theme.css _site/
+          cp -R assets _site/assets
+      - name: Upload validated Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    name: Publish and verify GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set Pages source to GitHub Actions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+            gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow
+          fi
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Set up Python for public-site verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify the published course and critical assets
+        run: python3 scripts/verify_deployment.py --base-url "${{ steps.deployment.outputs.page_url }}"
+
