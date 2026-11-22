@@ -1,0 +1,71 @@
+{
+  "chapter": "25",
+  "reviewed_at": "2026-11-22",
+  "scope": "Final course batch source audit; derived and toy examples marked separately.",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "claims": [
+    {
+      "id": "benchmark-modes",
+      "claim": "Official benchmark docs distinguish online serving, offline throughput, forward/kernel benchmarks and other specialized evaluation modes.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Benchmark CLI Overview and Examples",
+      "notes": ""
+    },
+    {
+      "id": "bench-serve-flags",
+      "claim": "The vLLM bench serve CLI accepts dataset, prompt-count, request-rate, max-concurrency and backend parameters for controlled experiments.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Online Benchmark / Load Pattern Configuration",
+      "notes": ""
+    },
+    {
+      "id": "request-rate-vs-concurrency",
+      "claim": "Request rate controls arrival pacing while max concurrency constrains simultaneously outstanding client requests.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Load Pattern Configuration",
+      "notes": ""
+    },
+    {
+      "id": "prefix-cache-contamination",
+      "claim": "Repeated deterministic prompts against the same server can reuse prefix cache and inflate later benchmark results.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Warning following Serving Benchmark Result",
+      "notes": ""
+    },
+    {
+      "id": "benchmark-client-time",
+      "claim": "The guide defines TTFT, ITL, TPOT and E2E at benchmark client timing boundaries; ITL may differ from request-level TPOT.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Understanding the Latency Metrics",
+      "notes": ""
+    },
+    {
+      "id": "production-guidellm",
+      "claim": "The benchmark documentation recommends GuideLLM for production serving load tests because of additional request format, dataset and load flexibility.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Introduction note",
+      "notes": ""
+    },
+    {
+      "id": "throughput-math",
+      "claim": "Success request throughput, output token throughput and failure share are computed from success/failure counts, generated tokens and elapsed time; the 30/10/20 toy numbers are not measurements.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://prometheus.io/docs/practices/histograms/",
+      "locator": "Quantiles and aggregate monitoring examples",
+      "notes": "Pure arithmetic: N_success/T, N_output/T, failures/(successes+failures)."
+    }
+  ]
+}
