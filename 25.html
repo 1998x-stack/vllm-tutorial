@@ -1,144 +1,53 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第25章 性能基准测试</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html" class="active">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第25章 性能基准测试</h2>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="基于正确的 TTFT/ITL/TPOT 定义与完整负载矩阵，设计可复算、可比较、可用于发布决策的 vLLM Benchmark。">
+<title>第 25 章｜Benchmarking：让性能结论可以复现</title><link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script><script defer src="assets/js/benchmark-lab.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#model">25.1 先定义性能目标，再选择 benchmark</a></li><li><a href="#design">25.2 工作负载五维矩阵</a></li><li><a href="#tools">25.3 使用官方 CLI：serve / throughput / latency</a></li><li><a href="#formulas">25.4 从请求记录复算指标</a></li><li><a href="#lab">25.5 离线 Benchmark 算例：并发与成功率</a></li><li><a href="#results">25.6 合格报告与回归判定</a></li><li><a href="#recap">学习自测</a></li><li><a href="#sources">权威资料</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 25 章 · 从原理到可复现实验</p><h1>Benchmarking：让性能结论可以复现</h1><p class="article-dek">基于正确的 TTFT/ITL/TPOT 定义与完整负载矩阵，设计可复算、可比较、可用于发布决策的 vLLM Benchmark。</p><div class="article-meta"><span class="meta-chip">进阶 / 工程实践</span><span class="meta-chip">官方资料交叉核验</span><span class="meta-chip">离线可读</span></div></header>
+<p class="article-lead">“某配置快 30%”没有模型、请求分布、缓存状态和硬件环境就不能当作工程结论。本章把指标定义、实验设计、工具参数、统计汇总和 SLO 验收连接起来，用可复算的玩具实验代替编造的性能数字。</p><div class="outcomes"><h2>学习目标</h2><ul><li>定义请求吞吐、输出吞吐、TTFT、ITL 和 TPOT。</li><li>区分 request-rate 与并发上限。</li><li>避免 Prefix Cache 污染 A/B 比较。</li><li>写出含失败率与环境信息的发布验收报告。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/25-benchmark-design.svg" alt="从固定模型和硬件开始，将请求到达率、输入输出长度与缓存状态纳入实验，再测量分位延迟、吞吐与失败率。" loading="lazy"><figcaption>从固定模型和硬件开始，将请求到达率、输入输出长度与缓存状态纳入实验，再测量分位延迟、吞吐与失败率。 图中的数值和步骤用于教学；实际顺序要结合现场日志与部署版本判断。</figcaption></figure>
+<section id="model"><h2>25.1 先定义性能目标，再选择 benchmark</h2><p>推理服务同时受不同目标约束：在线交互希望低 <strong>TTFT</strong> 和 <strong>ITL</strong>；批量生成追求高 output tokens/s；企业线上服务还关心 P95/P99、失败率、成本/token 和不同长度请求的公平性。</p>
+<div class="table-wrap"><table><thead><tr><th>指标</th><th>测量定义（简化）</th><th>常见误读</th></tr></thead><tbody>
+<tr><td>TTFT</td><td>客户端请求开始至首个输出事件</td><td>忽略了网关/网络与排队</td></tr>
+<tr><td>ITL</td><td>相邻 Streaming 输出事件间隔</td><td>等于 TPOT（并不总是）</td></tr>
+<tr><td>TPOT</td><td>(E2E−TTFT)/(输出 tokens−1)，请求级</td><td>直接当成每次 GPU kernel 耗时</td></tr>
+<tr><td>Request throughput</td><td>完成的成功请求 / 观测时间</td><td>不区分输出长短</td></tr>
+<tr><td>Output throughput</td><td>生成 tokens / 观测时间</td><td>与输入 token 一起计作生成速度</td></tr>
+<tr><td>Goodput</td><td>满足事先定义的 SLO 的业务请求率</td><td>只看吞吐不设延迟/错误条件</td></tr>
+</tbody></table></div><p>这里的 TPOT 是第 17 章讨论的请求级定义；输出事件若一次包含多个 token，ITL 不等于每 token 时间。统计分位数必须说明在“每请求”还是“每输出 token”分布上计算。</p></section>
+<section id="design"><h2>25.2 工作负载五维矩阵</h2><p>不要用单一的“1000 requests/s”表示全体模型性能。先确定要回答的问题：“在模型 M、GPU G、输入 P/输出 O 分布、请求率 R、缓存命中模式 C 下，P99 TTFT 能否低于业务阈值，成功率是否可接受？”</p>
+<ol><li><strong>模型与软件：</strong>模型/Tokenizer revision、量化、chat template、vLLM SHA、driver / CUDA、内核后端。</li><li><strong>负载：</strong>真实或合成请求分布，Prompt 长度、输出上限、warmup，是否包含多模态。</li><li><strong>并发与到达：</strong><code>--request-rate</code> 是请求到达率；<code>--max-concurrency</code> 是客户端正在等待的请求上限，两者不是一个概念。</li><li><strong>缓存：</strong>Prefix Cache 是冷启动还是热态？相同随机数据集的第二次运行会产生额外命中。</li><li><strong>验收：</strong> P50/P95/P99 的 TTFT/ITL/E2E、错误率、GPU/KV usage、成本和质量指标。</li></ol>
+<p>比较 A/B 时，先做多次预热，再按 A-B-A 或交错顺序运行，记录时间戳、服务器健康、失败请求和原始数据。网络延迟明显时，把客户端侧与服务端侧的 measurement boundary 分开。</p></section>
+<section id="tools"><h2>25.3 使用官方 CLI：serve / throughput / latency</h2><p>当前 <a href="https://docs.vllm.ai/en/latest/benchmarking/cli/">vLLM Benchmark CLI</a> 支持面向不同目标的子命令；生产环境的真实请求回放和复杂负载模式，官方也推荐独立的 GuideLLM。以下展示有限到达率场景，参数名需与实际安装版本校验。</p>
+<pre><code># 终端 A：本地测试服务，模型与硬件自行确认
+vllm serve &lt;tested-chat-model&gt;
 
-<p>优化需要基准线。不知道现在的性能是多少，就不知道优化有没有效果。这一章咱们建立一个系统的 vLLM 性能测试方法论。</p>
-
-<h3>25.1 测试维度</h3>
-
-<table>
-  <tr><th>维度</th><th>指标</th><th>怎么测</th></tr>
-  <tr><td>吞吐量</td><td>tokens/s, requests/s</td><td>并发压力测试，逐步加 QPS</td></tr>
-  <tr><td>延迟</td><td>TTFT (P50/P95/P99), TPOT</td><td>固定 QPS，记录延迟分布</td></tr>
-  <tr><td>显存效率</td><td>KV cache 利用率, 最大并发数</td><td>观察 free_blocks 随并发变化</td></tr>
-  <tr><td>稳定性</td><td>长时间运行无 OOM/内存泄漏/性能退化</td><td>至少跑 2hr 持续负载</td></tr>
-</table>
-
-<h3>25.2 压测工具</h3>
-
-<pre><code># 1. vLLM 自带的 benchmark 工具
-python -m vllm.entrypoints.openai.run_batch \
-    --model meta-llama/Llama-3-8B \
-    --prompts prompts.jsonl
-
-# 2. 使用 LLMPerf / vllm-bench
-pip install vllm-bench
-vllm-bench \
-    --host localhost \
-    --port 8000 \
-    --model meta-llama/Llama-3-8B \
-    --num-prompts 1000 \
-    --request-rate 10  # 每秒 10 个请求
-
-# 3. 自定义压测脚本 (Python)
-import asyncio, aiohttp, time
-
-async def benchmark(url, model, num_requests, concurrency):
-    sem = asyncio.Semaphore(concurrency)
-    async def send_request():
-        async with sem:
-            async with aiohttp.ClientSession() as session:
-                start = time.time()
-                async with session.post(f"{url}/v1/chat/completions", json={
-                    "model": model,
-                    "messages": [{"role": "user", "content": "写一篇100字的短文。"}],
-                    "max_tokens": 200
-                }) as resp:
-                    await resp.json()
-                    return time.time() - start
-
-    tasks = [send_request() for _ in range(num_requests)]
-    latencies = await asyncio.gather(*tasks)
-    return latencies</code></pre>
-
-<h3>25.3 典型 Benchmark 数据</h3>
-
-<table>
-  <tr><th>配置</th><th>模型</th><th>GPU</th><th>吞吐</th><th>P99 TTFT</th></tr>
-  <tr><td>HF Transformers (baseline)</td><td>Llama-3-8B</td><td>1×A100</td><td>~600 tok/s</td><td>~1200ms</td></tr>
-  <tr><td>vLLM 默认</td><td>Llama-3-8B</td><td>1×A100</td><td>~2100 tok/s</td><td>~450ms</td></tr>
-  <tr><td>vLLM + FP8 KV Cache</td><td>Llama-3-8B</td><td>1×A100</td><td>~2900 tok/s</td><td>~380ms</td></tr>
-  <tr><td>vLLM + Prefix Cache (75% 命中)</td><td>Llama-3-8B</td><td>1×A100</td><td>~3500 tok/s</td><td>~200ms</td></tr>
-  <tr><td>vLLM TP=2</td><td>Llama-3-70B</td><td>2×A100</td><td>~800 tok/s</td><td>~500ms</td></tr>
-</table>
-
-<h3>25.4 性能调优 Checklist</h3>
-
-<pre><code>☐ --enable-prefix-caching             # 如果大部分请求有共享前缀
-☐ --kv-cache-dtype fp8                # 显存有限时的首选
-☐ --gpu-memory-utilization 0.95       # 尽量高，留 5% buffer
-☐ --max-num-seqs 合理值               # 不是越大越好，观察 free_blocks
-☐ --max-model-len 按需设置             # 不要设得超过业务需要的最大值
-☐ --disable-log-requests              # 关闭请求日志（减少 CPU I/O）
-☐ 不用 --enforce-eager                # 让 CUDA Graph 生效（decode 阶段加速）
-☐ TP size = 满足显存需求的最小值        # TP 越大通信开销越大
-☐ speculative decoding (n-gram)       # 如果 decode 是瓶颈且 temperature 低</code></pre>
-
-<div class="tip">
-  <p><strong>基准测试第一原则</strong>：一次只改一个变量。如果你同时改了 FP8、启用了 prefix cache、调整了 max-num-seqs，完全无法判断哪个改动带来了多少收益。每个优化独立验证后再叠加。</p>
-</div>
-
-<h3>25.5 解读结果的要点</h3>
-
-<ul>
-  <li><strong>不要只看平均吞吐</strong>：P99 延迟可能已经飙到不可用。同时看 P50/P95/P99</li>
-  <li><strong>预热很重要</strong>：首次推理有 CUDA kernel 编译、权重缓存的开销，前几十个请求的延迟不具有代表性</li>
-  <li><strong>测试负载要贴近真实</strong>：如果你的线上 prompt 平均 500 token，benchmark 别用 100 token 的短 prompt</li>
-  <li><strong>长时间稳定测试</strong>：至少跑 1-2 小时。有些问题（如缓慢显存泄漏）几分钟看不出来</li>
-</ul>
-
-<p>第五部分结束。下一章进入最后一部分——展望未来趋势。</p>
-
-        <div class="footer-nav"><a href="24.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="26.html">下一章 →</a></div>
-    </div>
-</div></div>
-</body>
-</html>
+# 终端 B：随机合成数据；固定长度只是受控实验，并非生产流量
+vllm bench serve \
+  --backend vllm \
+  --model &lt;tested-chat-model&gt; \
+  --endpoint /v1/completions \
+  --dataset-name random \
+  --random-input-len 512 \
+  --random-output-len 128 \
+  --num-prompts 100 \
+  --request-rate 4 \
+  --max-concurrency 8</code></pre>
+<p>对 Chat Template 敏感的模型应匹配实际 API endpoint 和数据格式；仅把 <code>/v1/completions</code> 换成 Chat endpoint 而不调整 backend / payload，可能产生无效结果。使用 <code>vllm bench throughput</code> 时也要明确它测的是离线吞吐，而不等于在线请求延迟。</p>
+<p><strong>重要陷阱：</strong>官方明确提醒：重复使用同一份可复现 Prompt，会让第二轮 Prefix Cache 命中膨胀，造成吞吐改善假象。对“禁用缓存”组、冷缓存组、热缓存组分别报告，必要时改变 seed 或隔离 Server 缓存。</p></section>
+<section id="formulas"><h2>25.4 从请求记录复算指标</h2><div class="math-display"><code>request throughput = N_success / T_wall</code></div><div class="math-display"><code>output throughput = Σ output_tokens / T_wall</code></div>
+<p>例：在<strong>纯教学假设</strong>中，40 个请求于 20 秒内完成，30 个成功，其生成 token 合计 2400，则 request throughput=1.5 req/s、output throughput=120 tok/s。未达成请求不应静默删除：必须同时报告 10/40=25% 的失败比例。这不是 vLLM 的真实 Benchmark 结果。</p>
+<div class="callout"><p>平均值可能掩盖长尾。P99 是特定请求分布中接近最慢的部分请求对应的统计位置，不能通过将平均 TTFT 乘以常数得到。样本量小、失败请求多时 P99 不稳定。</p></div></section>
+<section id="lab"><h2>25.5 离线 Benchmark 算例：并发与成功率</h2><p>输入成功请求数、失败数、时间窗口与输出 tokens，即可复算<strong>定义公式</strong>；不推测 GPU 性能或实际优化收益。</p>
+<div class="bench-lab" data-bench-lab><div class="bench-lab-grid">
+<label>成功请求数<input data-bench-field="success" type="number" min="0" step="1" value="30"></label>
+<label>失败请求数<input data-bench-field="failure" type="number" min="0" step="1" value="10"></label>
+<label>时间窗口（秒）<input data-bench-field="seconds" type="number" min="0.1" step="0.1" value="20"></label>
+<label>生成 tokens 总计<input data-bench-field="tokens" type="number" min="0" step="1" value="2400"></label>
+</div><div class="bench-lab-metrics" aria-live="polite"><div><span>完成请求率</span><strong data-bench-output="rps">—</strong></div><div><span>输出吞吐</span><strong data-bench-output="tps">—</strong></div><div><span>失败比例</span><strong data-bench-output="error">—</strong></div></div><p data-bench-output="note">此实验仅复算输入数字，不是性能预测器。</p></div></section>
+<section id="results"><h2>25.6 合格报告与回归判定</h2><p>每份 Benchmark 报告至少应包含：测试时间与 commit；模型 / Tokenizer / GPU / precision；输入输出 Token 分布、RPS / concurrency、冷/热缓存；重复次数；每次成功/失败请求数；P50/P95/P99 TTFT/ITL/E2E 和最终吞吐。记录 raw logs（脱敏）、参数与图表脚本，供复算。</p>
+<p>优化策略不应只以“最大吞吐”优先：要建立 <strong>负载–SLO–成本的 Pareto 前沿</strong>。例如更高 batch 可能提高 output tok/s，但同时推高 TTFT；Prefix Cache 可以明显改善重复 Prefix 的短请求，却未必帮助没有相似前缀的流量。</p>
+<p>训练本章实验时，首先在单实例、小规模、可靠网络上确认服务启动、API payload 与指标一致，再推进到多机压测，最后才是生产容量规划；别对没有做过真实请求测试的配置宣布“性能提高 2 倍”。</p></section>
+<section id="recap"><h2>学习自测</h2><ol><li>为什么相同输出吞吐不代表相同 P99 TTFT？</li><li>如何避免 Prefix Cache 命中扭曲 A/B 结论？</li><li>request-rate 和 max-concurrency 的含义有何区别？</li><li>什么条件下能称一次 Benchmark 是可复现、可用于部署决策的？</li></ol></section>
+<section id="sources" class="sources"><h2>权威资料与证据入口</h2><ol><li><a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" target="_blank" rel="noopener noreferrer">vLLM Benchmark CLI</a>：在线 / 离线子命令、缓存污染提醒和负载控制参数</li><li><a href="https://docs.vllm.ai/en/latest/usage/metrics/" target="_blank" rel="noopener noreferrer">vLLM Production Metrics</a>：服务端指标及 Histogram 指标族</li><li><a href="https://github.com/vllm-project/guidellm" target="_blank" rel="noopener noreferrer">GuideLLM</a>：官方推荐的生产压测/负载工具之一</li><li><a href="https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/benchmarks/" target="_blank" rel="noopener noreferrer">vLLM benchmarking source</a>：上游基准实现的版本入口</li></ol><p><small>本文按 vLLM 上游提交 <code>e72fc9ae50c221180c4b8f4a94c5009714a4b199</code> 核对，文档审校日期 2026-11-22。命令用于诊断或实验，不替代现网变更审查。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="24.html">← 上一章</a><a class="next" href="26.html">下一章 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer></article></main></div></body></html>
