@@ -12,16 +12,16 @@
 <p>草稿来源可以是小模型、EAGLE、MTP、n-gram 前缀匹配或后缀查找。关键思想相同：<strong>草稿只提议，不直接决定最终输出</strong>。当多个连续草稿 token 可以被接受，就减少目标模型逐 token 前向次数；但它会增加草稿、验证、拒绝处理和内存消耗。</p></section>
 <section id="math"><h2>21.2 接受–拒绝：为什么理论上可以保持目标分布？</h2>
 <p>考虑一个提议 token <code>x</code>，草稿分布为 <code>q(x)</code>，目标分布为 <code>p(x)</code>。标准 speculative sampling 的单步接受概率为：</p>
-<div class="math-display"><code>α(x) = min(1, p(x) / q(x))，其中 q(x) &gt; 0</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="标准接受概率公式，可在窄屏横向滚动查看"><math display="block" aria-label="接受概率 α(x) 等于 1 与 p(x) 除以 q(x) 的较小值，其中 q(x) 大于 0"><mi>α</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mi>min</mi><mo>(</mo><mn>1</mn><mo>,</mo><mfrac><mrow><mi>p</mi><mo>(</mo><mi>x</mi><mo>)</mo></mrow><mrow><mi>q</mi><mo>(</mo><mi>x</mi><mo>)</mo></mrow></mfrac><mo>)</mo><mo>,</mo><mspace width="0.4em"/><mtext>其中</mtext><mspace width="0.2em"/><mi>q</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>&gt;</mo><mn>0</mn></math></div>
 <p>如果接受，就输出该草稿 token；如果拒绝，从校正后的残差分布 <code>r(x) ∝ max(0, p(x) − q(x))</code> 中抽样。多 token 推测从左往右验证，<strong>只接受连续的前缀</strong>；在首次拒绝之后不能直接把后面预测的草稿 token 当作可用结果。</p>
 <p>上面说明的是标准拒绝采样的数学保证，不是说任何“跳过验证/放宽接受”的方法都无损。官方文档特别指出：某些非标准优化（例如 FLy）会有意放宽验证，不应被描述为严格保持目标分布。此外，浮点数与 GPU kernel 差异可能产生有限的数值偏差。</p>
 <div class="callout"><p><strong>常见误区：</strong>“验证 K 个 token 只需一次前向”不等于“成本等于普通一次 Decode”。Target 仍需处理更长的验证路径，注意力和 KV Cache 工作量增加；还要考虑草稿执行、mask、接受检测和输出拼接。</p></div></section>
 <section id="cost"><h2>21.3 接受率、有效推进长度和加速</h2>
 <p>在简化的独立、同分布玩具假设下，每一个草稿位置条件接受率均为 <code>a</code>。如果一次草稿长度为 <code>K</code>，期望被接受的草稿数为：</p>
-<div class="math-display"><code>E[A] = a + a² + … + aᴷ = a(1 − aᴷ)/(1 − a)，a ≠ 1</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="几何前缀期望长度闭式，可在窄屏横向滚动查看"><math display="block" aria-label="连续接受前缀的期望长度等于 a 加 a 平方依次到 a 的 K 次方，也等于 a 乘 1 减 a 的 K 次方除以 1 减 a，a 不等于 1"><mi>E</mi><mo>[</mo><mi>A</mi><mo>]</mo><mo>=</mo><mi>a</mi><mo>+</mo><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><mo>…</mo><mo>+</mo><msup><mi>a</mi><mi>K</mi></msup><mo>=</mo><mfrac><mrow><mi>a</mi><mo>(</mo><mn>1</mn><mo>−</mo><msup><mi>a</mi><mi>K</mi></msup><mo>)</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>a</mi></mrow></mfrac><mo>,</mo><mspace width="0.4em"/><mi>a</mi><mo>≠</mo><mn>1</mn></math></div>
 <p>标准算法在一轮核验中通常还会输出一个校正/奖励 token，因此总推进量的玩具估计是 <code>E[L] = 1 + E[A]</code>（最多 K+1）。这个公式要求将各位置的条件接受率近似为相同且独立，且不计停止条件；真实接受事件相关，分布会随上下文变化。</p>
 <p>若目标原本每 token 耗时为 <code>T_target</code>，一次草稿+验证耗时为 <code>T_draft(K)+T_verify(K)+T_overhead</code>，则玩具加速上限约为：</p>
-<div class="math-display"><code>speedup ≈ E[L] × T_target / (T_draft(K)+T_verify(K)+T_overhead)</code></div>
+<div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="玩具加速上限公式，可在窄屏横向滚动查看"><math display="block" aria-label="玩具加速上限约等于期望输出长度 E[L] 乘以目标模型单步时间，再除以草稿与验证时间及开销之和"><mtext>speedup</mtext><mo>≈</mo><mfrac><mrow><mi>E</mi><mo>[</mo><mi>L</mi><mo>]</mo><mo>×</mo><msub><mi>T</mi><mtext>target</mtext></msub></mrow><mrow><msub><mi>T</mi><mtext>draft</mtext></msub><mo>(</mo><mi>K</mi><mo>)</mo><mo>+</mo><msub><mi>T</mi><mtext>verify</mtext></msub><mo>(</mo><mi>K</mi><mo>)</mo><mo>+</mo><msub><mi>T</mi><mtext>overhead</mtext></msub></mrow></mfrac></math></div>
 <p>如果验证很慢、batch 很大或草稿接受率低，加速可以小于 1，即<strong>比不用推测解码更慢</strong>。真实基准需要报告 TPOT/ITL、TTFT、请求吞吐、目标模型前向次数和 acceptance length，而不是只报告一个“命中率”。</p></section>
 <section id="methods"><h2>21.4 vLLM 2026 的策略矩阵与配置</h2>
 <p>当前官方 SpeculativeConfig 文档列出的常见 method 包括 <code>draft_model</code>、<code>ngram</code>、<code>suffix</code>、<code>mtp</code>、<code>eagle3</code>、<code>dflash</code> 等。它们并非简单替代关系：N-gram/后缀规则通常不需另一个草稿神经网络；EAGLE/MTP 依赖特定 checkpoint 或模型结构。每种方法都有独立的硬件、模型与功能兼容约束。</p>
