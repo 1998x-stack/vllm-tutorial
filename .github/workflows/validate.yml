@@ -50,6 +50,14 @@ jobs:
           done
           cat /tmp/vllm-static.log
           exit 1
+      - name: Run focused 360px overflow regression before full Chromium QA
+        run: |
+          python3 scripts/browser_qa.py \
+            --base-url http://127.0.0.1:8765/ \
+            --chapters 21-23 \
+            --viewports 360 \
+            --skip-interactions \
+            --report reports/mobile-focus.json
       - name: Run Chromium QA on chapters 01–23 at desktop, tablet and mobile widths
         run: |
           python3 scripts/browser_qa.py \
