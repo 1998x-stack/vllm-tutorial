@@ -50,11 +50,11 @@ jobs:
           done
           cat /tmp/vllm-static.log
           exit 1
-      - name: Run Chromium QA on chapters 01–18 at desktop, tablet and mobile widths
+      - name: Run Chromium QA on chapters 01–23 at desktop, tablet and mobile widths
         run: |
           python3 scripts/browser_qa.py \
             --base-url http://127.0.0.1:8765/ \
-            --chapters 01-18 \
+            --chapters 01-23 \
             --viewports 1440,768,390,360 \
             --report reports/browser-qa.json
       - name: Upload browser QA reports and screenshots
