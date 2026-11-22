@@ -69,7 +69,7 @@
     <section id="hash">
       <h2>9.2 Hash Chain：一个 KV block 如何被唯一识别？</h2>
       <p>vLLM V1 使用链式哈希识别前缀块。一个块的缓存键不仅包含当前块的 token IDs，也包含前一个块的 hash。概念上可以写成：</p>
-      <div class="math-display"><code>H_i = Hash(H_(i-1), TokenIDs_i, ExtraKeys_i)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="前缀缓存块哈希公式，可在窄屏横向滚动查看"><math display="block" aria-label="第 i 个块的哈希由前一个块的哈希、本块 token ID 和额外键拼接后再哈希得到"><msub><mi>H</mi><mi>i</mi></msub><mo>=</mo><mi>Hash</mi><mo>(</mo><msub><mi>H</mi><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mtext>TokenIDs</mtext><mi>i</mi></msub><mo>,</mo><msub><mtext>ExtraKeys</mtext><mi>i</mi></msub><mo>)</mo></math></div>
       <p>第一块没有父 hash，因此使用一个初始 seed。第二块把第一块的 hash 作为父节点；第三块再把第二块的 hash 作为父节点。这样，当前块的身份不仅取决于块内 token，也取决于它前面的完整上下文。</p>
       <pre><code>H0 = Hash(NONE_HASH, tokens[0:4], extra_keys_0)
 H1 = Hash(H0,        tokens[4:8], extra_keys_1)
