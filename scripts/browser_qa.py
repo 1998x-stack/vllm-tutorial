@@ -85,7 +85,23 @@ def inspect_page(browser, base_url: str, chapter: str, width: int, height: int, 
             missingAnchors,
             diagramCount: document.querySelectorAll('.diagram').length,
             invisibleDiagrams,
-            inlineSvgCount: document.querySelectorAll('svg').length
+            inlineSvgCount: document.querySelectorAll('svg').length,
+            overflowCandidates: Array.from(document.querySelectorAll('body *'))
+              .map((element) => {
+                const rect = element.getBoundingClientRect();
+                const style = getComputedStyle(element);
+                return {
+                  tag: element.tagName.toLowerCase(),
+                  className: typeof element.className === 'string' ? element.className.slice(0, 75) : '',
+                  right: Math.round(rect.right * 10) / 10,
+                  left: Math.round(rect.left * 10) / 10,
+                  width: Math.round(rect.width * 10) / 10,
+                  overflowX: style.overflowX,
+                  text: (element.textContent || '').trim().slice(0, 45)
+                };
+              })
+              .filter((element) => element.right > root.clientWidth + 1 && element.right < root.clientWidth + 35 && element.left < root.clientWidth)
+              .slice(0, 25)
           };
         }"""
     )
