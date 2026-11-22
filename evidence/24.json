@@ -1,0 +1,80 @@
+{
+  "chapter": "24",
+  "reviewed_at": "2026-11-22",
+  "scope": "Final course batch source audit; derived and toy examples marked separately.",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "claims": [
+    {
+      "id": "troubleshooting-domains",
+      "claim": "The official Troubleshooting guide distinguishes model download/load hangs, OOM, generation quality drift, GPU-CPU synchronization, NCCL network, CUDA Graph replay and torch.compile issues.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Troubleshooting table of contents",
+      "notes": ""
+    },
+    {
+      "id": "memory-advice",
+      "claim": "For models that cannot fit into the available memory, the official guide refers readers to its dedicated memory conservation strategies.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Out of memory",
+      "notes": ""
+    },
+    {
+      "id": "dummy-load-format",
+      "claim": "--load-format dummy can isolate model weight loading problems, but does not prove a real model will load correctly.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Hangs loading a model from disk",
+      "notes": ""
+    },
+    {
+      "id": "generation-config-source",
+      "claim": "vLLM documentation describes a version change from neutral defaults to model generation_config.json and provides --generation-config vllm as a diagnostic alternative.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Generation quality changed",
+      "notes": ""
+    },
+    {
+      "id": "nccl-diagnostics",
+      "claim": "NCCL_DEBUG logging, VLLM_HOST_IP, NCCL_SOCKET_IFNAME and GLOO_SOCKET_IFNAME are documented for distributed initialization and network issues.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Enable more logging / Incorrect network setup",
+      "notes": "Use as controlled diagnostics, not an unconditional production fix."
+    },
+    {
+      "id": "cuda-graph-eager",
+      "claim": "--enforce-eager disables CUDA Graph optimization and can help isolate CUDA errors near graph replay.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Error near self.graph.replay()",
+      "notes": "Debug mode changes performance characteristics."
+    },
+    {
+      "id": "trace-overhead",
+      "claim": "VLLM_TRACE_FUNCTION can be extremely expensive and should only be used for narrowly scoped diagnosis.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/usage/troubleshooting.md",
+      "locator": "Enable more logging",
+      "notes": ""
+    },
+    {
+      "id": "oom-memory-decomposition",
+      "claim": "The memory budget breakdown into weights, KV cache, workspace, runtime and fragmentation is an accounting model rather than an exact universal allocator formula.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/config/cache.py",
+      "locator": "Cache configuration memory settings",
+      "notes": ""
+    }
+  ]
+}
