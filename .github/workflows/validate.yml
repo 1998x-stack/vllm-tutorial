@@ -34,6 +34,8 @@ jobs:
         run: python3 scripts/validate_articles.py
       - name: Run offline catalog tests
         run: node --test tests/offline-catalog.test.cjs
+      - name: Validate executable RAG demo and ACL tests
+        run: python3 -m unittest discover -s tests -p 'test_rag_demo.py' -v
       - name: Install Playwright
         run: python -m pip install playwright
       - name: Install Chromium
@@ -58,11 +60,11 @@ jobs:
             --viewports 360 \
             --skip-interactions \
             --report reports/mobile-focus.json
-      - name: Run Chromium QA on chapters 01–23 at desktop, tablet and mobile widths
+      - name: Run Chromium QA on chapters 01–28 at desktop, tablet and mobile widths
         run: |
           python3 scripts/browser_qa.py \
             --base-url http://127.0.0.1:8765/ \
-            --chapters 01-23 \
+            --chapters 01-28 \
             --viewports 1440,768,390,360 \
             --report reports/browser-qa.json
       - name: Upload browser QA reports and screenshots
@@ -79,6 +81,7 @@ jobs:
           mkdir -p _site
           cp ./*.html courses.json courses-data.js theme.css _site/
           cp -R assets _site/assets
+          cp -R examples _site/examples
       - name: Upload validated Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
