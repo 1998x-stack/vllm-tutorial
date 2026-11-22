@@ -16,7 +16,7 @@
     },
     {
       "id": "prefix-cache",
-      "title": "Automatic Prefix Caching",
+      "title": "Prefix Cache / Automatic Prefix Caching",
       "scope": "public",
       "text": "Prefix Cache 在内容与哈希键匹配时复用已经计算过的完整 KV blocks。安全隔离还需要考虑 tenant salt、可信网关与跨租户共享风险。"
     },
