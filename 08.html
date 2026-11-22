@@ -55,9 +55,17 @@
     <section id="formula">
       <h2>8.1 从 Attention 结构推导公式</h2>
       <p>对标准全注意力 Transformer 的一层，假设每个 token 都要保存 Key 和 Value。若每个 KV head 的维度是 <code>D_head</code>，共有 <code>H_KV</code> 个 KV heads，那么单层、单 token 的缓存元素数量是：</p>
-      <div class="math-display"><code>2 × H_KV × D_head</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="单层单 token 缓存元素数公式，可在窄屏横向滚动查看">
+        <math display="block" aria-label="单层单 token 的缓存元素数量等于 2 乘以 KV head 数乘以每个 head 的维度">
+          <mn>2</mn><mo>×</mo><msub><mi>H</mi><mtext>KV</mtext></msub><mo>×</mo><msub><mi>D</mi><mtext>head</mtext></msub>
+        </math>
+      </div>
       <p>前面的 2 来自 K 和 V 两份张量。再乘以模型层数、缓存 token 数和每个元素占用的字节数，就得到一个标准模型的理论估算：</p>
-      <div class="math-display"><code>M_KV ≈ 2 × L × H_KV × D_head × T × B</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="KV Cache 理论容量公式，可在窄屏横向滚动查看">
+        <math display="block" aria-label="KV Cache 字节数约等于 2 乘层数乘 KV head 数乘 head 维度乘缓存 token 数乘每元素字节数">
+          <msub><mi>M</mi><mtext>KV</mtext></msub><mo>≈</mo><mn>2</mn><mo>×</mo><mi>L</mi><mo>×</mo><msub><mi>H</mi><mtext>KV</mtext></msub><mo>×</mo><msub><mi>D</mi><mtext>head</mtext></msub><mo>×</mo><mi>T</mi><mo>×</mo><mi>B</mi>
+        </math>
+      </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>符号</th><th>含义</th><th>如何取得</th></tr></thead>
@@ -71,7 +79,13 @@
         </table>
       </div>
       <p>若把每层 KV heads 和 head dimension 视为相同，公式就能直接用于手算。若模型各层采用不同注意力结构，更稳妥的表达是逐层求和：</p>
-      <div class="math-display"><code>M_KV ≈ T × Σ_l (2 × H_KV,l × D_head,l × B_l)</code></div>
+      <div class="math-display" data-math-scroll tabindex="0" role="region" aria-label="逐层求和公式，可在窄屏横向滚动查看">
+        <math display="block" aria-label="逐层求和：KV Cache 字节数约等于 token 数乘以各层 2 乘该层 KV head 数乘 head 维度乘每元素字节数之和">
+          <msub><mi>M</mi><mtext>KV</mtext></msub><mo>≈</mo><mi>T</mi><mo>×</mo>
+          <munder><mo>∑</mo><mi>l</mi></munder>
+          <mo>(</mo><mn>2</mn><mo>×</mo><msub><mi>H</mi><mrow><mtext>KV</mtext><mo>,</mo><mi>l</mi></mrow></msub><mo>×</mo><msub><mi>D</mi><mrow><mtext>head</mtext><mo>,</mo><mi>l</mi></mrow></msub><mo>×</mo><msub><mi>B</mi><mi>l</mi></msub><mo>)</mo>
+        </math>
+      </div>
       <p>这个公式仍然是理论 payload 估算，不包括 scale、对齐、页管理元数据和其他运行时开销。对于 MLA、滑动窗口、混合 Attention / Mamba、跨层共享或其他特殊缓存结构，必须按实际 KV Cache spec / group 布局计算，不能把标准 MHA 公式直接套过去。</p>
     </section>
 
