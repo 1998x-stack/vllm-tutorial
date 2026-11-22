@@ -48,7 +48,7 @@ vllm-tutorial/
 ├── theme.css                     # 旧章节的兼容样式（迁移完成后逐步收敛）
 ├── assets/
 │   ├── css/article.css           # 新版文章统一设计系统
-│   ├── js/interactions.js        # 可访问的交互增强
+│   ├── js/interactions.js        # 可访问的交互增强（含第 21 章离线实验）
 │   └── diagrams/                 # 按章节命名的原创 SVG
 ├── evidence/                     # 每章关键技术主张的来源记录
 ├── docs/                         # 扩展阅读与专题技术笔记
@@ -82,7 +82,7 @@ python3 scripts/validate_articles.py
 
 ## 内容升级进度
 
-仓库采用逐章审校，不以一次性换肤代替内容改造。当前升级分支已完成 01–18 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验，14 章提供 Sampling 分布实验。15–18 章覆盖生产部署、Kubernetes、可观测性与安全。19–28 章仍按后续批次推进。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
+仓库采用逐章审校，不以一次性换肤代替内容改造。当前升级分支已完成 01–23 章的技术核验、原创 SVG、语义 HTML 和证据记录；08 章提供 KV Cache 容量计算器，11 章提供 Chunked Prefill 预算实验，14 章提供 Sampling 分布实验。15–18 章覆盖生产部署、Kubernetes、可观测性与安全；19–23 章覆盖 TP/PP/DP/EP、推测解码、多模态和 nano-vLLM 源码阅读，21 章提供推测接受率交互实验。24–28 章仍按下一批推进。静态 CI 通过不等于浏览器跨设备 QA、GPU Benchmark 或 Pages 部署已完成，这些状态会单独记录。
 
 ## 权威参考入口
 
@@ -108,7 +108,7 @@ The canonical GitHub Pages release target is:
 
 - `https://1998x-stack.github.io/vllm-tutorial/`
 
-Pull requests run the offline catalog checks, static article validation, and Chromium QA for chapters 01–18 at 1440px, 768px, 390px, and 360px. The browser gate checks page errors, console errors, local asset responses, in-page anchors, diagram visibility, and page-level horizontal overflow. It also exercises the KV Cache calculator (chapter 08), Chunked Prefill budget explorer (chapter 11), and Sampling explorer (chapter 14), including keyboard input.
+Pull requests run the offline catalog checks, static article validation, and Chromium QA for chapters 01–23 at 1440px, 768px, 390px, and 360px. The browser gate checks page errors, console errors, local asset responses, in-page anchors, diagram visibility, and page-level horizontal overflow. It also exercises the KV Cache calculator (chapter 08), Chunked Prefill budget explorer (chapter 11), and Sampling explorer (chapter 14), and Speculative Decoding acceptance lab (chapter 21), including keyboard input.
 
 A push to `master` publishes the static course through GitHub Pages and then verifies the public index, representative chapters, course data, stylesheets, diagrams, and interactive scripts. A successful pull-request check is not a deployment result; the Pages job must also complete.
 

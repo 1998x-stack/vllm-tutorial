@@ -1,138 +1,57 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第21章 推测解码</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html" class="active">第21章 推测解码</a></li><li><a href="22.html">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第21章 推测解码</h2>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="从标准接受–拒绝采样的数学保证出发，理解 N-gram、EAGLE、MTP 等草稿策略与真实加速边界。"><title>第 21 章｜Speculative Decoding：用 Draft–Verify 减少串行步骤</title><link rel="stylesheet" href="assets/css/article.css">
+<script defer src="assets/js/interactions.js"></script><script defer src="assets/js/speculative-lab.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#motivation">21.1 为什么要同时使用草稿与目标模型？</a></li><li><a href="#math">21.2 接受–拒绝：为什么理论上可以保持目标分布？</a></li><li><a href="#cost">21.3 接受率、有效推进长度和加速</a></li><li><a href="#methods">21.4 vLLM 2026 的策略矩阵与配置</a></li><li><a href="#lab">21.5 交互实验：接受率为何影响速度？</a></li><li><a href="#limits">21.6 什么时候不要启用？</a></li><li><a href="#recap">本章自检</a></li><li><a href="#sources">参考资料</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 21 章 · 高级推理与源码实践</p><h1>Speculative Decoding：用 Draft–Verify 减少串行步骤</h1><p class="article-dek">从标准接受–拒绝采样的数学保证出发，理解 N-gram、EAGLE、MTP 等草稿策略与真实加速边界。</p><div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">官方源码审校</span><span class="meta-chip">离线可读</span></div></header>
+<p class="article-lead">目标模型逐 token 生成时，很可能被一次次小 Decode step 的启动/内存访问限制。推测解码尝试让便宜过程先猜几个 token，再让大模型一次核验；成功与否取决于候选接受率、目标验证成本和实际批大小，而不取决于“猜得越长越好”。</p><div class="outcomes"><h2>学习目标</h2><ul><li>推导单个候选的接受概率和拒绝残差分布。</li><li>估算玩具接受率下的期望推进长度。</li><li>按部署版本配置 n-gram 方法并认识其他 speculator。</li><li>理解理论无损与实现/性能兼容边界。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/21-speculative-acceptance.svg" alt="草稿模型生成多个候选 token，目标模型在一次验证中接受一个连续前缀，遇到拒绝后进行校正采样"><figcaption>图 1：Draft–Verify 的接受前缀机制。标准拒绝采样可以保持目标分布；并非所有优化算法都提供相同保证。</figcaption></figure>
+<section id="motivation"><h2>21.1 为什么要同时使用草稿与目标模型？</h2>
+<p>普通自回归推理每次让目标模型执行一个 Decode step 来生成一个 token。对内存带宽敏感的低并发场景，目标模型一次前向的成本可能明显大于核验多个候选 token 的成本。推测解码（Speculative Decoding）让一个便宜的“草稿过程”先提出 K 个 token，然后让目标模型在一次验证步骤中并行计算这些位置的条件分布。</p>
+<p>草稿来源可以是小模型、EAGLE、MTP、n-gram 前缀匹配或后缀查找。关键思想相同：<strong>草稿只提议，不直接决定最终输出</strong>。当多个连续草稿 token 可以被接受，就减少目标模型逐 token 前向次数；但它会增加草稿、验证、拒绝处理和内存消耗。</p></section>
+<section id="math"><h2>21.2 接受–拒绝：为什么理论上可以保持目标分布？</h2>
+<p>考虑一个提议 token <code>x</code>，草稿分布为 <code>q(x)</code>，目标分布为 <code>p(x)</code>。标准 speculative sampling 的单步接受概率为：</p>
+<div class="math-display"><code>α(x) = min(1, p(x) / q(x))，其中 q(x) &gt; 0</code></div>
+<p>如果接受，就输出该草稿 token；如果拒绝，从校正后的残差分布 <code>r(x) ∝ max(0, p(x) − q(x))</code> 中抽样。多 token 推测从左往右验证，<strong>只接受连续的前缀</strong>；在首次拒绝之后不能直接把后面预测的草稿 token 当作可用结果。</p>
+<p>上面说明的是标准拒绝采样的数学保证，不是说任何“跳过验证/放宽接受”的方法都无损。官方文档特别指出：某些非标准优化（例如 FLy）会有意放宽验证，不应被描述为严格保持目标分布。此外，浮点数与 GPU kernel 差异可能产生有限的数值偏差。</p>
+<div class="callout"><p><strong>常见误区：</strong>“验证 K 个 token 只需一次前向”不等于“成本等于普通一次 Decode”。Target 仍需处理更长的验证路径，注意力和 KV Cache 工作量增加；还要考虑草稿执行、mask、接受检测和输出拼接。</p></div></section>
+<section id="cost"><h2>21.3 接受率、有效推进长度和加速</h2>
+<p>在简化的独立、同分布玩具假设下，每一个草稿位置条件接受率均为 <code>a</code>。如果一次草稿长度为 <code>K</code>，期望被接受的草稿数为：</p>
+<div class="math-display"><code>E[A] = a + a² + … + aᴷ = a(1 − aᴷ)/(1 − a)，a ≠ 1</code></div>
+<p>标准算法在一轮核验中通常还会输出一个校正/奖励 token，因此总推进量的玩具估计是 <code>E[L] = 1 + E[A]</code>（最多 K+1）。这个公式要求将各位置的条件接受率近似为相同且独立，且不计停止条件；真实接受事件相关，分布会随上下文变化。</p>
+<p>若目标原本每 token 耗时为 <code>T_target</code>，一次草稿+验证耗时为 <code>T_draft(K)+T_verify(K)+T_overhead</code>，则玩具加速上限约为：</p>
+<div class="math-display"><code>speedup ≈ E[L] × T_target / (T_draft(K)+T_verify(K)+T_overhead)</code></div>
+<p>如果验证很慢、batch 很大或草稿接受率低，加速可以小于 1，即<strong>比不用推测解码更慢</strong>。真实基准需要报告 TPOT/ITL、TTFT、请求吞吐、目标模型前向次数和 acceptance length，而不是只报告一个“命中率”。</p></section>
+<section id="methods"><h2>21.4 vLLM 2026 的策略矩阵与配置</h2>
+<p>当前官方 SpeculativeConfig 文档列出的常见 method 包括 <code>draft_model</code>、<code>ngram</code>、<code>suffix</code>、<code>mtp</code>、<code>eagle3</code>、<code>dflash</code> 等。它们并非简单替代关系：N-gram/后缀规则通常不需另一个草稿神经网络；EAGLE/MTP 依赖特定 checkpoint 或模型结构。每种方法都有独立的硬件、模型与功能兼容约束。</p>
+<pre><code># 当前 vLLM 示例：使用 n-gram 作为草稿来源
+vllm serve &lt;verified-target-model&gt;   --speculative-config '{"method":"ngram","num_speculative_tokens":4,"prompt_lookup_min":1,"prompt_lookup_max":3}'
 
-<p>自回归生成有个根深蒂固的限制——每一步只能生成一个 token。70B 模型每步 ~10ms，生成 1000 tokens 要 10 秒。推测解码（Speculative Decoding）用一个巧妙的"投机取巧"打破了这个限制。</p>
-
-<h3>21.1 核心思想：小模型猜，大模型验证</h3>
-
-<pre><code>传统自回归解码 (Target Model, 70B):
-Step 1: 算 T1 → 10ms
-Step 2: 算 T2 → 10ms
-...
-Step 1000: 算 T1000 → 10ms
-总时间: 10,000ms
-
-推测解码 (Draft 0.5B + Target 70B):
-Draft Model 快速生成 5 个候选: [T1', T2', T3', T4', T5'] → 5×0.5ms = 2.5ms
-Target Model 一次验证全部 5 个:                      → 10ms
-  T1'=T1 ✓ → T2'=T2 ✓ → T3'=T3 ✓ → T4'≠T4 ✗
-  接受前 3 个，拒绝 T4', 从 T4 开始下一轮
-
-实际: 12.5ms 生成 3 个 token → 4.2ms/token
-原来: 10ms 生成 1 个 token → 10ms/token
-加速比: 2.4×</code></pre>
-
-<div class="highlight">
-  <p><strong>为什么能加速</strong>：大模型一次 forward 的计算量几乎和输入 token 数无关（KV cache 已缓存）。验证 5 个 token 和验证 1 个 token 的计算量几乎一样。所以"一次验证多个"只花一次 forward 的时间。</p>
-</div>
-
-<h3>21.2 vLLM 支持的三种方法</h3>
-
-<table>
-  <tr><th>方法</th><th>Draft 来源</th><th>需要训练？</th><th>加速比（典型）</th></tr>
-  <tr><td>n-gram</td><td>已生成文本做 n-gram 匹配</td><td>❌ 不需要</td><td>1.3-1.8×</td></tr>
-  <tr><td>EAGLE</td><td>轻量级预测头（基于 feature 层）</td><td>✅ 需要训练</td><td>2.0-3.5×</td></tr>
-  <tr><td>Medusa</td><td>多个预测头并行猜 future tokens</td><td>✅ 需要训练</td><td>2.0-3.0×</td></tr>
-</table>
-
-<h3>21.3 n-gram 推测解码：开箱即用</h3>
-
-<pre><code># 最简单的推测解码，不需要额外模型
-vllm serve meta-llama/Llama-3-70B \
-    --speculative-config '{
+# Python 离线：保持所用版本的模型与参数兼容
+from vllm import LLM
+llm = LLM(
+    model="&lt;verified-target-model&gt;",
+    speculative_config={
         "method": "ngram",
-        "num_speculative_tokens": 5,
-        "ngram_prompt_lookup_max": 4
-    }'
-
-# 原理：如果 prompt 或已生成文本中出现过相同 n-gram，
-# 则用后续 token 作为 draft。
-# 适合: 代码生成（重复模式多）、模板填充</code></pre>
-
-<h3>21.4 EAGLE：当前最强方法</h3>
-
-<pre><code># EAGLE 需要一个训练好的 draft model
-vllm serve meta-llama/Llama-3-70B \
-    --speculative-config '{
-        "method": "eagle",
-        "draft_model": "/path/to/eagle-llama-3-70b-draft",
-        "num_speculative_tokens": 5
-    }'
-
-# EAGLE 的优势: 不仅是简单的"小模型猜"，
-# 而是用大模型的中间层特征 + 轻量 head 预测，
-# draft 质量远高于独立的 draft model</code></pre>
-
-<p>2026 年的 P-EAGLE（Parallel EAGLE）更进一步——不再是线性生成候选序列，而是<strong>并行生成多个可能分支</strong>，动态评估置信度，选择最可能的分支。在 8192 token 场景中加速高达 6.7×。</p>
-
-<h3>21.5 什么时候推测解码没用</h3>
-
-<p>推测解码不是免费的午餐：</p>
-
-<ul>
-  <li><strong>temperature=0 效果最好</strong>：greedy 解码时 draft 模型更容易猜对 target 的输出</li>
-  <li><strong>temperature 高时接受率低</strong>：random sampling 让 draft 和 target 更容易产生分歧，加速比比 1.1-1.3× 甚至无提升</li>
-  <li><strong>计算密集场景效果差</strong>：如果 prefill 是瓶颈而非 decode，推测解码帮不上忙</li>
-  <li><strong>draft model 加载占用额外显存</strong>：虽然 draft model 通常很小（0.5B-1B），但额外的显存消耗需要考虑</li>
-</ul>
-
-<div class="tip">
-  <p><strong>实践建议</strong>：先试 n-gram——零成本，几分钟就能看出效果。如果 n-gram 加速比 >1.5× 且你需要更高加速，再考虑训练 EAGLE draft model。n-gram 在代码生成和结构化输出场景中表现最好。</p>
-</div>
-
-<p>推测解码打破了自回归的"串行瓶颈"。下一章看多模态推理——让 vLLM 不仅能看懂文字，还能看懂图片、听懂声音。</p>
-
-        <div class="footer-nav"><a href="20.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="22.html">下一章 →</a></div>
-    </div>
-</div></div>
-</body>
-</html>
+        "num_speculative_tokens": 4,
+        "prompt_lookup_min": 1,
+        "prompt_lookup_max": 3,
+    },
+)</code></pre>
+<p>配置 JSON 中不应擅自嵌入 <code>tensor_parallel_size</code>；TP/PP 参数属于外层 EngineArgs。EAGLE-3、MTP 的草稿模型与目标模型通常需要匹配，不能任意交换 checkpoint；应以官方示例、所部署版本的参数 Schema 和实际模型支持矩阵为准。</p></section>
+<section id="lab"><h2>21.5 交互实验：接受率为何影响速度？</h2>
+<p>调整每个草稿位置的玩具接受概率与 K。结果只展示独立概率假设的<strong>期望接受草稿 token 数</strong>和<strong>期望推进 token 数</strong>；不调用实际模型，不承诺速度收益。</p>
+<div class="spec-lab" data-spec-lab><div class="spec-lab-controls">
+<label>单位置接受概率 a <output data-spec-value="a">0.70</output><input type="range" min="0" max="1" step="0.05" value="0.70" data-spec-field="a" aria-label="假设的独立位置接受概率"></label>
+<label>草稿长度 K <output data-spec-value="k">4</output><input type="range" min="1" max="8" step="1" value="4" data-spec-field="k" aria-label="草稿 token 长度"></label>
+</div><div class="spec-lab-results" aria-live="polite">
+<div><span>期望接受草稿数 E[A]</span><strong data-spec-result="accepted">—</strong></div><div><span>期望推进 E[L]</span><strong data-spec-result="advanced">—</strong></div><div><span>全部 K 个都接受的概率</span><strong data-spec-result="full">—</strong></div>
+</div><p data-spec-result="note">无需网络即可运行此玩具实验。</p>
+<div class="spec-lab-bars" data-spec-bars aria-label="每个草稿位置能被连续接受的概率"><span>初始化中……</span></div></div></section>
+<section id="limits"><h2>21.6 什么时候不要启用？</h2>
+<ul><li>高并发场景验证成本/Batch 扩张大，可能使 TPOT 变差。</li><li>草稿与目标预测明显不一致，连续接受前缀很短。</li><li>目标模型没有合适的 EAGLE/MTP speculator，加载额外草稿权重造成显存压力。</li><li>某些 PP、量化、多模态、结构化输出或硬件组合存在版本兼容限制。</li></ul>
+<p>实践采用 A/B 测量：固定模型、GPU、并发、输入输出分布，比较普通解码和不同 K/方法；记录 <code>spec_decode</code> acceptance metrics 和延迟。对特殊采样配置应验证目标分布与业务质量是否保持。</p></section>
+<section id="recap"><h2>本章自检</h2><ol><li>为什么草稿模型只能提出候选，最终 token 分布必须由目标模型控制？</li><li>为什么接受率高不一定意味着 TPOT 更低？</li><li>对独立同分布的玩具接受概率 a，如何估算长度为 K 的草稿接受数？</li><li>当前 vLLM SpeculativeConfig 该如何指定 n-gram 与 EAGLE？</li></ol></section>
+<section id="sources" class="sources"><h2>参考资料与源码入口</h2><ol><li><a href="https://docs.vllm.ai/en/latest/features/speculative_decoding/" target="_blank" rel="noopener noreferrer">Speculative Decoding</a>：配置 Schema、策略选择与分布保持约束</li><li><a href="https://docs.vllm.ai/en/latest/features/speculative_decoding/n_gram/" target="_blank" rel="noopener noreferrer">N-gram Speculation</a>：n-gram 参数与示例</li><li><a href="https://docs.vllm.ai/en/latest/features/speculative_decoding/acceptance_metrics/" target="_blank" rel="noopener noreferrer">Acceptance Metrics</a>：每请求 acceptance 度量</li><li><a href="https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/config/speculative.py" target="_blank" rel="noopener noreferrer">SpeculativeConfig</a>：当前配置字段与方法兼容限制</li><li><a href="https://arxiv.org/abs/2302.01318" target="_blank" rel="noopener noreferrer">Speculative Sampling Paper</a>：接受概率与残差校正采样的原始算法</li></ol><p><small>审校基线：vLLM e72fc9ae50c221180c4b8f4a94c5009714a4b199（2026-11-22）；nano-vLLM bb823b3e06983d71485a8e1f23715ebd87d98ef8（2026-04-26）。任何配置建议必须与目标版本、目标模型及硬件实测相互核验。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="20.html">← 上一章</a><a class="next" href="22.html">下一章 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer></article></main></div></body></html>

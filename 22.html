@@ -1,155 +1,54 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>第22章 多模态推理</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: linear-gradient(135deg, #f5f3ff 0%, #e8f5f0 100%); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif; padding: 20px; }
-        .double-border { max-width: 1400px; margin: 0 auto; background: #ffffff; border: 2px solid #8b5cf6; border-radius: 24px; box-shadow: 0 20px 30px -15px rgba(0,0,0,0.2), inset 0 1px 0 0 #f5f3ff; overflow: hidden; }
-        .container { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-        .sidebar { background: #faf8ff; border-right: 2px solid #c4b5fd; padding: 24px 16px; }
-        .sidebar h3 { font-size: 1.4rem; color: #6d28d9; border-left: 5px solid #8b5cf6; padding-left: 15px; margin-bottom: 25px; }
-        .chapter-list { list-style: none; } .chapter-list li { margin-bottom: 6px; }
-        .chapter-list a { display: block; padding: 8px 12px; text-decoration: none; color: #334155; border-radius: 12px; transition: all 0.2s; font-weight: 500; font-size: 0.92rem; }
-        .chapter-list a:hover { background: #ede9fe; transform: translateX(3px); }
-        .chapter-list .active { background: #7c3aed; color: white; box-shadow: 0 2px 5px rgba(124,58,237,0.3); }
-        .main-content { padding: 30px 35px; background: white; }
-        .footer-nav { margin-top: 45px; padding-top: 20px; border-top: 2px solid #c4b5fd; display: flex; justify-content: space-between; }
-        .footer-nav a { padding: 8px 24px; background: #f1f5f9; text-decoration: none; color: #5b21b6; border-radius: 40px; font-weight: 500; transition: 0.2s; }
-        .footer-nav a:hover { background: #ede9fe; transform: translateY(-2px); }
-        h2 { color: #4c1d95; border-left: 6px solid #8b5cf6; padding-left: 15px; margin: 20px 0 15px; font-size: 1.5rem; }
-        h3 { color: #5b21b6; margin: 20px 0 10px; font-size: 1.2rem; } h4 { color: #6d28d9; margin: 15px 0 8px; font-size: 1.05rem; }
-        p { line-height: 1.85; margin: 10px 0; color: #1e293b; } ul, ol { margin: 10px 0 10px 20px; line-height: 1.8; } li { color: #1e293b; margin-bottom: 4px; }
-        pre { background: #1e1035; color: #e8e8f0; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 15px 0; font-size: 0.9rem; line-height: 1.5; }
-        code { background: #f5f3ff; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; } pre code { background: none; padding: 0; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fafafe; }
-        th, td { border: 1px solid #c4b5fd; padding: 10px; text-align: left; }
-        th { background: #f5f3ff; color: #5b21b6; font-weight: 600; }
-        .tip, .warning, .highlight { padding: 12px 18px; border-radius: 16px; margin: 15px 0; line-height: 1.7; }
-        .tip { background: #e0f2fe; border-left: 6px solid #0ea5e9; } .warning { background: #fee2e2; border-left: 6px solid #ef4444; } .highlight { background: #fef9c3; border: 1px solid #facc15; }
-        strong { color: #1e1b4b; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 2px solid #c4b5fd; } body { padding: 10px; } .main-content { padding: 20px; } }
-    </style>
-</head>
-<body>
-<div class="double-border"><div class="container">
-    <div class="sidebar">
-        <h3>🧠 课程目录</h3>
-        <ul class="chapter-list">
-            <li><a href="01.html">第1章 LLM推理基础</a></li><li><a href="02.html">第2章 vLLM概述</a></li><li><a href="03.html">第3章 PagedAttention上篇</a></li><li><a href="04.html">第4章 PagedAttention下篇</a></li><li><a href="05.html">第5章 Continuous Batching</a></li><li><a href="06.html">第6章 快速上手</a></li><li><a href="07.html">第7章 模型加载与配置</a></li>
-            <li><a href="08.html">第8章 KV Cache管理</a></li><li><a href="09.html">第9章 Prefix Caching</a></li><li><a href="10.html">第10章 调度器详解</a></li><li><a href="11.html">第11章 Chunked Prefill</a></li><li><a href="12.html">第12章 V1架构上篇</a></li><li><a href="13.html">第13章 V1架构下篇</a></li><li><a href="14.html">第14章 Sampling与生成控制</a></li>
-            <li><a href="15.html">第15章 生产级部署</a></li><li><a href="16.html">第16章 Kubernetes部署</a></li><li><a href="17.html">第17章 可观测性</a></li><li><a href="18.html">第18章 安全与访问控制</a></li>
-            <li><a href="19.html">第19章 张量并行</a></li><li><a href="20.html">第20章 流水线与数据并行</a></li><li><a href="21.html">第21章 推测解码</a></li><li><a href="22.html" class="active">第22章 多模态推理</a></li>
-            <li><a href="23.html">第23章 nano-vLLM源码剖析</a></li><li><a href="24.html">第24章 调试与问题排查</a></li><li><a href="25.html">第25章 性能基准测试</a></li>
-            <li><a href="26.html">第26章 未来趋势</a></li><li><a href="27.html">第27章 实战项目</a></li><li><a href="28.html">第28章 课程总结</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <h2>第22章 多模态推理</h2>
-
-<p>vLLM 不只是文字模型——它完整支持图像、视频、音频等多种模态。2025-2026 年，多模态推理是最活跃的功能方向之一。</p>
-
-<h3>22.1 支持的多模态模型</h3>
-
-<table>
-  <tr><th>模态</th><th>代表模型</th><th>V1 支持状态</th></tr>
-  <tr><td>图像（Vision）</td><td>Qwen2.5-VL, Qwen3-VL, InternVL2, LLaVA, Pixtral, Phi-3-Vision</td><td>🟢 完备</td></tr>
-  <tr><td>视频</td><td>LLaVA-NeXT-Video, Qwen2-VL (video)</td><td>🟢 完备</td></tr>
-  <tr><td>音频</td><td>Whisper (encoder-decoder)</td><td>🟢 完备</td></tr>
-  <tr><td>混合/通用</td><td>Chameleon, Fuyu, PALIGEMMA</td><td>🟢 完备</td></tr>
-</table>
-
-<h3>22.2 多模态推理流程</h3>
-
-<pre><code>图像输入 (224×224 RGB)
-    │
-    ▼
-┌──────────────┐
-│ Vision Encoder│  ViT/CLIP/SigLIP
-│ (ViT)        │  图像 → visual tokens (如 256 个)
-└──────┬───────┘
-       │ visual tokens
-       ▼
-┌──────────────────────────────────────────────┐
-│ Prompt: [IMAGE] "这张图片里有什么？"           │
-│ ↓ Embedding                                  │
-│ [visual_tokens | text_tokens]                │
-│ ↓                                            │
-│ LLM Backbone (共享 Transformer)              │
-│ ↓                                            │
-│ "这张图片里有一只猫坐在沙发上。"                  │
-└──────────────────────────────────────────────┘</code></pre>
-
-<h3>22.3 使用示例</h3>
-
-<pre><code># 启动多模态模型
-vllm serve Qwen/Qwen2.5-VL-7B-Instruct \
-    --max-model-len 8192 \
-    --limit-mm-per-prompt image=16
-
-# Python 调用
-from vllm import LLM, SamplingParams
-
-llm = LLM("Qwen/Qwen2.5-VL-7B-Instruct")
-sampling_params = SamplingParams(temperature=0.1, max_tokens=256)
-
-outputs = llm.generate([{
-    "prompt": "描述这张图片的内容。",
-    "multi_modal_data": {"image": "photo.jpg"}
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="逐步追踪图像、视频、音频从解码、编码到模型融合的路径，解释动态视觉 token、资源预算、兼容矩阵和媒体安全。"><title>第 22 章｜Multimodal Inference：媒体如何进入语言模型？</title><link rel="stylesheet" href="assets/css/article.css">
+<script defer src="assets/js/interactions.js"></script></head>
+<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#path">22.1 多模态数据不是“把 JPEG 当文字 token”</a></li><li><a href="#inputs">22.2 真实请求与数据类型的映射</a></li><li><a href="#memory">22.3 为什么多模态会增加内存和排队成本？</a></li><li><a href="#scheduling">22.4 从队列到模型执行：调度如何变化？</a></li><li><a href="#security">22.5 安全：媒体 URL 是服务端网络访问入口</a></li><li><a href="#compatibility">22.6 兼容矩阵：模型、模态、后端与优化</a></li><li><a href="#recap">本章自检</a></li><li><a href="#sources">参考资料</a></li></ol></nav>
+<main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 22 章 · 高级推理与源码实践</p><h1>Multimodal Inference：媒体如何进入语言模型？</h1><p class="article-dek">逐步追踪图像、视频、音频从解码、编码到模型融合的路径，解释动态视觉 token、资源预算、兼容矩阵和媒体安全。</p><div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">官方源码审校</span><span class="meta-chip">离线可读</span></div></header>
+<p class="article-lead">给模型传入一张图片，并不等于只增加一个 token。模型可能需要先把图片解码、切块、编码，再把视觉信息与文本融合；视频、音频的特征长度和计算路径又不同。多模态服务必须同时回答架构、调度、性能和媒体访问安全问题。</p><div class="outcomes"><h2>学习目标</h2><ul><li>识别 text、image、audio、video 的不同输入路径。</li><li>解释分辨率、帧数、采样率对成本的影响。</li><li>写出离线 multi_modal_data 请求骨架。</li><li>了解媒体 URL 的 SSRF 风险和模型支持矩阵。</li></ul></div>
+<figure class="diagram"><img src="assets/diagrams/22-multimodal-input-path.svg" alt="图像和音频视频分别经过解码预处理与编码器生成多模态嵌入，再对齐到语言模型的 token 输入流"><figcaption>图 1：多模态数据从媒体解码到模型输入的概念路径。具体编码器/占位 token/融合位置依模型架构而异。</figcaption></figure>
+<section id="path"><h2>22.1 多模态数据不是“把 JPEG 当文字 token”</h2>
+<p>文本路径通常先 tokenize 再映射为 token embeddings；图像路径会经历解码、Resize/Crop/patchify、视觉 encoder 或 projector，并与文本 token embedding 对齐/融合；音频可能涉及声学特征、音频 encoder、timestamp/chunk 边界；视频则包含帧采样与跨帧顺序。<strong>具体融合形式由模型架构定义</strong>，不能把所有 VLM 都画成“ViT 后直接拼在开头”。</p>
+<p>在 LLaVA 等典型模型中，文本模板里的图像占位符表示嵌入插入位置；某些视觉模型允许多个裁剪或动态 patch 数。相同“1 张图片”可能展开为大量视觉 tokens，视觉 token 数受分辨率、裁剪策略和 processor 决定。</p>
+<div class="math-display"><code>T_prefill ≈ T_media_decode + T_encoder + T_projector + T_language_prefill</code></div>
+<p>这个式子是延迟的概念分解，不是所有模型都按这些阶段严格串行，也不代表每种架构都有单独 projector；GPU 并行和重叠执行会改变总时间。</p></section>
+<section id="inputs"><h2>22.2 真实请求与数据类型的映射</h2>
+<p>vLLM 离线 API 以 <code>prompt</code> 搭配 <code>multi_modal_data</code> 表示包含媒体的请求；媒体可以是 PIL 图片、视频帧列表、音频数组或经过模型支持的预处理形式。OpenAI 兼容在线 API 通常使用 Chat Completions 消息里的媒体 content parts。</p>
+<pre><code># 仅作结构说明，选用目标模型支持的 chat template 和媒体
+from vllm import LLM
+from PIL import Image
+image = Image.open("example.png").convert("RGB")
+llm = LLM(model="llava-hf/llava-1.5-7b-hf",
+          limit_mm_per_prompt={"image": 1})
+result = llm.generate([{
+    "prompt": "USER: &lt;image&gt;\nDescribe the image.\nASSISTANT:",
+    "multi_modal_data": {"image": image},
 }])
-
-# 多图 + 文本混合
-outputs = llm.generate([{
-    "prompt": "图1 <image>和图2 <image>有什么区别？比较两者的不同。",
-    "multi_modal_data": {
-        "image": ["img1.jpg", "img2.jpg"]
-    }
-}])</code></pre>
-
-<h3>22.4 Vision Encoder CUDA Graphs（2026 新特性）</h3>
-
-<p>ViT 编码器（视觉模型的"眼睛"）传统上没有被 CUDA Graph 覆盖。V1 的 Vision Encoder CUDA Graphs 把 ViT 也纳入 graph capture：</p>
-
-<table>
-  <tr><th>指标</th><th>之前</th><th>之后</th></tr>
-  <tr><td>P99 延迟 (4×GPU)</td><td>基准</td><td>-84.9%</td></tr>
-  <tr><td>token budget 支持</td><td>固定</td><td>2048/4096/8192/13824 动态选择</td></tr>
-  <tr><td>Batch 调度</td><td>FCFS</td><td>Greedy bin-packing</td></tr>
-</table>
-
-<h3>22.5 LoRA 适配器</h3>
-
-<p>如果你有不同的任务需要同一个基座模型的不同适配：</p>
-
-<pre><code># 启动时加载多个 LoRA
-vllm serve meta-llama/Llama-3-8B \
-    --enable-lora \
-    --max-lora-rank 64 \
-    --lora-modules \
-        math-lora=/loras/math/ \
-        code-lora=/loras/code/ \
-        chat-lora=/loras/chat/
-
-# API 请求时指定
-curl http://localhost:8000/v1/chat/completions \
-    -d '{
-        "model": "math-lora",
-        "messages": [{"role": "user", "content": "解方程 x²+3x-4=0"}]
-    }'</code></pre>
-
-<p>vLLM 使用 Punica 算法实现高效的多 LoRA 批处理——Se segmented Gather 矩阵乘法让不同 LoRA 的请求在同一 batch 中高效处理。</p>
-
-<div class="warning">
-  <p><strong>当前局限</strong>：多模态模型 + LoRA 的组合支持有限（取决于模型架构）；推测解码 + LoRA 和 多模态+推测解码组合暂不支持。涉及这些场景前先在测试环境验证。</p>
-</div>
-
-<p>第四部分"高级专题篇"结束。从下一章开始进入实战——读 nano-vLLM 源码、调试、压测。</p>
-
-        <div class="footer-nav"><a href="21.html">← 上一章</a><a href="index.html">📖 返回目录</a><a href="23.html">下一章 →</a></div>
-    </div>
-</div></div>
-</body>
-</html>
+</code></pre>
+<p>示例中的模板用于特定模型家族；其他模型需要使用其官方 Chat Template，不能照抄 <code>&lt;image&gt;</code>。音频输入通常包含 waveform 与采样率，视频输入包含帧顺序与时间信息，且支持矩阵会随 vLLM 版本、前端和模型后端变化。</p></section>
+<section id="memory"><h2>22.3 为什么多模态会增加内存和排队成本？</h2>
+<p>输入长度不能只按用户文字字符数计。视觉 token 扩展、音频帧、视频采样、encoder activation 和多模态缓存均可能增加内存、TTFT 和调度压力。</p>
+<div class="math-display"><code>N_effective ≈ N_text + N_image_embeddings + N_audio/video_embeddings</code></div>
+<p>这里是统一计算预算的抽象概念，<strong>不是所有架构真正执行一条相同长度的注意力序列</strong>。有些 encoder 先融合媒体、有些使用交叉注意力或特殊模型路径。需要实际查看目标模型的 profiling 日志、prompt tokens 与运行时多模态指标。</p>
+<p><code>limit_mm_per_prompt</code> / <code>--limit-mm-per-prompt</code> 用于配置每个模态项的数量或尺寸提示（取决于版本）。限制图片 count 不等于限制图片像素，也不等于限制总视觉 token 数；生产入口应同时设定媒体大小、格式、URL 来源、音视频时长和并发预算。</p></section>
+<section id="scheduling"><h2>22.4 从队列到模型执行：调度如何变化？</h2>
+<p>多模态请求增加了 CPU preprocessing、media decode、encoder prefill 和 GPU 执行间的依赖关系。与纯文本场景相比，请求可能在媒体准备完成前不能进入相同阶段。某些 V1 工作流允许多模态 encoder 的独立调度与缓存；但具体等待状态和调度方式需要按目标源代码验证。</p>
+<p>若同一图片反复请求，多模态 processor cache 或 encoder cache 可能减少重复工作，但同时带来缓存 key、生命周期和隔离问题；跨租户媒体 UUID 不应未经认证就跨域复用。前文第 09 章的 Prefix Cache 不能代表所有媒体处理缓存。</p>
+<p>要追踪延迟，分别记录下载/解码、encoder、language prefill、decode、排队和网络阶段。若仅看最终 E2E，无法判断是图片请求超大还是 GPU decode 变慢。</p></section>
+<section id="security"><h2>22.5 安全：媒体 URL 是服务端网络访问入口</h2>
+<p>允许服务端抓取用户提供的图片 / 视频 URL 时，必须考虑 SSRF：请求可能将服务器引向集群内网、实例元数据地址或不受信任的资源。当前官方文档建议使用 <code>--allowed-media-domains</code> 限定可访问域名；必要时设 <code>VLLM_MEDIA_URL_ALLOW_REDIRECTS=0</code>，避免重定向绕过域名策略。</p>
+<p>对于本地文件路径，只在明确受信任的环境中限制性地启用 <code>--allowed-local-media-path</code>；不要将任意文件路径读权限交给公网用户。媒体本身还可能包含敏感信息，日志与缓存应受控并按租户作用域管理。</p>
+<div class="callout warning"><p><strong>权限边界：</strong>把媒体输入是否合规、URL 是否可访问、文件大小是否超额放在 Gateway / Preprocessor 层验证，而不是依赖模型回答“拒绝读取”。</p></div></section>
+<section id="compatibility"><h2>22.6 兼容矩阵：模型、模态、后端与优化</h2>
+<p>所谓“vLLM 支持视频/音频/LoRA”不是对所有模型都成立。应核对模型架构、任务、设备、backend、chat template、media preprocessor 和部署版本。例如某些模型在指定版本要求 Rust frontend 处理特定多模态输入；一些量化 kernel、CUDA Graph 捕获和 LoRA 适配只覆盖特定路径。</p>
+<div class="table-wrap"><table><thead><tr><th>功能</th><th>上线前要核验</th></tr></thead><tbody>
+<tr><td>图像/多图</td><td>处理器、最多图片数量、动态分辨率、视觉 token 预算</td></tr>
+<tr><td>视频</td><td>帧率采样策略、最大帧数、顺序与时间编码</td></tr>
+<tr><td>音频</td><td>采样率、片段边界、Speech-to-Text vs Speech-to-Speech 任务</td></tr>
+<tr><td>LoRA</td><td>目标模块是否包括视觉/音频 encoder；所选模型的适配器支持范围</td></tr>
+<tr><td>性能</td><td>encoder cache、CUDA Graph、CPU preprocess 与多模态 batch 混合</td></tr>
+</tbody></table></div>
+<p>使用官方“Supported Models”与多模态示例的确切模型名，做一组真实媒体请求验证质量、资源、延迟、错误和取消流程；不要承诺所有设备或模型都支持同一条启动命令。</p></section>
+<section id="recap"><h2>本章自检</h2><ol><li>为什么图像数不等于视觉 token 数？</li><li>多模态媒体 URL 的 SSRF 风险由哪个组件限制？</li><li>为什么视频帧数、分辨率与音频时长会影响显存和 TTFT？</li><li>如何核验某个模型/模态/后端/功能组合是否受支持？</li></ol></section>
+<section id="sources" class="sources"><h2>参考资料与源码入口</h2><ol><li><a href="https://docs.vllm.ai/en/latest/features/multimodal_inputs/" target="_blank" rel="noopener noreferrer">Multimodal Inputs</a>：模型示例、媒体格式、URL 访问限制与模态配置</li><li><a href="https://docs.vllm.ai/en/latest/models/supported_models/" target="_blank" rel="noopener noreferrer">Supported Models</a>：核对不同模型架构支持的模态和任务</li><li><a href="https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/config/multimodal.py" target="_blank" rel="noopener noreferrer">MultimodalConfig</a>：prompt 限制、媒体约束和配置来源</li><li><a href="https://docs.vllm.ai/en/latest/usage/security/" target="_blank" rel="noopener noreferrer">Security</a>：媒体、缓存和网络边界</li></ol><p><small>审校基线：vLLM e72fc9ae50c221180c4b8f4a94c5009714a4b199（2026-11-22）；nano-vLLM bb823b3e06983d71485a8e1f23715ebd87d98ef8（2026-04-26）。任何配置建议必须与目标版本、目标模型及硬件实测相互核验。</small></p></section>
+<footer class="chapter-footer"><nav class="chapter-nav" aria-label="章节导航"><a href="21.html">← 上一章</a><a class="next" href="23.html">下一章 →</a></nav><a class="back-to-top" href="#content">回到顶部 ↑</a></footer></article></main></div></body></html>

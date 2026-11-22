@@ -1,0 +1,80 @@
+{
+  "chapter": "21",
+  "reviewed_at": "2026-11-22",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "scope": "Version-aware advanced inference chapter with original diagram and explicit toy/derived claims.",
+  "claims": [
+    {
+      "id": "spec-propose-verify",
+      "claim": "Speculative decoding proposes draft tokens and verifies them with the target model to reduce decode serial work in supported workloads.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/README.md",
+      "locator": "Speculative Decoding and Method Selection",
+      "notes": ""
+    },
+    {
+      "id": "standard-lossless",
+      "claim": "The official vLLM guide describes standard speculative rejection sampling as theoretically distribution-preserving up to numerical precision, while FLy deliberately relaxes verification.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/README.md",
+      "locator": "Lossless guarantees of Speculative Decoding",
+      "notes": ""
+    },
+    {
+      "id": "spec-method-values",
+      "claim": "Documented common methods include draft_model, ngram, suffix, mtp, eagle3 and dflash with method-specific configuration.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/README.md",
+      "locator": "--speculative-config schema",
+      "notes": ""
+    },
+    {
+      "id": "ngram-configuration",
+      "claim": "The upstream guide provides n-gram speculation using method=ngram and num_speculative_tokens, with prompt lookup bounds.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/n_gram.md",
+      "locator": "N-Gram Speculation",
+      "notes": ""
+    },
+    {
+      "id": "spec-acceptance-metrics",
+      "claim": "Per-request speculative acceptance metrics are documented separately from ordinary output token metrics.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/acceptance_metrics.md",
+      "locator": "Enabling / Response Format",
+      "notes": ""
+    },
+    {
+      "id": "spec-sampler-math",
+      "claim": "Standard speculative sampling accepts a draft token x with probability min(1,p(x)/q(x)) and samples from the positive residual after rejection.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://arxiv.org/abs/2302.01318",
+      "locator": "Speculative Sampling acceptance / residual equations",
+      "notes": "Applies to standard rejection sampling, not all proposed optimizations."
+    },
+    {
+      "id": "expected-prefix-toy",
+      "claim": "Expected accepted prefix length equals sum_{i=1}^K a^i under independent, constant per-position acceptance probability a.",
+      "kind": "toy_example",
+      "status": "illustrative",
+      "source_url": "https://arxiv.org/abs/2302.01318",
+      "locator": "Acceptance-length intuition",
+      "notes": "Synthetic iid model; not a prediction of production acceptance or speed."
+    },
+    {
+      "id": "throughput-boundary",
+      "claim": "Speculative decoding is most useful in supported medium-to-low QPS / memory-bound regimes, and can become slower as verification batch costs grow.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/README.md",
+      "locator": "Method Selection at a Glance",
+      "notes": ""
+    }
+  ]
+}

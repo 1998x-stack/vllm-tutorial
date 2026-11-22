@@ -169,3 +169,27 @@ The score is an editorial aid, not a substitute for factual verification or brow
 - State clearly that tenants sharing one vLLM server process share scheduler and caches; `cache_salt` mitigates a specific prefix-cache timing side channel but does not create tenant isolation.
 - Scope cache salts and multimodal UUIDs at a trusted gateway. For strong tenant isolation, consider dedicated serving instances.
 - Put tool authorization, RAG ACLs, generated-code sandboxing and action validation at application execution boundaries, not only in prompts.
+
+
+## Advanced inference and source-reading gates (chapters 19–23)
+
+### Parallelism
+- Draw each partition dimension explicitly: TP splits matrices, PP splits layers/stages, DP distributes independent request batches, and EP places MoE expert weights.
+- Use named and shape-checked local tensors to derive column / row linear projection identities. Identify the exact aggregation collective and its alternative implementations instead of drawing a universal fixed kernel sequence.
+- Disclose latency, memory and bandwidth tradeoffs; never imply performance scales linearly with TP/PP/DP sizes. Record GPU topology and model architecture when benchmarking.
+- For MoE, inspect the deployed version's DP Coordinator, EP group size, token dispatch and backend. Distinguish per-rank max_num_seqs from API-level admission controls.
+
+### Speculative Decoding
+- Teach the proposal-target distinction, accept-reject formula and residual correction before claiming speedups. Standard rejection sampling is distribution preserving (up to numerical limits), but nonstandard methods may deliberately trade that guarantee.
+- Separate conditional acceptance rate, accepted draft prefix length, generated tokens per verification and actual ITL/TPOT. A simple `sum(a^i)` lab is allowed only with an explicit iid constant-acceptance assumption.
+- Inspect current SpeculativeConfig for method names and parameter options. Re-run compatibility tests for PP, quantization, model family and sampler backend before recommending production usage.
+
+### Multimodal
+- Show media decode, input preprocessor, encoder and language-model fusion as separate, model-dependent mechanisms.
+- Explicitly verify model-specific chat templates, image placeholders, video frame policy, audio sampling rate and modality limits. Distinguish media item counts, pixels, encoder tokens and effective text decoder tokens.
+- Treat remote media fetch as SSRF risk; apply allowed-media-domains / redirect control, gateway quotas and per-tenant cache scopes. Do not use an unrestricted local media path.
+
+### nano-vLLM
+- Pin nano-vLLM commit independently from vLLM V1. Read real files rather than deriving API behavior from package names.
+- Trace `LLMEngine.step → Scheduler.schedule → ModelRunner.run → Scheduler.postprocess`; separately inspect BlockManager allocation, prefix hashes, refcounts, and Triton KV writes.
+- State which simplifications differ from production V1 and avoid claims of equivalent performance or feature coverage without comparable measurements.

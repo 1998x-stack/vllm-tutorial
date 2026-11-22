@@ -7,11 +7,15 @@ The 28 chapter numbers and root HTML URLs remain stable while the reading experi
 - Course metadata: 8 categories, learning objectives, prerequisites, tags, difficulty and estimated reading time.
 - Shared article design system, accessible stepper enhancement and offline-first interactive labs.
 - Adapted tutorial-authoring Skill and repository instructions.
-- **Chapters 01–18:** technical rewrite, original topic-specific SVGs, source sections, evidence ledgers and semantic HTML.
+- **Chapters 01–23:** technical rewrite, original topic-specific SVGs, source sections, evidence ledgers and semantic HTML.
 - Chapter 08: offline KV Cache capacity calculator.
 - Chapter 11: offline Chunked Prefill budget explorer.
 - Chapter 14: offline Sampling / Decoding distribution explorer.
 - Chapters 15–18: production deployment, Kubernetes GPU scheduling, observability and security / multi-tenancy.
+- Chapters 19–20: tensor, pipeline, data and expert parallelism, GPU topology and MoE dispatch.
+- Chapter 21: speculative rejection sampling and an offline expected-accepted-length experiment.
+- Chapter 22: multimodal preprocessing, latency, cost and media URL security.
+- Chapter 23: pinned nano-vLLM source walkthrough, compared with production vLLM V1.
 - Static article / local-link validation, course manifest generation and offline catalog tests.
 - GitHub Actions validation workflow.
 
@@ -19,7 +23,6 @@ The 28 chapter numbers and root HTML URLs remain stable while the reading experi
 
 | Batch | Chapters | Main review focus |
 |---|---|---|
-| 6 | 19–23 | TP / PP / DP / EP, speculative decoding, multimodal, nano-vLLM |
 | 7 | 24–28 | Troubleshooting, benchmarking, roadmap, RAG project, synthesis |
 
 ## Completion gate

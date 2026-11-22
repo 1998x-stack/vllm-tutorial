@@ -1,0 +1,71 @@
+{
+  "chapter": "20",
+  "reviewed_at": "2026-11-22",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "scope": "Version-aware advanced inference chapter with original diagram and explicit toy/derived claims.",
+  "claims": [
+    {
+      "id": "pp-model-stage",
+      "claim": "Pipeline parallelism distributes different model layers to separate stages; vLLM documents combining PP with TP for multi-node inference.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/parallelism_scaling.md",
+      "locator": "Distributed inference strategies and Single-node deployment",
+      "notes": ""
+    },
+    {
+      "id": "dp-independent-requests",
+      "claim": "Dense-model data parallel deployment replicates weights across ranks and processes independent batches of requests.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/data_parallel_deployment.md",
+      "locator": "Data Parallel Deployment introduction",
+      "notes": ""
+    },
+    {
+      "id": "dp-admission",
+      "claim": "Current docs distinguish per-rank max_num_seqs from server-level max_num_queued_reqs and max_num_queued_tokens admission controls.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/data_parallel_deployment.md",
+      "locator": "Internal Load Balancing",
+      "notes": ""
+    },
+    {
+      "id": "dp-moe-coordination",
+      "claim": "For MoE models with DP, expert layers may require coordinated forwards and rank synchronization, so DP ranks are not always fully independent.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/data_parallel_deployment.md",
+      "locator": "Data Parallel Deployment introduction",
+      "notes": ""
+    },
+    {
+      "id": "ep-size-formula",
+      "claim": "With enable-expert-parallel, the documented EP size is computed as TP_SIZE multiplied by DP_SIZE.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/expert_parallel_deployment.md",
+      "locator": "Single Node Deployment / EP_SIZE",
+      "notes": ""
+    },
+    {
+      "id": "ep-dispatch",
+      "claim": "Expert parallelism distributes experts and moves token activations to the matching devices and back, with backend-dependent All-to-All behavior.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/expert_parallel_deployment.md",
+      "locator": "Communication Backend and Single Node Deployment",
+      "notes": ""
+    },
+    {
+      "id": "gpu-product-budget",
+      "claim": "The article's DP×TP×PP simple GPU count is a resource-planning heuristic; true rank topology and multi-node configuration may add constraints.",
+      "kind": "derived",
+      "status": "derived",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/vllm/config/parallel.py",
+      "locator": "ParallelConfig properties",
+      "notes": "Not a universal performance scaling equation."
+    }
+  ]
+}

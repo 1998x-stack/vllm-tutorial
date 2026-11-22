@@ -514,3 +514,40 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
 .sampling-bar-track .w-7 { width: 7%; }
 .sampling-bar-track .w-3 { width: 3%; }
 .sampling-bar-track .w-1 { width: 1%; }
+
+/* Chapter 21: offline speculative acceptance explorer */
+.spec-lab{margin:20px 0;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface-soft)}
+.spec-lab-controls,.spec-lab-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.spec-lab-controls label{display:grid;gap:6px;font-size:.9rem;font-weight:650;color:var(--ink)}
+.spec-lab-controls input{width:100%;accent-color:var(--accent)}
+.spec-lab-controls output{font-variant-numeric:tabular-nums;color:var(--accent-dark)}
+.spec-lab-results{grid-template-columns:repeat(3,minmax(0,1fr));margin:18px 0 10px}
+.spec-lab-results>div{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff;display:grid;gap:4px}
+.spec-lab-results span{color:var(--muted);font-size:.78rem}
+.spec-lab-results strong{color:var(--accent-dark);font-variant-numeric:tabular-nums}
+.spec-lab [data-spec-result="note"]{font-size:.85rem;color:var(--muted)}
+.spec-lab-bars{padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;display:grid;gap:9px}
+.spec-lab-bar{display:grid;grid-template-columns:70px minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:.83rem}
+.spec-lab-track{height:13px;border-radius:999px;background:var(--surface-soft);overflow:hidden}
+.spec-lab-track i{display:block;background:var(--accent);height:100%;border-radius:999px;transition:width .15s ease}
+.spec-lab-bar strong{font-variant-numeric:tabular-nums;text-align:right;color:var(--accent-dark)}
+@media(max-width:600px){.spec-lab{padding:12px}.spec-lab-controls,.spec-lab-results{grid-template-columns:1fr}.spec-lab-bar{grid-template-columns:55px minmax(0,1fr) 55px;gap:7px}}
+
+
+/* Long mixed English/Chinese titles must wrap on 360px screens rather than widen the page. */
+@media (max-width: 560px) {
+  .article-header h1,
+  .article-content h2 {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+}
+
+
+/* Source-version notes contain long commit hashes: make the note a wrapping block
+   instead of allowing an inline <small> box to extend past a 360px viewport. */
+.sources small {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
