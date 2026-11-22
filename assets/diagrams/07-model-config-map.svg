@@ -35,7 +35,7 @@
  <rect x="440" y="342" width="330" height="154" rx="17" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <circle cx="473" cy="376" r="20" fill="#147d73"/><text x="473" y="383" text-anchor="middle" font-size="18" font-weight="700" fill="#fff">5</text>
  <text x="507" y="383" font-size="20" font-weight="700" fill="#0d5e58">精度与执行 Kernel</text>
- <text x="467" y="428" font-size="15" fill="#315d56">dtype / quantization method & scheme</text>
+ <text x="467" y="428" font-size="15" fill="#315d56">dtype / quantization method &amp; scheme</text>
  <text x="467" y="454" font-size="15" fill="#315d56">Attention / Linear backend</text>
  <path d="M440 418 H400" stroke="#47756d" stroke-width="3" marker-end="url(#arr07)"/>
  <rect x="55" y="342" width="330" height="154" rx="17" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
