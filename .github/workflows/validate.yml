@@ -87,28 +87,33 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: https://1998x-stack.github.io/vllm-tutorial/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set Pages source to GitHub Actions
+      - name: Detect existing Pages publishing source
+        id: pages-source
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
-            gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow
-          else
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow
-          fi
-      - name: Configure Pages
+          build_type="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.build_type')"
+          case "$build_type" in
+            legacy|workflow) ;;
+            *) echo "Unsupported Pages build_type: $build_type" >&2; exit 1 ;;
+          esac
+          echo "build_type=$build_type" >> "$GITHUB_OUTPUT"
+          echo "Publishing source: $build_type"
+      - name: Configure Pages when Actions publishing is enabled
+        if: steps.pages-source.outputs.build_type == 'workflow'
         uses: actions/configure-pages@v5
-      - name: Deploy Pages
+      - name: Deploy Pages when Actions publishing is enabled
         id: deployment
+        if: steps.pages-source.outputs.build_type == 'workflow'
         uses: actions/deploy-pages@v4
       - name: Set up Python for public-site verification
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Verify the published course and critical assets
-        run: python3 scripts/verify_deployment.py --base-url "${{ steps.deployment.outputs.page_url }}"
+        run: python3 scripts/verify_deployment.py --base-url "https://1998x-stack.github.io/vllm-tutorial/"
 
