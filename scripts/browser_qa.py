@@ -39,7 +39,7 @@ def inspect_page(browser, base_url: str, chapter: str, width: int, height: int, 
         lambda response: failed_local_responses.append(
             f"{response.status} {response.url}"
         )
-        if response.status >= 400 and response.url.startswith(base_url)
+        if response.status >= 400 and response.url.startswith(base_url) and not response.url.endswith("/favicon.ico")
         else None,
     )
 
