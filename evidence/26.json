@@ -1,0 +1,71 @@
+{
+  "chapter": "26",
+  "reviewed_at": "2026-11-22",
+  "scope": "Final course batch source audit; derived and toy examples marked separately.",
+  "upstream_source_commit": "e72fc9ae50c221180c4b8f4a94c5009714a4b199",
+  "claims": [
+    {
+      "id": "roadmap-evidence",
+      "claim": "The maturity ladder is a course-authored decision framework, not an official vLLM release policy.",
+      "kind": "recommendation",
+      "status": "derived",
+      "source_url": "https://docs.vllm.ai/en/latest/design/arch_overview/",
+      "locator": "Architecture documentation as a stability baseline",
+      "notes": ""
+    },
+    {
+      "id": "spec-method-maturity",
+      "claim": "Speculative methods have method-specific supported settings and exceptions; a paper result does not establish universal engine compatibility.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/speculative_decoding/README.md",
+      "locator": "SpeculativeConfig schema and Known Feature Incompatibility",
+      "notes": ""
+    },
+    {
+      "id": "multimodal-compatibility",
+      "claim": "Multimodal inputs and preprocessing behavior are model and version dependent.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/features/multimodal_inputs.md",
+      "locator": "Model-specific input examples",
+      "notes": ""
+    },
+    {
+      "id": "parallel-scaling",
+      "claim": "TP/PP/DP/EP choices depend on model architecture, node topology, backend and workload, not only on GPU count.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/parallelism_scaling.md",
+      "locator": "Distributed inference strategies",
+      "notes": ""
+    },
+    {
+      "id": "benchmark-context",
+      "claim": "Benchmark CLI warns about uncontrolled workload and warm prefix caches, requiring evidence for performance comparisons.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/benchmarking/cli.md",
+      "locator": "Warning about repeating same dataset",
+      "notes": ""
+    },
+    {
+      "id": "releases-source",
+      "claim": "Official release notes are the starting point for version and compatibility monitoring; their existence does not prove specific research features are stable.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/releases",
+      "locator": "Release history",
+      "notes": ""
+    },
+    {
+      "id": "future-claims",
+      "claim": "The chapter intentionally labels disaggregation, new runners, adaptive speculation and multi-modal optimization as research/engineering topics rather than universal current defaults.",
+      "kind": "recommendation",
+      "status": "derived",
+      "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/design/arch_overview.md",
+      "locator": "V1 Process Architecture",
+      "notes": "Not a forecast of release date or guaranteed product behavior."
+    }
+  ]
+}
