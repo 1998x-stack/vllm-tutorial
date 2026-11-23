@@ -39,8 +39,8 @@
 <rect x="76" y="547" width="195" height="90" rx="13" fill="#ffffff" stroke="#c66a46" stroke-width="2"/>
 <text x="173" y="582" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="20" font-weight="700" fill="#9c4d30">当前输入 yₜ</text>
 <text x="173" y="607" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">首次为 y₁</text>
-<path id="first-token-to-decode-input" d="M985 295 H1144 V496 H173 V537" fill="none" stroke="#147d73" stroke-width="2.5" marker-end="url(#life-forward)"/>
-<text x="801" y="487" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#315d56">首个输出进入后续单 token 计算</text>
+<path id="first-token-to-decode-input" d="M985 295 H1144 V492 H56 V592 H76" fill="none" stroke="#147d73" stroke-width="2.5" marker-end="url(#life-forward)"/>
+<text x="801" y="481" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#315d56">首个输出进入后续单 token 计算</text>
 <path id="decode-input-to-step" d="M271 593 H333" fill="none" stroke="#c66a46" stroke-width="3" marker-end="url(#life-loop)"/>
 <rect x="345" y="547" width="345" height="90" rx="13" fill="#ffffff" stroke="#c66a46" stroke-width="2"/>
 <text x="517" y="582" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="21" font-weight="700" fill="#9c4d30">Decode 单步前向</text>
