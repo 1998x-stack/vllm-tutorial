@@ -45,8 +45,8 @@
 <rect x="345" y="547" width="345" height="90" rx="13" fill="#ffffff" stroke="#c66a46" stroke-width="2"/>
 <text x="517" y="582" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="21" font-weight="700" fill="#9c4d30">Decode 单步前向</text>
 <text x="517" y="609" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">新 Q 读取已有 K/V；计算本轮 K/V</text>
-<path id="kv-to-decode" d="M390 450 V536" fill="none" stroke="#6d63a8" stroke-width="2.6" marker-end="url(#life-cache)"/>
-<text x="315" y="478" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">读取已有 K/V</text>
+<path id="kv-to-decode" d="M600 420 H640 V546" fill="none" stroke="#6d63a8" stroke-width="2.6" marker-end="url(#life-cache)"/>
+<text x="655" y="461" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">读取已有 K/V</text>
 <path id="decode-to-kv" d="M563 547 V460" fill="none" stroke="#6d63a8" stroke-width="2.6" marker-end="url(#life-cache)"/>
 <text x="573" y="478" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">追加当前 K/V</text>
 <path id="decode-step-to-sample" d="M690 593 H808" fill="none" stroke="#c66a46" stroke-width="3" marker-end="url(#life-loop)"/>
