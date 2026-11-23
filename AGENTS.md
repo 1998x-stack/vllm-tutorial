@@ -61,6 +61,12 @@ When browser tooling is available, inspect desktop and narrow mobile widths, key
 25. **Do not invent benchmark claims.** All speedup and memory numbers require model, hardware, concurrency, prompt/output lengths, precision, vLLM commit and baseline. If only an equation or toy example is provided, label it as derived / illustrative.
 
 
+## SVG correctness and Olah-style review protocol
+
+For every one-by-one chapter SVG review, follow `skills/olah-style-paper-posts/SKILL.md` from the upstream Olah-style-posts repository as the visual/narrative reference, together with this repository's `skills/vllm-tutorial/SKILL.md`. Verify upstream vLLM behavior before drawing. Record the directed graph of computations and storage read/write edges, then compare SVG text, edge endpoints, HTML captions, and evidence ledger. An SVG with swapped arrow direction is a technical error, even if it looks polished.
+
+Preserve explicit distinctions: first-token sampling vs iterative Decode; request/worker/response paths; block table index vs physical ID vs zero-based slot. Update a focused regression test for each corrected mechanism. Record unrun browser QA and CI as **not verified** until a real report exists. Batch audit status is maintained in `docs/visual-audit-2026-11-23.md`.
+
 ## Final-course release and applied RAG rules (24–28)
 
 26. **Troubleshooting is hypothesis-driven.** Capture environment / model / GPU / full failing operation and request characteristics before changing configuration. Separate startup OOM, load failure, runtime KV pressure, NCCL, Torch Compile and CUDAGraph. Warn about performance and log sensitivity when enabling trace/debug modes.

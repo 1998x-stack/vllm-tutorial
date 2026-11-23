@@ -1,6 +1,6 @@
 {
   "chapter": "03",
-  "reviewed_at": "2026-11-20",
+  "reviewed_at": "2026-11-23",
   "scope": "Conceptual explanation of paged KV blocks. Block size 4 and physical IDs are invented teaching values, not vLLM defaults.",
   "claims": [
     {
@@ -38,6 +38,15 @@
       "source_url": "https://arxiv.org/abs/2309.06180",
       "locator": "PagedAttention memory management design",
       "notes": "The final partially filled block and non-KV allocations still consume or strand memory."
+    },
+    {
+      "id": "token-nine-offset-derivation",
+      "claim": "With a toy block size of 4 and block table [7,2,11,4], token position 9 maps to logical block 2, physical block 11 and zero-based offset 1.",
+      "kind": "toy_example",
+      "status": "derived",
+      "source_url": "https://arxiv.org/abs/2309.06180",
+      "locator": "PagedAttention block table and logical-to-physical block mapping",
+      "notes": "Arithmetic uses floor(9/4)=2 and 9 modulo 4=1. The physical IDs are fictional instructional values and not actual memory addresses."
     }
   ]
 }
