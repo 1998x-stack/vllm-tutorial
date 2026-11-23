@@ -1,6 +1,6 @@
 {
   "chapter": "01",
-  "reviewed_at": "2026-11-20",
+  "reviewed_at": "2026-11-23",
   "scope": "Transformer autoregressive inference; KV Cache sizing example is explicitly illustrative and uses the stated Llama 3 8B structure assumptions.",
   "claims": [
     {
@@ -38,6 +38,15 @@
       "source_url": "https://docs.vllm.ai/en/latest/",
       "locator": "Metrics and benchmarking documentation",
       "notes": "Definitions and aggregation windows should be checked against the selected benchmark tool."
+    },
+    {
+      "id": "prefill-first-output-token",
+      "claim": "In ordinary autoregressive generation, logits at the final prompt position predict the first generated token; subsequent decode steps consume sampled tokens.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://docs.vllm.ai/en/stable/api/vllm/v1/worker/gpu/sample/prompt_logprob/",
+      "locator": "Prompt logprob code: last prompt row predicts first decode token",
+      "notes": "The SVG presents the logical single-request, non-disaggregated path. Chunked prefill, P/D disaggregation and speculative decoding can change the physical execution steps."
     }
   ]
 }

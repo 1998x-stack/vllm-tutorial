@@ -86,6 +86,18 @@ Every rewritten chapter should have:
 
 Do not reuse the same generic diagram across unrelated chapters. A figure must answer a question that the surrounding text has already raised.
 
+#### SVG semantic edge audit (required for every chapter revision)
+
+Before changing a figure, create a small edge ledger: `source → target → data/control/state meaning → version/source`. Each arrow must correspond to a real computation, memory access, control decision, or clearly labelled teaching abstraction. Avoid decorative arrows that make a topology appear connected without a valid mechanism.
+
+For chapters 01–03, apply these concrete regression questions:
+
+1. **Autoregressive inference:** Which forward pass predicts the first generated token? Where does the generated token become the next Decode input? The repetition edge must return to Decode, not Prefill; show KV reads and writes as separate directions.
+2. **V1 serving topology:** Trace the request **and** the output path through API Server, Engine Core and workers. Distinguish cache block metadata management from KV tensors stored on a device. Do not imply a universal process count.
+3. **Paged KV:** Trace a token index through `logical = floor(t/B)`, `offset = t mod B`, `physical = BlockTable[logical]`, and an explicitly zero-indexed physical slot. The highlighted cell, table value, physical block and figure caption must agree.
+
+Require each standalone SVG to have a meaningful `title`, `desc`, `viewBox`, labelled arrow IDs, and a caption that states the one insight the figure proves. Maintain at least 13px nominal diagram labels. Add deterministic assertions for the explained mapping/state transitions; assertions cannot substitute for a rendered 1440px/390px/360px review. See `docs/visual-audit-2026-11-23.md` for the first edge-by-edge review record.
+
 ### Gate 5 — Add runnable examples and interactions selectively
 
 - Prefer a tiny deterministic example that demonstrates one mechanism.
