@@ -123,6 +123,7 @@
         <img src="assets/diagrams/10-preemption-recompute.svg" alt="KV Cache 分配失败后，Scheduler 选择一个 Running 请求，释放其 KV blocks，将其进度重置并放回 Waiting 队列；之后重新接纳时可能从 Prefix Cache 命中部分前缀，否则需要重新计算">
         <figcaption>图 2：V1 的典型抢占路径是释放 KV Cache 并重新计算，而不是默认把请求状态交换到 CPU 再原样恢复。</figcaption>
       </figure>
+      <p>需要区分“抢占有哪些可能”和“当前默认用哪一种”：PagedAttention 论文提出了两种释放 KV 的方式——重算（recomputation）与交换（swapping）。当前 vLLM V1 的默认路径是释放缓存块并重算，而不是把完整 KV Cache 换出到 CPU 再原样恢复。</p>
       <p>当前 V1 的 <code>_preempt_request()</code> 关键动作包括：</p>
       <ul>
         <li>释放请求持有的 KV Cache blocks 与 Encoder Cache 引用。</li>
@@ -179,6 +180,7 @@
     <section class="sources" id="sources">
       <h2>参考资料与源码入口</h2>
       <ol>
+        <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>，SOSP 2023：提出重算与交换两种抢占方式，是本章抢占讨论的原始来源。</li>
         <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — Scheduler</a>：V1 token-budget scheduling、FCFS / Priority、Preemption 与 async scheduling。</li>
         <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/#preemption" target="_blank" rel="noopener noreferrer">Optimization — Preemption</a>：KV Cache 不足时的抢占和重算说明。</li>
         <li>源码：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py" target="_blank" rel="noopener noreferrer">Scheduler.schedule / _preempt_request</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/config/scheduler.py" target="_blank" rel="noopener noreferrer">SchedulerConfig</a>、<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/request.py" target="_blank" rel="noopener noreferrer">Request / RequestStatus</a>。</li>

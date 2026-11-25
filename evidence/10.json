@@ -50,6 +50,15 @@
       "notes": "Prefix Cache or a KV connector may recover some work on re-admission; recomputation is not the same as swapping the request state to CPU."
     },
     {
+      "id": "preemption-methods-origin",
+      "claim": "Recomputation and swapping were presented as the two KV-cache preemption methods in the PagedAttention paper; recomputation recomputes the sequence and swapping moves KV blocks to CPU (and may restore them via recomputation if CPU space is also insufficient).",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2309.06180",
+      "locator": "Section on memory management / preemption (recomputation and swapping)",
+      "notes": "The chapter uses the paper only to frame the option space; the default V1 path is verified separately against pinned source."
+    },
+    {
       "id": "preempted-not-finished",
       "claim": "PREEMPTED is not a terminal RequestStatus; RequestStatus.is_finished treats statuses after PREEMPTED as finished.",
       "kind": "official_behavior",
