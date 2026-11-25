@@ -128,7 +128,7 @@
         </math>
       </div>
       <p>举例：若最高候选概率为 0.50，<code>min_p=0.1</code>，则低于 0.05 的候选会被过滤。这里的 0.1 是相对阈值，不是“至少 10% 的绝对概率”。</p>
-      <p>Top-k 与 Top-p 的差别尤其重要：如果分布非常尖锐，Top-p 可能只保留一两个 token；如果分布很平，Top-p 可能保留更多 token。Top-k 则无论概率分布怎样，候选数量上限固定。</p>
+      <p>Top-k 与 Top-p 的差别尤其重要：如果分布非常尖锐，Top-p 可能只保留一两个 token；如果分布很平，Top-p 可能保留更多 token。Top-k 则无论概率分布怎样，候选数量上限固定。从出处看，Top-k 采样出现在 Fan 等人（2018）的故事生成工作中，Top-p（nucleus sampling）由 Holtzman 等人（2019）提出，Min-p 由 Nguyen 等人（2024）提出；vLLM 把这三类裁剪实现为可组合的 logits 处理器。</p>
       <p>这些过滤器组合使用时会相互影响。实际 vLLM 会根据设备与采样后端选择优化实现，不能把下面的教学模拟当成所有 GPU kernel 的逐行执行顺序。</p>
     </section>
 
@@ -245,6 +245,9 @@ response = client.chat.completions.create(
     <section class="sources" id="sources">
       <h2>参考资料与源码入口</h2>
       <ol>
+        <li>Fan et al., <a href="https://arxiv.org/abs/1805.04833" target="_blank" rel="noopener noreferrer">Hierarchical Neural Story Generation</a>（2018）：提出 Top-k 采样。</li>
+        <li>Holtzman et al., <a href="https://arxiv.org/abs/1904.09751" target="_blank" rel="noopener noreferrer">The Curious Case of Neural Text Degeneration</a>（2019）：提出 Top-p / nucleus sampling。</li>
+        <li>Nguyen et al., <a href="https://arxiv.org/abs/2407.01082" target="_blank" rel="noopener noreferrer">Turning Up the Heat: Min-p Sampling for Creative and Coherent LLM Outputs</a>（2024）：提出 Min-p 采样。</li>
         <li>vLLM API Reference：<a href="https://docs.vllm.ai/en/latest/api/vllm/sampling_params/" target="_blank" rel="noopener noreferrer">SamplingParams</a>，包含 Temperature、Top-k、Top-p、Min-p、Logprobs 与参数默认值。</li>
         <li>vLLM User Guide：<a href="https://docs.vllm.ai/en/latest/features/structured_outputs/" target="_blank" rel="noopener noreferrer">Structured Outputs</a>，包含 JSON Schema、Regex、Choice、Grammar 与 backend 迁移说明。</li>
         <li>源码：<a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/sampling_params.py" target="_blank" rel="noopener noreferrer">SamplingParams</a> 与 <a href="https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/sample/ops/topk_topp_sampler.py" target="_blank" rel="noopener noreferrer">Top-k / Top-p sampler</a>。</li>

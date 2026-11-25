@@ -41,6 +41,33 @@
       "notes": "The chapter's numeric illustration is derived from this relative threshold."
     },
     {
+      "id": "top-k-origin",
+      "claim": "Top-k sampling was introduced by Fan et al. (2018) for story generation, truncating the candidate set to the k most likely tokens.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/1805.04833",
+      "locator": "Top-k sampling (Hierarchical Neural Story Generation)",
+      "notes": "The chapter cites the origin of the method, not any specific quality claim."
+    },
+    {
+      "id": "top-p-origin",
+      "claim": "Top-p (nucleus) sampling was introduced by Holtzman et al. (2019), keeping the smallest set of tokens whose cumulative probability reaches p.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/1904.09751",
+      "locator": "Nucleus sampling, Section 3.2",
+      "notes": "The paper motivates nucleus sampling over greedy and pure top-k decoding; the chapter does not reproduce its text-generation evaluation."
+    },
+    {
+      "id": "min-p-origin",
+      "claim": "Min-p sampling was introduced by Nguyen et al. (2024), keeping tokens whose probability is at least min_p times the maximum token probability.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2407.01082",
+      "locator": "Min-p sampling definition and method",
+      "notes": "The chapter's relative-threshold explanation matches this definition; benchmark or quality claims from the paper are not restated here."
+    },
+    {
       "id": "structured-outputs-migration",
       "claim": "The current Structured Outputs API uses structured_outputs with json, regex, choice, grammar and structural_tag forms; legacy guided_json, guided_regex, guided_choice and related fields were removed in vLLM v0.12.0.",
       "kind": "official_behavior",
