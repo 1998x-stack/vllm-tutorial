@@ -14,6 +14,15 @@
       "notes": "Excludes scale metadata, alignment, special layouts and runtime overhead."
     },
     {
+      "id": "mqa-gqa-origin",
+      "claim": "Multi-Query Attention (Shazeer, 2019) and Grouped-Query Attention (Ainslie et al., 2023) reduce the number of key/value heads, which directly shrinks saved K/V state per token.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2305.13245",
+      "locator": "GQA abstract and method; MQA from arXiv:1911.02150",
+      "notes": "The chapter cites MQA/GQA only for the structural reason the KV-head count is smaller than the query-head count; it does not claim a specific quality or speed result."
+    },
+    {
       "id": "gqa-llama-8b-example",
       "claim": "Llama 3.1 8B Instruct provides a representative GQA structure with 32 layers, 8 KV heads and head dimension 128; BF16 yields 128 KiB of K/V payload per token.",
       "kind": "derived",

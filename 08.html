@@ -112,7 +112,7 @@ per_token = 2 * L * H_KV * D_head * B
           </tbody>
         </table>
       </div>
-      <p>注意 GQA 的关键：公式使用的是 8 个 KV heads，而不是 32 个 Query heads。若错误地把 Query heads 代入，估算会放大四倍。MQA / GQA 的目的之一，就是减少需要保存的 K/V 头数。</p>
+      <p>注意 GQA 的关键：公式使用的是 8 个 KV heads，而不是 32 个 Query heads。若错误地把 Query heads 代入，估算会放大四倍。MQA / GQA 的目的之一，就是减少需要保存的 K/V 头数；MQA 由 Shazeer（2019）提出，GQA 由 Ainslie 等人（2023）提出。vLLM 的容量规划建立在“每个序列只保存实际用到的 K/V 头”这一结构特征之上。</p>
       <div class="callout warning">
         <p><strong>算例假设：</strong>单 GPU、无 TP 分片、标准全注意力、每层结构相同、无滑动窗口、无 MLA / Mamba、BF16 K/V payload，不含额外 scale 和对齐开销。它不是某台 GPU 的实测容量，也不意味着 32 GiB 的缓存一定能装进 32 GiB 显存。</p>
       </div>
@@ -227,6 +227,9 @@ vllm serve &lt;model&gt; --kv-cache-dtype fp8</code></pre>
     <section class="sources" id="sources">
       <h2>参考资料与源码入口</h2>
       <ol>
+        <li>Shazeer, <a href="https://arxiv.org/abs/1911.02150" target="_blank" rel="noopener noreferrer">Fast Transformer Decoding: One Write-Head is All You Need</a>（2019），提出 MQA，用单个 K/V 头降低缓存开销。</li>
+        <li>Ainslie et al., <a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer">GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</a>（2023），在 MQA 与多头注意力之间给出分组折中。</li>
+        <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>，SOSP 2023，讨论服务场景下的 KV Cache 体积与内存管理。</li>
         <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/metrics/" target="_blank" rel="noopener noreferrer">Metrics</a>：V1 Prometheus 指标、KV Cache 使用率与请求延迟。</li>
         <li>vLLM, <a href="https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/" target="_blank" rel="noopener noreferrer">Quantized KV Cache</a>：FP8 KV Cache、scale 校准与 skip layers。</li>
         <li>vLLM, <a href="https://docs.vllm.ai/en/latest/features/kv_offloading_usage/" target="_blank" rel="noopener noreferrer">KV Offloading Usage Guide</a>：OffloadingConnector、CPU tier 和多层存储约束。</li>
