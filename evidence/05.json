@@ -9,9 +9,9 @@
       "claim": "Iteration-level scheduling allows requests to be admitted or removed between model iterations rather than waiting for an entire batch to finish.",
       "kind": "paper_result",
       "status": "verified",
-      "source_url": "https://arxiv.org/abs/2308.16369",
+      "source_url": "https://www.usenix.org/conference/osdi22/presentation/yu",
       "locator": "Orca system design and iteration-level scheduling",
-      "notes": "The chapter's A/B/C/D timeline is a teaching example, not a measured result."
+      "notes": "Iteration-level scheduling (continuous batching) originates from Orca (Yu et al., OSDI 2022); the chapter's A/B/C/D timeline is a teaching example, not a measured result. Earlier revisions mislabelled arXiv:2308.16369 as this paper; that preprint is SARATHI (chunked-prefill piggybacking), a different mechanism."
     },
     {
       "id": "v1-unified-scheduler-loop",

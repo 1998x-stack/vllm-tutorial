@@ -74,7 +74,7 @@
 
       <section id="continuous">
         <h2>5.2 迭代级连续批处理：每轮结束后重新看一遍队列</h2>
-        <p>自回归生成会反复执行模型迭代。Continuous Batching 把这个迭代边界作为重新组织请求的机会：已经完成的请求退出，等待中的请求有机会进入，尚未完成的请求继续执行。</p>
+        <p>自回归生成会反复执行模型迭代。Continuous Batching 把这个迭代边界作为重新组织请求的机会：已经完成的请求退出，等待中的请求有机会进入，尚未完成的请求继续执行。这种迭代级（iteration-level）调度最早由 Orca 系统提出，用于替代“以整个批次为完成边界”的静态批处理。</p>
         <ol>
           <li>本轮迭代开始前，调度器查看当前运行请求和等待请求。</li>
           <li>为可以执行的请求分配本轮需要处理的 token 和 KV Cache 槽位。</li>
@@ -180,6 +180,8 @@ for each engine_step:
       <section class="sources" id="sources">
         <h2>参考资料</h2>
         <ol>
+          <li>Yu et al., <a href="https://www.usenix.org/conference/osdi22/presentation/yu" target="_blank" rel="noopener noreferrer">Orca: A Distributed Serving System for Transformer-Based Generative Models</a>，OSDI 2022。提出迭代级调度（也称 Continuous Batching）的原始系统论文。</li>
+          <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>，SOSP 2023。vLLM 将连续批处理与分页 KV Cache 结合的实现背景。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener noreferrer">Architecture Overview — Scheduler</a>。说明 V1 的 token-budget scheduling、FCFS / Priority 和 preemption。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/api/vllm/config/scheduler/" target="_blank" rel="noopener noreferrer">Scheduler Configuration Reference</a>。查询批处理 token 预算、序列上限和队列相关配置。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener noreferrer">Optimization and Tuning</a>。说明 KV Cache 不足时的抢占和重算影响。</li>
