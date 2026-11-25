@@ -41,6 +41,15 @@
       "notes": ""
     },
     {
+      "id": "mm-fusion-origin",
+      "claim": "Two common open-weight VLM fusion designs are sourced: LLaVA (Liu et al., 2023) maps visual features into the language model embedding space via a projector; Flamingo (Alayrac et al., 2022) injects visual features through gated cross-attention into a frozen language model.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2304.08485",
+      "locator": "LLaVA architecture; Flamingo at arXiv:2204.14198",
+      "notes": "The chapter cites these for the fusion topologies only; individual models may differ and must be checked against their own architecture."
+    },
+    {
       "id": "mm-rust-frontend",
       "claim": "The latest multimodal docs identify model-specific cases where an explicit Rust frontend is required for image/video support.",
       "kind": "official_behavior",
