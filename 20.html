@@ -2,7 +2,8 @@
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="比较 PP、DP、TP 与 EP 的切分维度、通信路径、MoE rank 布局与集群资源预算。"><title>第 20 章｜Pipeline、Data 与 Expert Parallelism：沿不同维度拆模型</title>
 <link rel="stylesheet" href="assets/css/article.css"><script defer src="assets/js/interactions.js"></script></head>
-<body class="article-page"><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
+<body class="article-page">
+<a class="skip-link" href="#content">跳转至正文</a><header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html">vLLM <span>Learning Map</span></a><nav class="site-links" aria-label="站点导航"><a href="index.html">课程地图</a><a href="https://docs.vllm.ai/en/latest/" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></nav></div></header>
 <div class="reading-layout"><nav class="chapter-toc" aria-label="本章目录"><span class="toc-label">On this page</span><ol><li><a href="#dimensions">20.1 四种并行到底在切什么？</a></li>
 <li><a href="#pipeline">20.2 Pipeline Parallelism：把层堆栈分成阶段</a></li>
 <li><a href="#data">20.3 Data Parallelism：多个请求批次独立推进</a></li>

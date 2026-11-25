@@ -38,6 +38,23 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   outline: 3px solid #e09b55;
   outline-offset: 3px;
 }
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3.5rem;
+  z-index: 100;
+  padding: .55rem 1.1rem;
+  border-radius: 999px;
+  background: var(--accent-dark);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top .18s ease;
+}
+.skip-link:focus, .skip-link:focus-visible {
+  top: 1rem;
+  color: #ffffff;
+}
 .site-header {
   min-height: 58px;
   border-bottom: 1px solid var(--line);
@@ -260,7 +277,7 @@ pre code { padding: 0; background: transparent; color: inherit; overflow-wrap: n
 }
 @media print {
   body.article-page { background: white; color: black; font-size: 11pt; }
-  .site-header, .chapter-toc, .step-controls, .back-to-top { display: none !important; }
+  .site-header, .chapter-toc, .step-controls, .back-to-top, .skip-link { display: none !important; }
   .reading-layout { display: block; max-width: none; padding: 0; }
   .article-content { max-width: none; }
   .article-content section { break-inside: avoid; }
