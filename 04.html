@@ -56,6 +56,7 @@
 
       <section id="implementation">
         <h2>4.1 先看当前实现：旧 kernel 教程不等于当前代码</h2>
+        <p>分页 KV Cache 的设计来自 Kwon 等人 2023 年的 PagedAttention 论文：它把每个序列的 KV Cache 切成固定大小的块，用一张逻辑块到物理块的映射表按需分配，从而减少连续预留造成的浪费。当前 vLLM 沿用了这一内存组织方式，但具体代码已经不是论文时代的单一 CUDA kernel。</p>
         <p>vLLM 官方的 Paged Attention 设计页面现在明确标注：页面中的逐步 kernel 讲解是历史资料，不能直接代表当前代码。早期实现中的 <code>csrc/attention/attention_kernels.cu</code> 已不再是当前实现路径；现在的分页注意力由不同 Attention backend 负责，使用调度器的 KV Cache 管理器构建的 Block Table。</p>
         <p>因此，读源码时不要只盯着一个名为 <code>paged_attention_kernel</code> 的函数。更有效的方式是沿着数据流看四个职责：</p>
         <ol>
@@ -179,6 +180,7 @@ slot_id = 11 × 4 + 1 = 45</code></pre>
       <section class="sources" id="sources">
         <h2>参考资料与源码入口</h2>
         <ol>
+          <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>，SOSP 2023。分页 KV Cache 与 Block Table 思想的原始论文。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/paged_attention/" target="_blank" rel="noopener noreferrer">Paged Attention</a>。该页面明确说明旧 kernel walkthrough 属于历史资料，并指出当前实现由 Attention backends 处理。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/stable/design/prefix_caching/" target="_blank" rel="noopener noreferrer">Automatic Prefix Caching Design (V1)</a>。包含 Block、ref_cnt、free queue 和请求块分配流程。</li>
           <li>vLLM, <a href="https://docs.vllm.ai/en/stable/features/automatic_prefix_caching/" target="_blank" rel="noopener noreferrer">Automatic Prefix Caching Usage Guide</a>。说明启用方式、适用工作负载和性能边界。</li>

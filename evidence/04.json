@@ -41,6 +41,15 @@
       "notes": "Different Attention backends may use different kernels and metadata layouts."
     },
     {
+      "id": "pagedattention-origin",
+      "claim": "Block-based paged KV cache with a logical-to-physical block mapping for dynamic sequence serving was introduced by the PagedAttention paper (Kwon et al., SOSP 2023).",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2309.06180",
+      "locator": "Abstract; Sections 3-4 (PagedAttention and memory management)",
+      "notes": "The chapter cites the paper for the mechanism only. Current vLLM V1 code paths and file names have diverged from the original implementation and are verified separately against pinned source."
+    },
+    {
       "id": "prefix-cache-reference-counts",
       "claim": "V1 Prefix Cache stores full KV blocks with block hashes and reference counts; reused blocks are touched to prevent eviction while requests hold references.",
       "kind": "official_behavior",
