@@ -14,6 +14,15 @@
       "notes": ""
     },
     {
+      "id": "pp-bubble-origin",
+      "claim": "Microbatch pipeline parallelism and the pipeline-bubble framing originate from GPipe (Huang et al., 2019); Megatron-LM (Shoeybi et al., 2019) is a foundational large-model model-parallel implementation.",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/1811.06965",
+      "locator": "GPipe pipeline scheduling and bubble discussion; Megatron-LM at arXiv:1909.08053",
+      "notes": "The chapter cites these works for the mechanism and terminology only; it does not reuse training-time pipeline-efficiency numbers as inference guarantees."
+    },
+    {
       "id": "dp-independent-requests",
       "claim": "Dense-model data parallel deployment replicates weights across ranks and processes independent batches of requests.",
       "kind": "official_behavior",
@@ -57,6 +66,15 @@
       "source_url": "https://github.com/vllm-project/vllm/blob/e72fc9ae50c221180c4b8f4a94c5009714a4b199/docs/serving/expert_parallel_deployment.md",
       "locator": "Communication Backend and Single Node Deployment",
       "notes": ""
+    },
+    {
+      "id": "ep-moe-origin",
+      "claim": "Sparsely-gated mixture-of-experts with Top-k routing was introduced by Shazeer et al. (2017), and distributing MoE experts across devices as Expert Parallelism was systematized in GShard (Lepikhin et al., 2020).",
+      "kind": "paper_result",
+      "status": "verified",
+      "source_url": "https://arxiv.org/abs/2006.16668",
+      "locator": "GShard MoE expert partitioning; sparsely-gated MoE at arXiv:1701.06538",
+      "notes": "The chapter cites these for the routing and multi-device dispatch mechanism, not for any reported speed or quality result."
     },
     {
       "id": "gpu-product-budget",
