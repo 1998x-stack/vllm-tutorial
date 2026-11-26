@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/07-model-config-map.svg" alt="vLLM 模型加载六步路径：模型仓库与 revision、配置和架构解析、Tokenizer 与 Chat Template、权重分片加载、dtype 量化与 Kernel、KV Cache 和运行时预算">
-      <figcaption>图 1：模型加载是一个有依赖关系的流水线。后面的量化、Kernel 和显存参数，必须建立在前面的模型身份与架构解析正确的基础上。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/07-model-config-map.svg" alt="vLLM 模型加载六层：模型仓库与 revision、配置和架构解析、Tokenizer 与 Chat Template、权重分片加载、dtype 量化与 Kernel、KV Cache 和运行时预算；其中精度与 Kernel 同时受配置中的量化元数据影响">
+      </div>
+      <figcaption>图 1：模型加载是一条有顺序的链路，每一层有自己的失败类型。除了顺序箭头，紫色虚线表示配置解析（第 2 层）会向精度与执行 Kernel（第 5 层）提供量化元数据：量化方法通常从模型配置的 <code>quantization_config</code> 读取，而不是仅由权重加载决定。</figcaption>
     </figure>
 
     <section id="pipeline">

@@ -78,15 +78,15 @@ test("03: token 9 mapping matches block size and zero-based offset", () => {
 });
 
 
-test("01–06 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
+test("01–07 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/article.css"), "utf8");
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /\.diagram-pan img \{ width: 960px;/);
   assert.match(css, /\.diagram-pan:focus-visible/);
-  for (const n of ["01", "02", "03", "04", "05", "06"]) {
+  for (const n of ["01", "02", "03", "04", "05", "06", "07"]) {
     const html = page(n);
     assert.match(html, /<div class="diagram-pan" tabindex="0" role="region"/);
-    assert.match(html, /<img src="assets\/diagrams\/0[1-6]-/);
+    assert.match(html, /<img src="assets\/diagrams\/0[1-7]-/);
     assert.match(html, /<\/div>\s*<figcaption>/);
   }
 });
@@ -132,4 +132,17 @@ test("06: offline and online verification are parallel, not a mandatory chain", 
   // Install step must not point straight at one validation box only.
   assert.match(xml, /安装成功后，两条验证路径可分别进行/);
   assert.match(page("06"), /是两条可分别进行的验证路径，不是强制的前后依赖/);
+});
+
+test("07: precision/kernel layer also depends on config, not only weights", () => {
+  const xml = svg("07-model-config-map.svg");
+  idsAreUnique(xml, "07");
+  for (const id of ["step-source", "step-config", "step-input", "step-weights", "step-precision", "step-runtime"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Dashed dependency edge config(2) -> precision/kernel(5), distinct from the snake chain.
+  assert.match(xml, /id="config-to-precision" d="M605 290 V338"/);
+  assert.match(xml, /stroke-dasharray="7 5" marker-end="url\(#arr07p\)"/);
+  assert.match(xml, /quantization_config/);
+  assert.match(page("07"), /量化方法通常从模型配置的 <code>quantization_config<\/code> 读取/);
 });

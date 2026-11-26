@@ -99,6 +99,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`06.html\`, \`assets/diagrams/06-first-run-path.svg\`, \`tests/svg-semantics.test.cjs\`.
 
+## Chapter 07 — Model load layers: identity → config → weights → precision
+
+**Reader question:** Does precision/kernel selection depend only on the loaded weights, or also on the model config?
+
+**Before:** A six-box snake drew a single dependency chain, so the precision/kernel layer looked like it derived solely from weight loading; the figure also lacked the mobile pan wrapper used by chapters 01–06.
+
+**After:** The snake order is preserved, but a dashed purple edge \`配置与架构解析 → 精度与执行 Kernel\` (labelled \`quantization_config\`) is added, matching the chapter’s statement that the quantization method is read from the model config rather than decided by weights alone. Unit ids were added for deterministic assertions.
+
+**Scope:** The chain is load-time order plus a failure-isolation layer, not a full vLLM loader call graph; method/scheme/kernel names and support matrices are version- and hardware-scoped.
+
+**Primary evidence:** [vLLM Engine Arguments](https://docs.vllm.ai/en/latest/configuration/engine_args/) (revision, tokenizer_revision, code_revision, dtype); chapter 7.4 quantization method/scheme distinction.
+
+**Files:** \`07.html\`, \`assets/diagrams/07-model-config-map.svg\`, \`tests/svg-semantics.test.cjs\`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -109,7 +123,7 @@ For every later chapter apply this ordered gate:
 | 04 | KV write/read path | Revised; CI/visual QA pending |
 | 05 | Iteration-level batching | Revised; CI/visual QA pending |
 | 06 | First-run engine path | Revised; CI/visual QA pending |
-| 07 | Model/config/revision map | Pending one-by-one review |
+| 07 | Model/config/revision map | Revised; CI/visual QA pending |
 | 08 | KV memory budget | Pending one-by-one review |
 | 09 | Prefix hash chain | Pending one-by-one review |
 | 10 | Scheduler + recompute preemption (2 SVGs) | Pending one-by-one review |
