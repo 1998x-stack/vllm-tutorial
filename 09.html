@@ -50,8 +50,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/09-prefix-cache-hash.svg" alt="请求 A 与请求 B 共享相同 token 前缀时，parent-hash 链可以识别相同 KV blocks；命中后增加引用计数，释放后进入 LRU Free Queue，特殊混合 Mamba 路径可使用细粒度共享前缀检查点">
-      <figcaption>图 1：APC 的关键是“精确前缀 + 可定位的缓存块 + 正确的引用生命周期”。普通整块命中与混合 Mamba 的细粒度共享前缀检查点必须分开理解。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/09-prefix-cache-hash.svg" alt="请求 A 与请求 B 共享相同 token 前缀时，parent-hash 链识别相同 KV blocks；命中后引用计数增加，归零后块回到 Free Queue 并保留 hash，仅在空间不足时才被 LRU 淘汰；特殊混合 Mamba 路径可使用细粒度共享前缀检查点">
+      </div>
+      <figcaption>图 1：APC 的关键是“精确前缀 + 可定位的缓存块 + 正确的引用生命周期”。注意“释放”不等于“淘汰”：引用计数归零的块回到 Free Queue 时仍保留 hash，只有在需要物理块时才会沿虚线被 LRU 移除。普通整块命中与混合 Mamba 的细粒度共享前缀检查点必须分开理解。</figcaption>
     </figure>
 
     <section id="problem">

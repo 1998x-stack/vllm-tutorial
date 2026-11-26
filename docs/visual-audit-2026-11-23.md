@@ -127,6 +127,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`08.html\`, \`assets/diagrams/08-kv-memory-budget.svg\`, \`tests/svg-semantics.test.cjs\`.
 
+## Chapter 09 — Prefix-cache hash chain and lifetime
+
+**Reader question:** Does releasing a cached block immediately evict it, or is eviction a separate, later event?
+
+**Before:** The lifetime row was a plain chain \`Lookup → Touch/ref_cnt++ → Free/ref_cnt-- → LRU Eviction\`, so freeing a block appeared to evict it immediately—contradicting the chapter’s statement that a zero-reference block returns to the Free Queue with its hash retained and stays reusable.
+
+**After:** The \`Free\` node now reads “归零后回 Free Queue，保留 hash”, the \`Free → LRU Eviction\` edge is **dashed**, and the eviction node reads “空间不足时：移除 hash 并回收”. A row note states 释放 ≠ 淘汰. Unit ids were added and the mobile pan wrapper supplied.
+
+**Scope:** Exact token-prefix blocks with one KV group; the special hybrid-Mamba sub-block checkpoint is a constrained path and is labelled as such. Block size 4 is illustrative.
+
+**Primary evidence:** In-page references: [Automatic Prefix Caching design](https://docs.vllm.ai/en/latest/design/prefix_caching/) and [APC feature guide](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/).
+
+**Files:** \`09.html\`, \`assets/diagrams/09-prefix-cache-hash.svg\`, \`tests/svg-semantics.test.cjs\`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -139,7 +153,7 @@ For every later chapter apply this ordered gate:
 | 06 | First-run engine path | Revised; CI/visual QA pending |
 | 07 | Model/config/revision map | Revised; CI/visual QA pending |
 | 08 | KV memory budget | Revised; CI/visual QA pending |
-| 09 | Prefix hash chain | Pending one-by-one review |
+| 09 | Prefix hash chain | Revised; CI/visual QA pending |
 | 10 | Scheduler + recompute preemption (2 SVGs) | Pending one-by-one review |
 | 11 | Chunked prefill timeline | Pending one-by-one review |
 | 12 | V1 process topology + step loop (2 SVGs) | Pending one-by-one review |
@@ -166,4 +180,4 @@ For every later chapter apply this ordered gate:
 - SVG topology reviewed against chapter prose and official sources for 01–03.
 - \`tests/svg-semantics.test.cjs\` adds deterministic regression assertions for the first three diagrams.
 - Static, browser, screenshot, interaction and Pages checks: **not verified in this note**. Link actual CI run/PR results before claiming pass.
-- Next detailed pass: **04 → 05 → 06**, then continue the ledger in numerical order. Preserve this audit instead of asserting all 28 figures are already correct.
+- Next detailed pass: **10 → 11 → 12**, then continue the ledger in numerical order. Preserve this audit instead of asserting all 28 figures are already correct.

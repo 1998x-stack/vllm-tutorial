@@ -78,15 +78,15 @@ test("03: token 9 mapping matches block size and zero-based offset", () => {
 });
 
 
-test("01–08 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
+test("01–09 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/article.css"), "utf8");
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /\.diagram-pan img \{ width: 960px;/);
   assert.match(css, /\.diagram-pan:focus-visible/);
-  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08"]) {
+  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08", "09"]) {
     const html = page(n);
     assert.match(html, /<div class="diagram-pan" tabindex="0" role="region"/);
-    assert.match(html, /<img src="assets\/diagrams\/0[1-8]-/);
+    assert.match(html, /<img src="assets\/diagrams\/0[1-9]-/);
     assert.match(html, /<\/div>\s*<figcaption>/);
   }
 });
@@ -157,4 +157,18 @@ test("08: per-request cache multiplies per-token bytes by tokens", () => {
   assert.match(xml, /id="multiply-concurrency"/);
   assert.match(xml, /id="total-kv"/);
   assert.match(page("08"), /乘上该请求的 token 数得到每请求缓存/);
+});
+
+test("09: free returns hash-retaining block to queue; eviction is conditional", () => {
+  const xml = svg("09-prefix-cache-hash.svg");
+  idsAreUnique(xml, "09");
+  for (const id of ["hash-chain", "lifecycle-lookup", "lifecycle-touch", "lifecycle-free", "lifecycle-evict"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Freed block keeps its hash and is only later evicted; the Free->Evict edge is dashed.
+  assert.match(xml, /id="lifecycle-free"[\s\S]{0,400}保留 hash/);
+  assert.match(xml, /stroke-dasharray="6 5" marker-end="url\(#arr09\)"/);
+  assert.match(xml, /空间不足时：移除 hash 并回收/);
+  assert.match(xml, /释放 ≠ 淘汰/);
+  assert.match(page("09"), /“释放”不等于“淘汰”/);
 });
