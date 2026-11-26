@@ -51,8 +51,10 @@
       </div>
 
       <figure class="diagram">
-        <img src="assets/diagrams/05-iteration-batching.svg" alt="固定批处理等待最长请求完成，而迭代级连续批处理在 A 完成后让等待请求 D 于后续调度轮次加入">
-        <figcaption>图 1：固定批次通常以整个批次为完成边界；迭代级连续批处理则在模型迭代边界重新组织请求。图中只是概念时间线，不代表实测吞吐或延迟。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/05-iteration-batching.svg" alt="静态批处理中 A、C 结束后其槽位一直闲置到最长的 B 完成；迭代级连续批处理在每轮迭代边界重组，A 释放的槽位可由等待队列中的 D 在下一轮补入">
+        </div>
+        <figcaption>图 1：静态批次以整批完成边界为界，A、C 结束后槽位闲置到 B 结束才可能被复用；迭代级连续批处理则在每轮模型迭代边界重新组织执行集合，A 退出后等待队列中的 D 可在下一轮补入。图中只是概念时间线，不代表实测吞吐或延迟。</figcaption>
       </figure>
 
       <section id="problem">

@@ -1,25 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
 <title id="title">静态批处理与迭代级连续批处理对比</title>
-<desc id="desc">静态批处理把 A、B、C 放进同一批次并等待最长的 B 完成；连续批处理在每轮迭代后重新组织请求，A 完成后 D 可以在后续迭代进入执行批次，而 B 和 C 继续运行。</desc>
-<rect width="1200" height="600" rx="24" fill="#fbfaf7"/>
-<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">批次何时重新组织，决定请求槽位会不会空等</text>
-<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">下面是概念时间线，长度和颜色仅用于说明，不代表真实 benchmark。</text>
-<text x="60" y="145" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">静态批处理</text>
-<text x="60" y="175" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">整批请求一起开始，通常要等整批完成才进入下一批。</text>
+<desc id="desc">静态批处理把 A、B、C 放进同一批次并等最长的 B 完成，A 与 C 结束后其槽位一直闲置到整批结束；迭代级连续批处理在每轮迭代后重组请求，A 结束后等待队列中的 D 可在下一轮被准入，B、C 继续运行。</desc>
+<rect width="1200" height="620" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">批次何时重组，决定空出的槽位会不会一直闲置</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">下面是概念时间线，长度与颜色仅用于说明，不代表真实 benchmark。</text>
+<text x="60" y="145" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">静态批处理 · 以整批完成时刻为边界</text>
+<text x="60" y="173" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">整批一起开始，通常要等最长的请求结束，才组织下一批。</text>
 <g font-family="Arial,'PingFang SC',sans-serif" font-size="16">
- <text x="80" y="225" fill="#53636b">请求 A</text><rect x="190" y="202" width="230" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="305" y="225" text-anchor="middle" fill="#0d5e58">短请求 · 已完成</text>
- <text x="80" y="270" fill="#53636b">请求 B</text><rect x="190" y="247" width="700" height="34" rx="8" fill="#fff0e8" stroke="#c66a46"/><text x="540" y="270" text-anchor="middle" fill="#9c4d30">长请求 · 持续运行</text>
- <text x="80" y="315" fill="#53636b">请求 C</text><rect x="190" y="292" width="400" height="34" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="390" y="315" text-anchor="middle" fill="#51488c">中等请求 · 已完成</text>
- <path d="M420 190 V335 M590 190 V335 M890 190 V335" stroke="#b7c3be" stroke-dasharray="5 6"/>
- <text x="420" y="358" text-anchor="middle" fill="#60716c" font-size="13">A 完成</text><text x="590" y="358" text-anchor="middle" fill="#60716c" font-size="13">C 完成</text><text x="890" y="358" text-anchor="middle" fill="#60716c" font-size="13">B 完成</text>
+ <text x="80" y="221" fill="#53636b">请求 A</text><rect id="static-run-a" x="190" y="197" width="230" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="305" y="219" text-anchor="middle" fill="#0d5e58">短请求 · 已完成</text>
+ <rect id="static-idle-a" x="420" y="197" width="470" height="34" rx="8" fill="#efece6" stroke="#c9c2b6" stroke-dasharray="6 5"/><text x="655" y="219" text-anchor="middle" fill="#8a8172">槽位闲置：A 已结束，但不能回填新请求</text>
+ <text x="80" y="266" fill="#53636b">请求 B</text><rect id="static-run-b" x="190" y="242" width="700" height="34" rx="8" fill="#fff0e8" stroke="#c66a46"/><text x="540" y="264" text-anchor="middle" fill="#9c4d30">长请求 · 持续运行</text>
+ <text x="80" y="311" fill="#53636b">请求 C</text><rect id="static-run-c" x="190" y="287" width="400" height="34" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="390" y="309" text-anchor="middle" fill="#51488c">中等请求 · 已完成</text>
+ <rect id="static-idle-c" x="590" y="287" width="300" height="34" rx="8" fill="#efece6" stroke="#c9c2b6" stroke-dasharray="6 5"/><text x="740" y="309" text-anchor="middle" fill="#8a8172">槽位闲置</text>
+ <path d="M420 187 V330 M590 187 V330 M890 187 V330" stroke="#b7c3be" stroke-dasharray="5 6"/>
+ <text x="420" y="350" text-anchor="middle" fill="#60716c" font-size="13">A 完成</text><text x="590" y="350" text-anchor="middle" fill="#60716c" font-size="13">C 完成</text><text x="890" y="350" text-anchor="middle" fill="#60716c" font-size="13">B 完成</text>
 </g>
-<path d="M60 390 H1140" stroke="#dce4e1" stroke-width="2"/>
-<text x="60" y="430" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">迭代级连续批处理</text>
-<text x="60" y="460" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">每轮迭代结束后，调度器可根据请求状态重组下一轮工作。</text>
+<text x="60" y="381" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#9c4d30">A、C 结束后，其槽位要等到整批（B）结束才可能被下一批复用——这正是静态批处理的浪费。</text>
+<path d="M60 405 H1140" stroke="#dce4e1" stroke-width="2"/>
+<text x="60" y="440" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">迭代级连续批处理 · 以模型迭代为重组边界</text>
+<text x="60" y="468" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">每轮迭代结束后，调度器可根据请求状态重组下一轮执行集合。</text>
 <g font-family="Arial,'PingFang SC',sans-serif" font-size="15">
- <text x="80" y="510" fill="#53636b">Step 1</text><rect x="190" y="488" width="210" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="295" y="511" text-anchor="middle" fill="#0d5e58">A + B + C</text>
- <text x="430" y="510" fill="#53636b">Step 2</text><rect x="520" y="488" width="210" height="34" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="625" y="511" text-anchor="middle" fill="#0d5e58">B + C + D</text>
- <text x="760" y="510" fill="#53636b">Step 3</text><rect x="850" y="488" width="290" height="34" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="995" y="511" text-anchor="middle" fill="#51488c">B + D + 新到达请求</text>
+ <rect id="cont-step1" x="150" y="495" width="240" height="40" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="270" y="520" text-anchor="middle" fill="#0d5e58">Step 1 · A + B + C</text>
+ <rect id="cont-step2" x="430" y="495" width="240" height="40" rx="8" fill="#e5f3ef" stroke="#147d73"/><text x="550" y="520" text-anchor="middle" fill="#0d5e58">Step 2 · B + C + D</text>
+ <rect id="cont-step3" x="710" y="495" width="240" height="40" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="830" y="520" text-anchor="middle" fill="#51488c">Step 3 · B + D + E</text>
+ <rect id="cont-step4" x="990" y="495" width="150" height="40" rx="8" fill="#f0effa" stroke="#6d63a8"/><text x="1065" y="520" text-anchor="middle" fill="#51488c">Step 4 · …</text>
 </g>
-<text x="190" y="558" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#9c4d30">A 完成后释放资源，D 可在后续调度轮次加入；是否加入仍取决于 token budget 与 KV Cache 容量。</text>
+<text x="60" y="575" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#0d5e58">A 在第 1 轮结束后释放槽位，等待队列中的 D 可在第 2 轮被准入；是否加入仍取决于 token budget 与 KV Cache 容量。</text>
 </svg>

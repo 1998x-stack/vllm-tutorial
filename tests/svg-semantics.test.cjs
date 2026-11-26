@@ -78,15 +78,15 @@ test("03: token 9 mapping matches block size and zero-based offset", () => {
 });
 
 
-test("01–04 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
+test("01–05 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/article.css"), "utf8");
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /\.diagram-pan img \{ width: 960px;/);
   assert.match(css, /\.diagram-pan:focus-visible/);
-  for (const n of ["01", "02", "03", "04"]) {
+  for (const n of ["01", "02", "03", "04", "05"]) {
     const html = page(n);
     assert.match(html, /<div class="diagram-pan" tabindex="0" role="region"/);
-    assert.match(html, /<img src="assets\/diagrams\/0[1-4]-/);
+    assert.match(html, /<img src="assets\/diagrams\/0[1-5]-/);
     assert.match(html, /<\/div>\s*<figcaption>/);
   }
 });
@@ -104,4 +104,18 @@ test("04: write and read are opposite edges over one physical KV cache", () => {
   assert.doesNotMatch(xml, /新 K \/ V[\s\S]{0,400}slot_mapping[\s\S]{0,200}物理 KV Cache/);
   assert.match(page("04"), /Attention Backend 据此从缓存读回历史 K\/V/);
   assert.match(page("04"), /依据 Block Table 从缓存读回历史 K\/V/);
+});
+
+test("05: static batch idles freed slots; continuous batch refills them", () => {
+  const xml = svg("05-iteration-batching.svg");
+  idsAreUnique(xml, "05");
+  // Static panel must show the wasted slots instead of only completion lines.
+  assert.match(xml, /id="static-idle-a"/);
+  assert.match(xml, /id="static-idle-c"/);
+  assert.match(xml, /槽位闲置/);
+  // Continuous panel steps keep B running while A is replaced by D.
+  assert.match(xml, /id="cont-step1"[^>]*\/><text[^>]*>Step 1 · A \+ B \+ C/);
+  assert.match(xml, /id="cont-step2"[^>]*\/><text[^>]*>Step 2 · B \+ C \+ D/);
+  assert.match(page("05"), /A 退出后等待队列中的 D 可在下一轮补入/);
+  assert.match(page("05"), /槽位闲置到 B 结束才可能被复用/);
 });

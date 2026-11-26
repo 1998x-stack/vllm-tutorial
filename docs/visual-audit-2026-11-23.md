@@ -71,6 +71,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`04.html\`, \`assets/diagrams/04-kv-write-read-path.svg\`, \`tests/svg-semantics.test.cjs\`.
 
+## Chapter 05 — Static vs iteration-level batching
+
+**Reader question:** If one batch member finishes early, can its slot be reused right away, and where does the replacement request come from?
+
+**Before:** The static-batch timeline drew A and C as “已完成” bars but showed no idle state after their completion, so the wasted slot—the whole reason continuous batching exists—was invisible; in the continuous panel D appeared in Step 2 without being introduced as a waiting request.
+
+**After:** Static rows now continue with dashed **槽位闲置** blocks from A/C completion to B completion, plus an annotation that the slots cannot be refilled until the whole batch ends. The continuous panel shows four iteration-aligned steps (\`A+B+C\` → \`B+C+D\` → \`B+D+E\` → …) with a footer stating that D comes from the waiting queue and admission still depends on token budget and KV-cache capacity.
+
+**Scope:** Conceptual timeline; bar lengths and colors are illustrative, not measured throughput or latency. The figure does not claim a fixed batch/waiting order beyond iteration-level reorganization.
+
+**Primary evidence:** Orca iteration-level scheduling (Yu et al., OSDI 2022); [vLLM V1 scheduler documentation](https://docs.vllm.ai/en/latest/design/scheduler/).
+
+**Files:** \`05.html\`, \`assets/diagrams/05-iteration-batching.svg\`, \`tests/svg-semantics.test.cjs\`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -79,7 +93,7 @@ For every later chapter apply this ordered gate:
 | 02 | V1 serving architecture | Revised; CI/visual QA pending |
 | 03 | Logical → physical block table | Revised; CI/visual QA pending |
 | 04 | KV write/read path | Revised; CI/visual QA pending |
-| 05 | Iteration-level batching | Pending one-by-one review |
+| 05 | Iteration-level batching | Revised; CI/visual QA pending |
 | 06 | First-run engine path | Pending one-by-one review |
 | 07 | Model/config/revision map | Pending one-by-one review |
 | 08 | KV memory budget | Pending one-by-one review |
