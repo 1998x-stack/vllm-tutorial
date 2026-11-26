@@ -78,15 +78,30 @@ test("03: token 9 mapping matches block size and zero-based offset", () => {
 });
 
 
-test("01–03 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
+test("01–04 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/article.css"), "utf8");
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /\.diagram-pan img \{ width: 960px;/);
   assert.match(css, /\.diagram-pan:focus-visible/);
-  for (const n of ["01", "02", "03"]) {
+  for (const n of ["01", "02", "03", "04"]) {
     const html = page(n);
     assert.match(html, /<div class="diagram-pan" tabindex="0" role="region"/);
-    assert.match(html, /<img src="assets\/diagrams\/0[1-3]-/);
+    assert.match(html, /<img src="assets\/diagrams\/0[1-4]-/);
     assert.match(html, /<\/div>\s*<figcaption>/);
   }
+});
+
+test("04: write and read are opposite edges over one physical KV cache", () => {
+  const xml = svg("04-kv-write-read-path.svg");
+  idsAreUnique(xml, "04");
+  assert.match(xml, /id="physical-kv-cache"/);
+  assert.match(xml, /id="write-kv-edge" d="M172 260 V392"/);
+  assert.match(xml, /id="write-slot-edge" d="M425 260 V392"/);
+  assert.match(xml, /id="read-hist-edge" d="M990 392 V268"/);
+  assert.match(xml, /id="attention-backend"/);
+  assert.match(xml, /读回历史 K\/V/);
+  // slot_mapping is a locator, so it must not sit as an intermediate hop for K/V.
+  assert.doesNotMatch(xml, /新 K \/ V[\s\S]{0,400}slot_mapping[\s\S]{0,200}物理 KV Cache/);
+  assert.match(page("04"), /Attention Backend 据此从缓存读回历史 K\/V/);
+  assert.match(page("04"), /依据 Block Table 从缓存读回历史 K\/V/);
 });

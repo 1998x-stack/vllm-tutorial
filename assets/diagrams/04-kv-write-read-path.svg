@@ -1,35 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
-<title id="title">Paged KV Cache 的写入与读取路径</title>
-<desc id="desc">写入路径由每个新 token 的 slot mapping 指向物理缓存槽位；读取路径由请求的 Block Table 找到物理块，Attention backend 按逻辑上下文顺序读取 K/V。Prefix Cache 在块完成后通过哈希和引用计数管理可复用块。</desc>
-<defs><marker id="a04" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker><marker id="b04" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#c66a46"/></marker></defs>
-<rect width="1200" height="560" rx="24" fill="#fbfaf7"/>
-<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">同一份缓存，有两条不同的访问路径</text>
-<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">不要混淆 slot mapping（写入定位）与 Block Table（按请求读取块）。</text>
-<rect x="60" y="135" width="480" height="285" rx="18" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
-<text x="300" y="174" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="22" font-weight="700" fill="#0d5e58">写入路径 · 新 token 到达</text>
-<rect x="92" y="208" width="150" height="74" rx="12" fill="#fff" stroke="#b7cbc3"/>
-<text x="167" y="238" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">新 K / V</text>
-<text x="167" y="263" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">当前 token</text>
-<path d="M242 245 H300" stroke="#47756d" stroke-width="2.5" marker-end="url(#a04)"/>
-<rect x="310" y="208" width="190" height="74" rx="12" fill="#fff" stroke="#147d73"/>
-<text x="405" y="238" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#0d5e58">slot_mapping</text>
-<text x="405" y="263" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">定位物理写入槽位</text>
-<path d="M405 282 V325" stroke="#47756d" stroke-width="2.5" marker-end="url(#a04)"/>
-<rect x="185" y="335" width="230" height="56" rx="12" fill="#fff" stroke="#147d73"/>
-<text x="300" y="370" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#0d5e58">物理 KV Cache 槽位</text>
-<rect x="660" y="135" width="480" height="285" rx="18" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
-<text x="900" y="174" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="22" font-weight="700" fill="#51488c">读取路径 · 计算注意力</text>
-<rect x="692" y="208" width="145" height="74" rx="12" fill="#fff" stroke="#aaa4d0"/>
-<text x="764" y="238" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#51488c">Block Table</text>
-<text x="764" y="263" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">逻辑块 → 物理块</text>
-<path d="M837 245 H875" stroke="#47756d" stroke-width="2.5" marker-end="url(#a04)"/>
-<rect x="885" y="208" width="220" height="74" rx="12" fill="#fff" stroke="#aaa4d0"/>
-<text x="995" y="238" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#51488c">Attention Backend</text>
-<text x="995" y="263" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">按上下文顺序读取 K / V</text>
-<path d="M995 282 V325" stroke="#47756d" stroke-width="2.5" marker-end="url(#a04)"/>
-<rect x="790" y="335" width="220" height="56" rx="12" fill="#fff" stroke="#aaa4d0"/>
-<text x="900" y="370" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#51488c">Attention 输出</text>
-<rect x="60" y="450" width="1080" height="72" rx="14" fill="#fff0e8" stroke="#c66a46"/>
-<text x="88" y="480" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#9c4d30">Prefix Cache 是另一层管理逻辑</text>
-<text x="88" y="505" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">已完成的 block 可按 token 前缀哈希复用；引用计数与淘汰策略决定何时可释放或回收。</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+<title id="title">Paged KV Cache 的写入路径与读取路径</title>
+<desc id="desc">写入路径：本轮新计算出的 K/V 由 slot_mapping 提供目标槽位，写入同一份物理分页 KV Cache。读取路径：Attention Backend 依据请求的 Block Table 从物理 KV Cache 读回历史 K/V。写入与读取作用于同一份分页缓存，但分别解决“写到哪里”和“从哪里读”。</desc>
+<defs><marker id="a04" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#147d73"/></marker><marker id="p04" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#6d63a8"/></marker></defs>
+<rect width="1200" height="620" rx="24" fill="#fbfaf7"/>
+<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">同一份缓存，两条方向相反的访问路径</text>
+<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">slot_mapping 只负责写入定位；Block Table 与 Attention Backend 负责读取历史 K/V。</text>
+<rect id="write-lane" x="60" y="120" width="480" height="230" rx="18" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+<text x="300" y="158" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="21" font-weight="700" fill="#0d5e58">写入路径 · 新 token 落位</text>
+<rect id="new-kv" x="92" y="190" width="160" height="70" rx="12" fill="#fff" stroke="#147d73"/>
+<text x="172" y="222" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#0d5e58">新 K / V</text>
+<text x="172" y="248" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">本轮计算得到</text>
+<rect id="slot-mapping" x="320" y="190" width="210" height="70" rx="12" fill="#fff" stroke="#147d73"/>
+<text x="425" y="222" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#0d5e58">slot_mapping</text>
+<text x="425" y="248" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">本轮 token 的目标槽位</text>
+<rect id="read-lane" x="660" y="120" width="480" height="230" rx="18" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+<text x="900" y="158" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="21" font-weight="700" fill="#51488c">读取路径 · Attention 取用历史</text>
+<rect id="block-table" x="692" y="190" width="165" height="70" rx="12" fill="#fff" stroke="#6d63a8"/>
+<text x="774" y="222" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#51488c">Block Table</text>
+<text x="774" y="248" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">逻辑块 → 物理块</text>
+<path d="M857 225 H881" stroke="#6d63a8" stroke-width="2.5" marker-end="url(#p04)"/>
+<rect id="attention-backend" x="885" y="190" width="210" height="70" rx="12" fill="#fff" stroke="#6d63a8"/>
+<text x="990" y="222" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#51488c">Attention Backend</text>
+<text x="990" y="248" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#625b91">按上下文顺序读 K / V</text>
+<rect id="physical-kv-cache" x="60" y="400" width="1080" height="95" rx="16" fill="#f2f6f4" stroke="#7f9a93" stroke-width="2"/>
+<text x="600" y="433" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="20" font-weight="700" fill="#264b45">物理 KV Cache · 分页块（显存）</text>
+<text x="600" y="463" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#60716c">写入与读取访问的是同一份分页缓存：一个按 slot_mapping 落位，一个按 Block Table 索引。</text>
+<path id="write-kv-edge" d="M172 260 V392" stroke="#147d73" stroke-width="2.5" marker-end="url(#a04)"/>
+<text x="186" y="335" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#0d5e58">写入新 K/V</text>
+<path id="write-slot-edge" d="M425 260 V392" stroke="#147d73" stroke-width="2.5" marker-end="url(#a04)"/>
+<text x="439" y="335" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#0d5e58">定位目标槽位</text>
+<path id="read-hist-edge" d="M990 392 V268" stroke="#6d63a8" stroke-width="2.5" marker-end="url(#p04)"/>
+<text x="976" y="335" text-anchor="end" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#51488c">读回历史 K/V</text>
+<rect x="60" y="515" width="1080" height="80" rx="14" fill="#fff0e8" stroke="#c66a46"/>
+<text x="88" y="548" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#9c4d30">Prefix Cache 是另一层管理逻辑</text>
+<text x="88" y="573" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#87533f">已完成的 block 可按 token 前缀哈希复用；引用计数与淘汰策略决定何时可释放或回收。</text>
 </svg>

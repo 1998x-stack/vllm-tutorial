@@ -57,6 +57,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`03.html\`, \`assets/diagrams/03-block-table-mapping.svg\`, \`evidence/03.json\`.
 
+## Chapter 04 — KV Cache write path vs read path
+
+**Reader question:** Are “写到哪里” and “从哪里读” the same map, and where does the historical K/V physically come from during attention?
+
+**Before:** The figure drew \`新 K/V → slot_mapping → 物理槽位\` as if K/V passed *through* slot_mapping, and the read lane ran \`Block Table → Attention Backend → 输出\` without a storage read edge, so the physical KV cache appeared only as a write destination.
+
+**After:** Write and read are two opposite edges over **one** shared \`物理 KV Cache · 分页块\` box. Write edges: \`新 K/V → 物理 KV Cache\` (data) and \`slot_mapping → 物理 KV Cache\` (locator). Read edge: \`物理 KV Cache → Attention Backend\` (upward, labelled 读回历史 K/V), with \`Block Table → Attention Backend\` supplying the block order. slot_mapping is now a locator, not an intermediate hop for K/V.
+
+**Scope:** One KV-cache group, no context parallelism; conceptual access responsibilities rather than one backend kernel. Prefix Cache remains a separate management layer.
+
+**Primary evidence:** [vLLM Paged Attention design page](https://docs.vllm.ai/en/latest/design/paged_attention/) (historical-kernel warning); [Automatic Prefix Caching Design (V1)](https://docs.vllm.ai/en/stable/design/prefix_caching/).
+
+**Files:** \`04.html\`, \`assets/diagrams/04-kv-write-read-path.svg\`, \`tests/svg-semantics.test.cjs\`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -64,7 +78,7 @@ For every later chapter apply this ordered gate:
 | 01 | Prefill → Decode lifecycle | Revised; CI/visual QA pending |
 | 02 | V1 serving architecture | Revised; CI/visual QA pending |
 | 03 | Logical → physical block table | Revised; CI/visual QA pending |
-| 04 | KV write/read path | Pending one-by-one review |
+| 04 | KV write/read path | Revised; CI/visual QA pending |
 | 05 | Iteration-level batching | Pending one-by-one review |
 | 06 | First-run engine path | Pending one-by-one review |
 | 07 | Model/config/revision map | Pending one-by-one review |

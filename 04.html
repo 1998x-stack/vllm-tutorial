@@ -51,8 +51,10 @@
       </div>
 
       <figure class="diagram">
-        <img src="assets/diagrams/04-kv-write-read-path.svg" alt="KV Cache 的两条访问路径：slot_mapping 将新 K/V 写入物理槽位，Block Table 让 Attention backend 读取历史物理块，Prefix Cache 另行管理可复用块">
-        <figcaption>图 1：写入和读取是两条不同路径。slot_mapping 解决“新 K/V 写到哪里”；Block Table 解决“这个请求的历史 K/V 分布在哪些物理块”。Prefix Cache 则负责识别、保留和复用已经计算完成的块。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/04-kv-write-read-path.svg" alt="同一份物理分页 KV Cache 上的两条相反方向路径：写入路径把本轮新 K/V 经 slot_mapping 定位后写入缓存；读取路径由 Attention Backend 依据 Block Table 从缓存读回历史 K/V，Prefix Cache 另行管理可复用块">
+        </div>
+        <figcaption>图 1：写入与读取作用于同一份物理分页 KV Cache，方向相反。写入路径由 slot_mapping 给出本轮新 K/V 的目标槽位；读取路径由 Block Table 给出请求的物理块顺序，Attention Backend 据此从缓存读回历史 K/V。二者不能互相替代，Prefix Cache 则在块完成后负责识别、保留和复用。</figcaption>
       </figure>
 
       <section id="implementation">
