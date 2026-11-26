@@ -85,6 +85,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`05.html\`, \`assets/diagrams/05-iteration-batching.svg\`, \`tests/svg-semantics.test.cjs\`.
 
+## Chapter 06 — First-run path: check, install, then verify
+
+**Reader question:** Is offline inference a mandatory prerequisite for the online API, and where does the Docker route fit?
+
+**Before:** Four boxes were chained with mandatory arrows \`环境检查 → 安装 → 离线推理 → 在线服务\`, implying you must run offline inference before the server, and the Docker route (section 6.5) was absent from the picture.
+
+**After:** Steps 1–2 remain a real dependency (\`检查环境 → 安装 vLLM\`). The installed engine then branches to two **parallel** validation paths at the same row—\`离线批量推理（Python API）\` and \`在线服务验证（OpenAI API）\`—labelled “安装成功后，两条验证路径可分别进行”. A dashed \`官方 Docker 镜像\` box marks the alternative to manual steps 1–2, and the footer stresses layered troubleshooting.
+
+**Scope:** Recommended onboarding order, not a dependency graph of the engine internals; Python range, wheels and model support are version- and hardware-scoped.
+
+**Primary evidence:** [vLLM Quickstart](https://docs.vllm.ai/en/stable/getting_started/quickstart/); [GPU Installation Guide](https://docs.vllm.ai/en/latest/getting_started/installation/gpu/); [Using Docker](https://docs.vllm.ai/en/latest/deployment/docker/).
+
+**Files:** \`06.html\`, \`assets/diagrams/06-first-run-path.svg\`, \`tests/svg-semantics.test.cjs\`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -94,7 +108,7 @@ For every later chapter apply this ordered gate:
 | 03 | Logical → physical block table | Revised; CI/visual QA pending |
 | 04 | KV write/read path | Revised; CI/visual QA pending |
 | 05 | Iteration-level batching | Revised; CI/visual QA pending |
-| 06 | First-run engine path | Pending one-by-one review |
+| 06 | First-run engine path | Revised; CI/visual QA pending |
 | 07 | Model/config/revision map | Pending one-by-one review |
 | 08 | KV memory budget | Pending one-by-one review |
 | 09 | Prefix hash chain | Pending one-by-one review |

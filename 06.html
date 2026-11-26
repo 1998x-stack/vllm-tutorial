@@ -51,8 +51,10 @@
       </div>
 
       <figure class="diagram">
-        <img src="assets/diagrams/06-first-run-path.svg" alt="vLLM 第一次运行的四步路径：环境检查、安装 vLLM、离线推理、在线 API 服务">
-        <figcaption>图 1：建议先验证环境，再安装依赖；先跑通离线推理，再启动在线 API。这样出现问题时，更容易定位在驱动、安装、模型加载还是网络服务层。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/06-first-run-path.svg" alt="先检查环境再安装 vLLM；安装成功后离线批量推理与在线服务是两条可分别进行的验证路径，官方 Docker 镜像可替代手动安装">
+        </div>
+        <figcaption>图 1：路径先完成环境检查与安装；随后离线推理（Python API）与在线服务（OpenAI 兼容 API）是两条可分别进行的验证路径，不是强制的前后依赖。建议先跑通离线再启动服务，这样出错时更容易判断问题在驱动、安装、模型加载还是网络服务层。图中步骤只表达验证顺序，具体命令与支持范围随版本和硬件变化。</figcaption>
       </figure>
 
       <section id="before-install">

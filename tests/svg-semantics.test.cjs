@@ -78,15 +78,15 @@ test("03: token 9 mapping matches block size and zero-based offset", () => {
 });
 
 
-test("01–05 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
+test("01–06 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/article.css"), "utf8");
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /\.diagram-pan img \{ width: 960px;/);
   assert.match(css, /\.diagram-pan:focus-visible/);
-  for (const n of ["01", "02", "03", "04", "05"]) {
+  for (const n of ["01", "02", "03", "04", "05", "06"]) {
     const html = page(n);
     assert.match(html, /<div class="diagram-pan" tabindex="0" role="region"/);
-    assert.match(html, /<img src="assets\/diagrams\/0[1-5]-/);
+    assert.match(html, /<img src="assets\/diagrams\/0[1-6]-/);
     assert.match(html, /<\/div>\s*<figcaption>/);
   }
 });
@@ -118,4 +118,18 @@ test("05: static batch idles freed slots; continuous batch refills them", () => 
   assert.match(xml, /id="cont-step2"[^>]*\/><text[^>]*>Step 2 · B \+ C \+ D/);
   assert.match(page("05"), /A 退出后等待队列中的 D 可在下一轮补入/);
   assert.match(page("05"), /槽位闲置到 B 结束才可能被复用/);
+});
+
+test("06: offline and online verification are parallel, not a mandatory chain", () => {
+  const xml = svg("06-first-run-path.svg");
+  idsAreUnique(xml, "06");
+  for (const id of ["step-check", "step-install", "docker-alt", "step-offline", "step-server"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Both validation boxes share the same branch row (y = 330).
+  assert.match(xml, /id="step-offline" x="160" y="330"/);
+  assert.match(xml, /id="step-server" x="680" y="330"/);
+  // Install step must not point straight at one validation box only.
+  assert.match(xml, /安装成功后，两条验证路径可分别进行/);
+  assert.match(page("06"), /是两条可分别进行的验证路径，不是强制的前后依赖/);
 });
