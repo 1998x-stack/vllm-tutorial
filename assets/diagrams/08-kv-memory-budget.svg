@@ -5,10 +5,10 @@
 <text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">KV Cache 容量由模型结构、请求长度和显存预算共同决定</text>
 <text x="52" y="86" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">上方显存分区是概念示意，不按比例绘制；不要把 GPU 总显存全部算作 KV Cache。</text>
 <rect x="60" y="128" width="1080" height="108" rx="16" fill="#fff" stroke="#dce4e1" stroke-width="2"/>
-<rect x="60" y="128" width="300" height="108" rx="16" fill="#e5f3ef" stroke="#147d73"/>
-<rect x="360" y="128" width="270" height="108" fill="#f0effa" stroke="#6d63a8"/>
-<rect x="630" y="128" width="340" height="108" fill="#fff0e8" stroke="#c66a46"/>
-<rect x="970" y="128" width="170" height="108" rx="16" fill="#f1f3f2" stroke="#c8d1cd"/>
+<rect id="mem-weights" x="60" y="128" width="300" height="108" rx="16" fill="#e5f3ef" stroke="#147d73"/>
+<rect id="mem-workspace" x="360" y="128" width="270" height="108" fill="#f0effa" stroke="#6d63a8"/>
+<rect id="mem-kv" x="630" y="128" width="340" height="108" fill="#fff0e8" stroke="#c66a46"/>
+<rect id="mem-other" x="970" y="128" width="170" height="108" rx="16" fill="#f1f3f2" stroke="#c8d1cd"/>
 <g font-family="Arial,'PingFang SC',sans-serif" text-anchor="middle">
  <text x="210" y="171" font-size="20" font-weight="700" fill="#0d5e58">模型权重</text><text x="210" y="202" font-size="15" fill="#315d56">Weights / Quantized weights</text>
  <text x="495" y="171" font-size="19" font-weight="700" fill="#51488c">运行时工作区</text><text x="495" y="202" font-size="15" fill="#625b91">Activations / CUDA Graph</text>
@@ -16,17 +16,17 @@
  <text x="1055" y="171" font-size="17" font-weight="700" fill="#53636b">其他占用</text><text x="1055" y="202" font-size="14" fill="#60716c">进程 / 缓冲</text>
 </g>
 <text x="60" y="292" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#264b45">标准全注意力：每 token 的理论 K/V payload</text>
-<rect x="60" y="312" width="1080" height="82" rx="14" fill="#fff" stroke="#dce4e1"/>
+<rect id="per-token-formula" x="60" y="312" width="1080" height="82" rx="14" fill="#fff" stroke="#dce4e1"/>
 <text x="600" y="363" text-anchor="middle" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#264b45">2 × L × H_KV × D_head × dtype_bytes</text>
 <text x="60" y="438" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">并发请求的理论需求：把每条请求的 token 数相加</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="60" y="458" width="300" height="64" rx="12" fill="#e5f3ef" stroke="#147d73"/>
- <text x="210" y="485" text-anchor="middle" font-size="17" font-weight="700" fill="#0d5e58">1 × 每请求缓存</text><text x="210" y="508" text-anchor="middle" font-size="14" fill="#315d56">单个活跃上下文</text>
+ <rect id="per-request" x="60" y="458" width="300" height="64" rx="12" fill="#e5f3ef" stroke="#147d73"/>
+ <text x="210" y="485" text-anchor="middle" font-size="17" font-weight="700" fill="#0d5e58">每请求缓存</text><text x="210" y="508" text-anchor="middle" font-size="14" fill="#315d56">= 每 token 字节 × 该请求 token 数</text>
  <path d="M370 490 H410" stroke="#47756d" stroke-width="2.5"/>
- <rect x="420" y="458" width="300" height="64" rx="12" fill="#f0effa" stroke="#6d63a8"/>
+ <rect id="multiply-concurrency" x="420" y="458" width="300" height="64" rx="12" fill="#f0effa" stroke="#6d63a8"/>
  <text x="570" y="485" text-anchor="middle" font-size="17" font-weight="700" fill="#51488c">× 并发请求数</text><text x="570" y="508" text-anchor="middle" font-size="14" fill="#625b91">Concurrency</text>
  <path d="M730 490 H770" stroke="#47756d" stroke-width="2.5"/>
- <rect x="780" y="458" width="360" height="64" rx="12" fill="#fff0e8" stroke="#c66a46"/>
+ <rect id="total-kv" x="780" y="458" width="360" height="64" rx="12" fill="#fff0e8" stroke="#c66a46"/>
  <text x="960" y="485" text-anchor="middle" font-size="17" font-weight="700" fill="#9c4d30">总理论 KV Cache</text><text x="960" y="508" text-anchor="middle" font-size="14" fill="#87533f">还需扣除 scale / 对齐 / 特殊布局</text>
 </g>
 <rect x="60" y="548" width="1080" height="44" rx="11" fill="#fff6df" stroke="#d5a24a"/>

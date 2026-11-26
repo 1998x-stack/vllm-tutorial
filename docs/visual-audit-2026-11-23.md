@@ -113,6 +113,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`07.html\`, \`assets/diagrams/07-model-config-map.svg\`, \`tests/svg-semantics.test.cjs\`.
 
+## Chapter 08 — KV memory budget arithmetic
+
+**Reader question:** How do you get from a per-token KV size to a total concurrency budget without skipping the token count?
+
+**Before:** The bottom chain started at \`1 × 每请求缓存\`, so the visual jumped from the per-token formula straight to a per-request cache with a stray \`1 ×\`, and the \`× 该请求 token 数\` step only existed in the prose/desc. The figure also lacked the mobile pan wrapper.
+
+**After:** The first chain node now reads \`每请求缓存 = 每 token 字节 × 该请求 token 数\`, followed by \`× 并发请求数\` and \`总理论 KV Cache\`; the memory-partition bar and formula gained unit ids. The per-token formula \`2 × L × H_KV × D_head × dtype_bytes\` is unchanged.
+
+**Scope:** Standard full attention, one KV group; GQA uses KV heads, and TP/PP, MLA, sliding window and mixed groups need layout-specific correction. The top partition bar is conceptual and not to scale.
+
+**Primary evidence:** Kwon et al., PagedAttention (SOSP 2023) for paged KV sizing; in-page references: [KV offloading](https://docs.vllm.ai/en/latest/features/kv_offloading_usage/) and [Quantized KV cache](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/); chapter 8.2 GQA worked example.
+
+**Files:** \`08.html\`, \`assets/diagrams/08-kv-memory-budget.svg\`, \`tests/svg-semantics.test.cjs\`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -124,7 +138,7 @@ For every later chapter apply this ordered gate:
 | 05 | Iteration-level batching | Revised; CI/visual QA pending |
 | 06 | First-run engine path | Revised; CI/visual QA pending |
 | 07 | Model/config/revision map | Revised; CI/visual QA pending |
-| 08 | KV memory budget | Pending one-by-one review |
+| 08 | KV memory budget | Revised; CI/visual QA pending |
 | 09 | Prefix hash chain | Pending one-by-one review |
 | 10 | Scheduler + recompute preemption (2 SVGs) | Pending one-by-one review |
 | 11 | Chunked prefill timeline | Pending one-by-one review |

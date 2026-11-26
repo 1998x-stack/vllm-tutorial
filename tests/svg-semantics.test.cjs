@@ -78,15 +78,15 @@ test("03: token 9 mapping matches block size and zero-based offset", () => {
 });
 
 
-test("01–07 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
+test("01–08 wide diagrams have a keyboard-focusable mobile pan wrapper", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/article.css"), "utf8");
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /\.diagram-pan img \{ width: 960px;/);
   assert.match(css, /\.diagram-pan:focus-visible/);
-  for (const n of ["01", "02", "03", "04", "05", "06", "07"]) {
+  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08"]) {
     const html = page(n);
     assert.match(html, /<div class="diagram-pan" tabindex="0" role="region"/);
-    assert.match(html, /<img src="assets\/diagrams\/0[1-7]-/);
+    assert.match(html, /<img src="assets\/diagrams\/0[1-8]-/);
     assert.match(html, /<\/div>\s*<figcaption>/);
   }
 });
@@ -145,4 +145,16 @@ test("07: precision/kernel layer also depends on config, not only weights", () =
   assert.match(xml, /stroke-dasharray="7 5" marker-end="url\(#arr07p\)"/);
   assert.match(xml, /quantization_config/);
   assert.match(page("07"), /量化方法通常从模型配置的 <code>quantization_config<\/code> 读取/);
+});
+
+test("08: per-request cache multiplies per-token bytes by tokens", () => {
+  const xml = svg("08-kv-memory-budget.svg");
+  idsAreUnique(xml, "08");
+  assert.match(xml, /2 × L × H_KV × D_head × dtype_bytes/);
+  // First chain node must explain per-request = per-token bytes × tokens, not a bare "1 ×".
+  assert.match(xml, /id="per-request"[\s\S]{0,400}每 token 字节 × 该请求 token 数/);
+  assert.doesNotMatch(xml, /1 × 每请求缓存/);
+  assert.match(xml, /id="multiply-concurrency"/);
+  assert.match(xml, /id="total-kv"/);
+  assert.match(page("08"), /乘上该请求的 token 数得到每请求缓存/);
 });

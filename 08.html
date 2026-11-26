@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/08-kv-memory-budget.svg" alt="GPU 显存由权重、运行时工作区、KV Cache 和其他缓冲共同占用；KV Cache 理论字节数由两份 K/V、层数、KV heads、head dimension、token 数和 dtype 字节数决定">
-      <figcaption>图 1：GPU 总显存不是 KV Cache 容量。先算出每 token 的缓存成本，再结合权重、运行时工作区和实际可用设备内存规划请求容量。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/08-kv-memory-budget.svg" alt="GPU 显存由权重、运行时工作区、KV Cache 和其他缓冲共同占用；每 token 的 K/V 字节数为 2 × L × H_KV × D_head × dtype_bytes，乘该请求 token 数得到每请求缓存，再乘并发请求数得到理论总量">
+      </div>
+      <figcaption>图 1：GPU 总显存不是 KV Cache 容量。先由模型结构算出每 token 的缓存字节数，乘上该请求的 token 数得到每请求缓存，再乘并发请求数估算理论总量，最后结合权重、运行时工作区和实际可用设备内存规划真实容量（还需扣除 scale、对齐与特殊布局）。</figcaption>
     </figure>
 
     <section id="formula">
