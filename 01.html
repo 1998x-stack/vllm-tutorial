@@ -51,8 +51,10 @@
       </div>
 
       <figure class="diagram">
-        <img src="assets/diagrams/01-inference-lifecycle.svg" alt="从 Prompt 到 Prefill、KV Cache、Decode 和下一个 token 的推理流程图">
-        <figcaption>图 1：推理分成 Prefill 和 Decode 两段。Decode 每轮为新 token 计算，并读取历史 K/V；它不会在启用 KV Cache 时重新计算所有历史 token 的 K/V 投影。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/01-inference-lifecycle.svg" alt="Prompt 经 Prefill 产生首个输出 y1；随后 Decode 逐轮读取并更新 KV Cache，生成循环不返回 Prefill">
+        </div>
+        <figcaption>图 1：在基础自回归路径中，Prefill 的最后一个 Prompt 位置产生用于采样首个输出 y₁ 的 logits；随后以 y₁ 为输入执行 Decode 单步，得到 y₂。未停止时下一轮仍进入 Decode，而不是返回 Prefill。图中的箭头区分“采样结果”和“KV 读写”。</figcaption>
       </figure>
 
       <section id="autoregressive">
@@ -74,7 +76,7 @@
 
       <section id="prefill-decode">
         <h2>1.2 Prefill 与 Decode：一次处理输入，随后逐步生成</h2>
-        <p>推理服务通常把一次生成过程分成两个逻辑阶段。它们不是两种不同的模型，而是同一个 Transformer 在不同输入形态下执行的工作。</p>
+        <p>推理服务通常把一次生成过程分成两个逻辑阶段。它们不是两种不同的模型，而是同一个 Transformer 在不同输入形态下执行的工作。<strong>注意：</strong>这里说的是教学上的逻辑阶段；vLLM V1 通过统一 token budget 调度，Prefill 可以按块推进，并不要求一轮调度只能包含一种阶段。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>维度</th><th>Prefill（预填充）</th><th>Decode（解码）</th></tr></thead>
@@ -98,14 +100,14 @@
           </div>
           <div class="step-panel" data-step-panel="prefill">
             <p><strong>处理对象：</strong>Prompt 中的所有 token 位置。</p>
-            <p><strong>缓存变化：</strong>每层计算并写入 Prompt 对应的 Key 和 Value，供后续生成读取。</p>
+            <p><strong>缓存变化：</strong>每层计算并写入 Prompt 对应的 Key 和 Value，供后续生成读取。最后一个 Prompt 位置的输出 logits 用来采样首个生成 token y₁（假设未触发特殊路径）。</p>
           </div>
           <div class="step-panel" data-step-panel="decode-one" hidden>
-            <p><strong>处理对象：</strong>第一个新 token 的位置。</p>
+            <p><strong>处理对象：</strong>以 Prefill 已采样的 y₁ 作为当前输入，在 Decode 中计算并预测 y₂；这不是重新处理整段 Prompt。</p>
             <p><strong>缓存变化：</strong>新 token 的 K/V 被追加；它的 Query 可以读取 Prompt 已缓存的 K/V。</p>
           </div>
           <div class="step-panel" data-step-panel="decode-two" hidden>
-            <p><strong>处理对象：</strong>第二个新 token 的位置。</p>
+            <p><strong>处理对象：</strong>以刚采样得到的 y₂ 为当前输入，下一轮 Decode 预测 y₃。</p>
             <p><strong>缓存变化：</strong>新 Query 读取 Prompt 与第一个输出 token 的 K/V，再把自己的 K/V 追加到缓存。</p>
           </div>
           <noscript><p>交互需要 JavaScript；上方静态流程图已经展示完整过程。</p></noscript>

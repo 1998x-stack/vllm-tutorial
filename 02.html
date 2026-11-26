@@ -49,8 +49,10 @@
       </div>
 
       <figure class="diagram">
-        <img src="assets/diagrams/02-vllm-serving-architecture.svg" alt="vLLM 简化服务架构图，展示 API Server、Engine Core、Scheduler、KV Cache Manager 和 GPU Workers">
-        <figcaption>图 1：把职责拆开看：API Server 处理请求入口；Engine Core 协调调度和缓存；GPU Workers 执行模型计算。实际进程数量取决于数据、张量和流水线并行配置。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/02-vllm-serving-architecture.svg" alt="vLLM V1 请求经 Client、API Server、Engine Core 进入 GPU Worker，计算结果反向返回 Engine Core、API Server 和 Client">
+        </div>
+        <figcaption>图 1：青色实线追踪输入和执行计划，橙色虚线追踪 Worker 的执行结果与客户端响应。KV Cache Manager 管理块的元数据与生命周期，而注意力所读取的实际 K/V 张量位于执行设备上。真实进程数量取决于部署与并行配置。</figcaption>
       </figure>
 
       <section id="what-is-vllm">
@@ -120,7 +122,7 @@
           <li><strong>GPU Workers 执行计算：</strong>加载模型权重，执行模型前向和相关 GPU kernel。</li>
           <li><strong>结果流回 API：</strong>返回新 token，直到请求完成或触发停止条件。</li>
         </ol>
-        <p>这张图是职责视角的简化版。真实部署可能包含多个 API Server、Engine Core、GPU Worker 和协调进程；Tensor Parallel、Pipeline Parallel、Data Parallel 的组合会改变进程和通信拓扑。不要把简化图中的方框数量当成固定部署数量。</p>
+        <p>这张图是职责视角的简化版。注意输出也有一条完整路径：GPU Worker 的本轮计算结果回到 Engine Core，再由 API Server 完成输出处理和流式发送，最后才抵达客户端。KV Cache Manager 管的是块的分配与生命周期，不意味着 KV 张量存储在 CPU 管理器里。</p><p>真实部署可能包含多个 API Server、Engine Core、GPU Worker 和协调进程；Tensor Parallel、Pipeline Parallel、Data Parallel 的组合会改变进程和通信拓扑。不要把简化图中的方框数量当成固定部署数量。</p>
       </section>
 
       <section id="selection">

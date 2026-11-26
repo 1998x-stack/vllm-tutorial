@@ -33,7 +33,7 @@ jobs:
       - name: Validate article structure and local assets
         run: python3 scripts/validate_articles.py
       - name: Run offline catalog tests
-        run: node --test tests/offline-catalog.test.cjs
+        run: node --test tests/*.test.cjs
       - name: Validate executable RAG demo and ACL tests
         run: python3 -m unittest discover -s tests -p 'test_rag_demo.py' -v
       - name: Install Playwright

@@ -50,8 +50,10 @@
       </div>
 
       <figure class="diagram">
-        <img src="assets/diagrams/03-block-table-mapping.svg" alt="逻辑 token 序列分成四个逻辑块，通过 Block Table 映射到物理 block pool 中的分散块">
-        <figcaption>图 1：逻辑块按 token 顺序排列；Block Table 将逻辑块编号映射到物理 block ID。物理块不必相邻，但 Attention 仍然按逻辑 token 顺序读取数据。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/03-block-table-mapping.svg" alt="token 9 在 block size 为 4 时属于逻辑块 2、offset 1；BlockTable[2] 等于物理块 11，定位到该块槽位 1">
+        </div>
+        <figcaption>图 1：跟随橙色路径逐步计算：token 9 → logical block 2（9 ÷ 4 向下取整）→ BlockTable[2] = 11 → 物理块 11 的 offset 1（9 mod 4）。物理 block ID 不必按逻辑顺序排列；Attention 依据映射访问正确的 K/V 槽位。</figcaption>
       </figure>
 
       <section id="problem">
@@ -107,7 +109,7 @@ offset        = 9 % 4 = 1
 physical_block = BlockTable[2] = 11
 
 所以：逻辑 token 9 → 物理 Block 11 的 offset 1</code></pre>
-        <p>这就是映射表的价值：请求看到的 token 顺序没有改变，但底层可以把每个逻辑块放到任意可用物理块中。Attention kernel 根据请求的块映射访问正确的 K/V 数据。</p>
+        <p>这就是映射表的价值：请求看到的 token 顺序没有改变，但底层可以把每个逻辑块放到任意可用物理块中。图中高亮的 <code>offset 1</code> 是从 0 开始编号的块内位置，不是“第 1 个槽位”。Attention kernel 根据请求的块映射访问正确的 K/V 数据。</p>
         <div class="stepper" data-stepper>
           <h3>交互观察：访问 token 9 的地址转换</h3>
           <div class="step-controls" role="group" aria-label="选择映射步骤">
@@ -117,7 +119,7 @@ physical_block = BlockTable[2] = 11
           </div>
           <div class="step-panel" data-step-panel="step-one"><p><strong>9 ÷ 4 = 2 余 1。</strong>token 9 属于逻辑块 2。</p></div>
           <div class="step-panel" data-step-panel="step-two" hidden><p><strong>BlockTable[2] = 11。</strong>逻辑块 2 对应物理块 11。</p></div>
-          <div class="step-panel" data-step-panel="step-three" hidden><p><strong>offset = 1。</strong>最终访问物理 Block 11 内的第 1 个 token 槽位（按从 0 开始计数）。</p></div>
+          <div class="step-panel" data-step-panel="step-three" hidden><p><strong>offset = 1。</strong>最终访问物理 Block 11 内 offset 1（从 0 开始计数，即第二个 token 槽位）。</p></div>
           <noscript><p>交互需要 JavaScript；上面的代码和图示已给出完整映射过程。</p></noscript>
         </div>
       </section>

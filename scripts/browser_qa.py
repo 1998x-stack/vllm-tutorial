@@ -126,7 +126,7 @@ def inspect_page(browser, base_url: str, chapter: str, width: int, height: int, 
     if failed_local_responses:
         failures.append(f"failed local responses: {failed_local_responses}")
 
-    if screenshot_dir and (chapter in {"01", "08", "11", "14", "18", "19", "21", "23", "24", "25", "27", "28"} and width in {1440, 390}):
+    if screenshot_dir and (chapter in {"01", "02", "03", "08", "11", "14", "18", "19", "21", "23", "24", "25", "27", "28"} and width in {1440, 390}):
         screenshot_dir.mkdir(parents=True, exist_ok=True)
         page.screenshot(
             path=str(screenshot_dir / f"{chapter}-{width}.png"),

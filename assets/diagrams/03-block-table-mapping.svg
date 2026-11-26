@@ -1,40 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
-<title id="title">Paged KV Cache 的逻辑块到物理块映射</title>
-<desc id="desc">一个 token 序列按每块四个 token 切成逻辑块。Block Table 保存逻辑块到物理块 ID 的映射，例如逻辑块 2 映射到物理块 11。物理块可分散在显存块池中，不要求彼此相邻。</desc>
-<defs><marker id="a03" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
-<rect width="1200" height="560" rx="24" fill="#fbfaf7"/>
-<text x="52" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="25" font-weight="700" fill="#1f3835">逻辑连续，物理不必连续</text>
-<text x="52" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">教学例子：每个 KV block 容纳 4 个 token。真实 block size 由配置和后端约束决定。</text>
-<text x="62" y="145" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">逻辑 token 序列</text>
-<g font-family="Arial,'PingFang SC',sans-serif" font-size="17" text-anchor="middle">
- <rect x="60" y="168" width="250" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="185" y="203" fill="#0d5e58">t₀  t₁  t₂  t₃</text>
- <rect x="325" y="168" width="250" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="450" y="203" fill="#0d5e58">t₄  t₅  t₆  t₇</text>
- <rect x="590" y="168" width="250" height="58" rx="10" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/><text x="715" y="203" fill="#9c4d30">t₈  t₉  t₁₀  t₁₁</text>
- <rect x="855" y="168" width="250" height="58" rx="10" fill="#e5f3ef" stroke="#147d73"/><text x="980" y="203" fill="#0d5e58">t₁₂  t₁₃  t₁₄  t₁₅</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 740" role="img" aria-labelledby="map-title map-desc">
+<title id="map-title">PagedAttention：token 9 经逻辑块 2 映射到物理块 11 的槽位 1</title>
+<desc id="map-desc">示例 block size 为 4，逻辑位置 0 至 15 被划成四块。橙色高亮的 token 9 属于逻辑块 floor(9/4)=2，块内偏移 9 mod 4=1。表项 BlockTable[2] 是物理块 11，读取该物理块的 offset 1 槽位。其他三个逻辑块分别映射到物理块 7、2、4；物理 block ID 不连续，也不必按 token 顺序排列。</desc>
+<defs>
+  <marker id="map-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#c66a46"/></marker>
+</defs>
+<rect width="1200" height="740" rx="24" fill="#fbfaf7"/>
+<text x="48" y="54" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">追踪 token 9：逻辑位置如何变成物理 KV 地址？</text>
+<text x="48" y="85" font-family="Arial,'PingFang SC',sans-serif" font-size="17" fill="#60716c">教学例子：block size = 4 tokens；采用从 0 开始编号的 token 位置和块内槽位</text>
+
+<rect x="42" y="122" width="1116" height="164" rx="16" fill="#eef6f3" stroke="#d0e5dd"/>
+<text x="63" y="153" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#186d64">① 先划分逻辑块：logical = floor(token / 4)</text>
+<g font-family="Arial,'PingFang SC',sans-serif" font-size="16" text-anchor="middle">
+  <rect x="67" y="179" width="245" height="62" rx="8" fill="#fff" stroke="#90bfb3"/>
+  <rect x="337" y="179" width="245" height="62" rx="8" fill="#fff" stroke="#90bfb3"/>
+  <rect x="607" y="179" width="245" height="62" rx="8" fill="#fff" stroke="#c66a46" stroke-width="2"/>
+  <rect x="877" y="179" width="245" height="62" rx="8" fill="#fff" stroke="#90bfb3"/>
+  <g fill="#264b45">
+    <text x="98" y="218">t₀</text><text x="158" y="218">t₁</text><text x="219" y="218">t₂</text><text x="279" y="218">t₃</text>
+    <text x="368" y="218">t₄</text><text x="428" y="218">t₅</text><text x="489" y="218">t₆</text><text x="549" y="218">t₇</text>
+    <text x="638" y="218">t₈</text><text x="759" y="218">t₁₀</text><text x="819" y="218">t₁₁</text>
+    <text x="908" y="218">t₁₂</text><text x="968" y="218">t₁₃</text><text x="1029" y="218">t₁₄</text><text x="1089" y="218">t₁₅</text>
+  </g>
+  <rect id="token-9" x="669" y="183" width="57" height="54" rx="6" fill="#ffe3d1" stroke="#c66a46" stroke-width="2.5"/>
+  <text x="697" y="217" font-size="19" font-weight="700" fill="#9c4d30">t₉</text>
+  <g font-size="15" fill="#53636b">
+    <text x="190" y="265">逻辑块 0</text><text x="460" y="265">逻辑块 1</text>
+    <text x="730" y="265" font-weight="700" fill="#9c4d30">逻辑块 2 · offset 1</text>
+    <text x="1000" y="265">逻辑块 3</text>
+  </g>
 </g>
-<g font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#53636b" text-anchor="middle">
- <text x="185" y="249">逻辑块 0</text><text x="450" y="249">逻辑块 1</text><text x="715" y="249">逻辑块 2</text><text x="980" y="249">逻辑块 3</text>
+
+<path id="token-to-table" d="M730 286 V319" fill="none" stroke="#c66a46" stroke-width="3" marker-end="url(#map-arrow)"/>
+<rect x="42" y="329" width="1116" height="155" rx="16" fill="#f0effa" stroke="#bbb5da" stroke-width="2"/>
+<text x="63" y="359" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#51488c">② 查 Block Table：表下标是逻辑块编号，表值是物理 block ID</text>
+<g font-family="Arial,'PingFang SC',sans-serif" text-anchor="middle">
+  <rect x="80" y="376" width="221" height="77" rx="11" fill="#fff" stroke="#b9b4d8"/>
+  <rect x="350" y="376" width="221" height="77" rx="11" fill="#fff" stroke="#b9b4d8"/>
+  <rect id="table-entry-2" x="620" y="376" width="221" height="77" rx="11" fill="#fff0e8" stroke="#c66a46" stroke-width="2.5"/>
+  <rect x="890" y="376" width="221" height="77" rx="11" fill="#fff" stroke="#b9b4d8"/>
+  <g font-size="15" fill="#625b91">
+    <text x="190" y="402">BlockTable[0]</text><text x="460" y="402">BlockTable[1]</text>
+    <text x="730" y="402" fill="#9c4d30">BlockTable[2]</text><text x="1000" y="402">BlockTable[3]</text>
+  </g>
+  <g font-size="25" font-weight="700" fill="#51488c">
+    <text x="190" y="435">7</text><text x="460" y="435">2</text>
+    <text x="730" y="435" fill="#9c4d30">11</text><text x="1000" y="435">4</text>
+  </g>
 </g>
-<path d="M185 263 V300 H150 V330" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a03)"/>
-<path d="M450 263 V300 H420 V330" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a03)"/>
-<path d="M715 263 V300 H690 V330" fill="none" stroke="#c66a46" stroke-width="3" marker-end="url(#a03)"/>
-<path d="M980 263 V300 H960 V330" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a03)"/>
-<rect x="60" y="330" width="1035" height="90" rx="15" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
-<text x="88" y="363" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#51488c">Block Table</text>
-<g font-family="Arial,'PingFang SC',sans-serif" font-size="19" text-anchor="middle">
- <rect x="300" y="348" width="120" height="50" rx="9" fill="#fff" stroke="#aaa4d0"/><text x="360" y="380" fill="#51488c">7</text>
- <rect x="445" y="348" width="120" height="50" rx="9" fill="#fff" stroke="#aaa4d0"/><text x="505" y="380" fill="#51488c">2</text>
- <rect x="590" y="348" width="120" height="50" rx="9" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/><text x="650" y="380" fill="#9c4d30">11</text>
- <rect x="735" y="348" width="120" height="50" rx="9" fill="#fff" stroke="#aaa4d0"/><text x="795" y="380" fill="#51488c">4</text>
+<path id="table-to-physical-block" d="M730 484 V522 H984 V542" fill="none" stroke="#c66a46" stroke-width="3" marker-end="url(#map-arrow)"/>
+
+<text x="48" y="526" font-family="Arial,'PingFang SC',sans-serif" font-size="18" font-weight="700" fill="#264b45">③ 找到物理 block 11；使用刚才算出的块内偏移 1</text>
+<g font-family="Arial,'PingFang SC',sans-serif" text-anchor="middle">
+  <rect x="64" y="551" width="227" height="105" rx="12" fill="#eef1ef" stroke="#bccbc3"/>
+  <text x="177" y="589" font-size="20" font-weight="700" fill="#53636b">Physical Block 2</text>
+  <text x="177" y="620" font-size="15" fill="#53636b">显存块池中的其他块</text>
+  <rect x="317" y="551" width="227" height="105" rx="12" fill="#eef1ef" stroke="#bccbc3"/>
+  <text x="430" y="589" font-size="20" font-weight="700" fill="#53636b">Physical Block 4</text>
+  <text x="430" y="620" font-size="15" fill="#53636b">块编号无需连续</text>
+  <rect x="570" y="551" width="227" height="105" rx="12" fill="#eef1ef" stroke="#bccbc3"/>
+  <text x="683" y="589" font-size="20" font-weight="700" fill="#53636b">Physical Block 7</text>
+  <text x="683" y="620" font-size="15" fill="#53636b">不按 token 顺序排列</text>
+  <rect id="physical-block-11" x="823" y="551" width="320" height="105" rx="12" fill="#fff0e8" stroke="#c66a46" stroke-width="2.5"/>
+  <text x="983" y="578" font-size="20" font-weight="700" fill="#9c4d30">Physical Block 11</text>
+  <rect x="846" y="589" width="68" height="48" rx="6" fill="#fff" stroke="#d6aa91"/>
+  <rect id="offset-1" x="918" y="589" width="68" height="48" rx="6" fill="#ffe0cc" stroke="#c66a46" stroke-width="2.5"/>
+  <rect x="990" y="589" width="62" height="48" rx="6" fill="#fff" stroke="#d6aa91"/>
+  <rect x="1056" y="589" width="62" height="48" rx="6" fill="#fff" stroke="#d6aa91"/>
+  <text x="880" y="619" font-size="15" fill="#87533f">off 0</text><text x="952" y="619" font-size="16" font-weight="700" fill="#9c4d30">off 1</text>
+  <text x="1021" y="619" font-size="15" fill="#87533f">off 2</text><text x="1087" y="619" font-size="15" fill="#87533f">off 3</text>
 </g>
-<text x="60" y="461" font-family="Arial,'PingFang SC',sans-serif" font-size="17" font-weight="700" fill="#264b45">物理 block pool（示意）</text>
-<g font-family="Arial,'PingFang SC',sans-serif" font-size="15" text-anchor="middle">
- <rect x="60" y="480" width="130" height="48" rx="9" fill="#e5f3ef" stroke="#147d73"/><text x="125" y="510" fill="#0d5e58">Block 2</text>
- <rect x="205" y="480" width="130" height="48" rx="9" fill="#f2f3f2" stroke="#c8d1cd"/><text x="270" y="510" fill="#77837e">Block 3</text>
- <rect x="350" y="480" width="130" height="48" rx="9" fill="#e5f3ef" stroke="#147d73"/><text x="415" y="510" fill="#0d5e58">Block 4</text>
- <rect x="495" y="480" width="130" height="48" rx="9" fill="#f2f3f2" stroke="#c8d1cd"/><text x="560" y="510" fill="#77837e">Block 5</text>
- <rect x="640" y="480" width="130" height="48" rx="9" fill="#f2f3f2" stroke="#c8d1cd"/><text x="705" y="510" fill="#77837e">Block 6</text>
- <rect x="785" y="480" width="130" height="48" rx="9" fill="#e5f3ef" stroke="#147d73"/><text x="850" y="510" fill="#0d5e58">Block 7</text>
- <rect x="930" y="480" width="130" height="48" rx="9" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/><text x="995" y="510" fill="#9c4d30">Block 11</text>
-</g>
+<text x="48" y="700" font-family="Arial,'PingFang SC',sans-serif" font-size="19" font-weight="700" fill="#9c4d30">token 9 → floor(9/4)=2 → BlockTable[2]=11 → offset=9 mod 4=1</text>
+<text x="48" y="727" font-family="Arial,'PingFang SC',sans-serif" font-size="15" fill="#60716c">物理块并不要求相邻；Attention 根据块表与块内偏移定位 K/V。图中不涉及前缀复用的额外哈希映射。</text>
 </svg>
