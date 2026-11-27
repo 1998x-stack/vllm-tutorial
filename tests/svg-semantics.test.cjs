@@ -216,3 +216,28 @@ test("11: prefill chunk bars scale with token count", () => {
   assert.match(page("11"), /class="diagram-pan"/);
   assert.match(page("11"), /横条长度与 token 数成正比/);
 });
+
+test("12: process topology shows both request and result directions", () => {
+  const xml = svg("12-v1-process-topology.svg");
+  idsAreUnique(xml, "12");
+  for (const id of ["client", "api-server", "engine-core", "scheduler", "kv-manager", "gpu-workers", "gpu-devices", "dp-coordinator", "api-to-engine", "engine-to-api", "engine-to-worker", "worker-to-engine", "dp-to-engine"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Return edges exist and are dashed so they cannot be confused with the forward path.
+  assert.match(xml, /id="engine-to-api"[^>]*stroke-dasharray/);
+  assert.match(xml, /id="worker-to-engine"[^>]*stroke-dasharray/);
+  assert.match(page("12"), /请求沿正向流动，结果沿反方向返回/);
+  assert.match(page("12"), /DP &gt; 1 时存在多个 rank/);
+});
+
+test("12: EngineCore step loop order schedule → execute → collect → update → output", () => {
+  const xml = svg("12-enginecore-step-loop.svg");
+  idsAreUnique(xml, "12s");
+  for (const id of ["input-queue", "schedule", "execute", "collect", "update", "output-queue", "input-to-schedule", "schedule-to-execute", "execute-to-collect", "collect-to-update", "update-to-output", "loop-back"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  const order = ["input-to-schedule", "schedule-to-execute", "execute-to-collect", "collect-to-update", "update-to-output"].map((id) => xml.indexOf('id="' + id + '"'));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), "step order must be monotonic");
+  assert.match(xml, /id="update-to-output"[^>]*d="M1115 222 V300 H920"/);
+  assert.match(page("12"), /class="diagram-pan"/);
+});

@@ -1,6 +1,6 @@
 {
   "chapter": "12",
-  "reviewed_at": "2026-11-21",
+  "reviewed_at": "2026-11-27",
   "scope": "V1 process architecture, EngineCore scheduling/execution loop, executor/worker boundary and asynchronous overlap mechanisms.",
   "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
   "claims": [

@@ -169,6 +169,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** `11.html`, `assets/diagrams/11-chunked-prefill-timeline.svg`, `evidence/11.json`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 12 — V1 process topology and EngineCore step loop
+
+**Reader question:** Which processes exist in V1, who talks to whom across which boundary, and what is the order of one EngineCore step?
+
+**Before:** The topology figure drew only the forward path `Client → API Server → Engine Core → GPU Worker → GPU devices`; no return path was shown even though the chapter states the API Server turns Engine Core output into client-visible results. The single Engine Core was drawn next to a conditional DP Coordinator without stating that DP > 1 implies multiple ranks. Neither figure had the mobile pan wrapper or element ids.
+
+**After:** The topology figure now draws dashed return edges `Engine Core → API Server` (输出 / 结果) and `GPU Worker → Engine Core`, and the mid-band edge is labelled `Executor / IPC（请求下行，结果上行）`; box and edge ids were added, and the note plus caption state that only one Engine Core is drawn and that DP > 1 creates multiple ranks coordinated by the DP Coordinator. The step-loop figure gained ids plus a monotonic `input → schedule → execute → collect → update → output-queue` ordering. Both figures gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Responsibility and process-boundary illustration, not a fixed process-count formula; the step loop omits grammar masks, KV connector, speculative decoding and error-context branches.
+
+**Primary evidence:** In-page references: [Architecture Overview — V1 Process Architecture](https://docs.vllm.ai/en/latest/design/arch_overview/) and pinned `vllm/v1/engine/core.py`, `multiproc_executor.py`, `gpu_worker.py` at commit `c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf`.
+
+**Files:** `12.html`, `assets/diagrams/12-v1-process-topology.svg`, `assets/diagrams/12-enginecore-step-loop.svg`, `evidence/12.json`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -184,7 +198,7 @@ For every later chapter apply this ordered gate:
 | 09 | Prefix hash chain | Revised; CI/visual QA pending |
 | 10 | Scheduler + recompute preemption (2 SVGs) | Revised; CI/visual QA pending |
 | 11 | Chunked prefill timeline | Revised; CI/visual QA pending |
-| 12 | V1 process topology + step loop (2 SVGs) | Pending one-by-one review |
+| 12 | V1 process topology + step loop (2 SVGs) | Revised; CI/visual QA pending |
 | 13 | Request lifecycle | Pending one-by-one review |
 | 14 | Sampling pipeline | Pending one-by-one review |
 | 15 | Production serving topology | Pending one-by-one review |

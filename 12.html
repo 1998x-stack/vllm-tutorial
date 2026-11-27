@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/12-v1-process-topology.svg" alt="V1 多进程架构图：API Server 通过 ZMQ 与 Engine Core 通信；Engine Core 内部包含 Scheduler 和 KV Cache 管理，并通过 Executor 与 GPU Worker 交互；GPU Worker 中运行 Model Runner 和模型；Data Parallel Coordinator 在 DP 大于 1 时协调多个 Engine Core">
-      <figcaption>图 1：V1 的职责边界。API Server 负责请求入口与输出，Engine Core 负责调度和协调，GPU Worker 负责模型执行；DP Coordinator 是条件性组件。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/12-v1-process-topology.svg" alt="V1 多进程架构图：API Server 通过 ZMQ 与 Engine Core 通信；Engine Core 内部包含 Scheduler 和 KV Cache 管理，并通过 Executor 与 GPU Worker 交互；GPU Worker 中运行 Model Runner 和模型；Data Parallel Coordinator 在 DP 大于 1 时协调多个 Engine Core。请求沿 Client → API Server → Engine Core → GPU Worker 正向流动，结果沿相反方向返回">
+      </div>
+      <figcaption>图 1：V1 的职责边界。API Server 负责请求入口与输出，Engine Core 负责调度和协调，GPU Worker 负责模型执行；请求沿正向流动，结果沿反方向返回。DP Coordinator 是条件性组件，图中只画了一个 Engine Core，DP &gt; 1 时存在多个 rank。</figcaption>
     </figure>
 
     <section id="why">
@@ -139,7 +141,9 @@ return engine_outputs</code></pre>
       </ol>
       <p>EngineCore 的 busy loop 会先处理输入队列，再执行一个 Engine step，并在执行前后发布必要的请求计数。若当前没有工作，它会等待新的输入，而不是无条件持续执行 GPU batch。</p>
       <figure class="diagram">
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
         <img src="assets/diagrams/12-enginecore-step-loop.svg" alt="EngineCore busy loop 处理输入队列后调用 step；step 内依次执行 Scheduler.schedule、Executor.execute_model、收集模型输出和 Scheduler.update_from_output，再把 EngineCoreOutputs 放入输出队列">
+        </div>
         <figcaption>图 2：EngineCore 的执行闭环。Scheduler 负责计划，Executor 负责执行，Scheduler 再根据执行结果更新状态。</figcaption>
       </figure>
     </section>

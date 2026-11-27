@@ -5,30 +5,30 @@
 <rect width="1200" height="500" rx="24" fill="#fbfaf7"/>
 <text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">EngineCore：接收输入 → 调度 → 执行 → 更新 → 返回输出</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="55" y="130" width="220" height="92" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <rect id="input-queue" x="55" y="130" width="220" height="92" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="165" y="166" text-anchor="middle" font-size="18" font-weight="700" fill="#0d5e58">处理输入队列</text>
  <text x="165" y="195" text-anchor="middle" font-size="14" fill="#315d56">ADD / ABORT / Utility</text>
- <path d="M275 176 H315" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
- <rect x="330" y="130" width="190" height="92" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <path id="input-to-schedule" d="M275 176 H315" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
+ <rect id="schedule" x="330" y="130" width="190" height="92" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="425" y="166" text-anchor="middle" font-size="18" font-weight="700" fill="#51488c">Scheduler.schedule</text>
  <text x="425" y="195" text-anchor="middle" font-size="14" fill="#625b91">SchedulerOutput</text>
- <path d="M520 176 H560" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
- <rect x="575" y="130" width="190" height="92" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <path id="schedule-to-execute" d="M520 176 H560" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
+ <rect id="execute" x="575" y="130" width="190" height="92" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="670" y="166" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">Executor 执行</text>
  <text x="670" y="195" text-anchor="middle" font-size="14" fill="#87533f">Worker / Model Runner</text>
- <path d="M765 176 H805" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
- <rect x="820" y="130" width="190" height="92" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <path id="execute-to-collect" d="M765 176 H805" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
+ <rect id="collect" x="820" y="130" width="190" height="92" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="915" y="166" text-anchor="middle" font-size="18" font-weight="700" fill="#264b45">收集模型输出</text>
  <text x="915" y="195" text-anchor="middle" font-size="14" fill="#53636b">ModelRunnerOutput</text>
- <path d="M1010 176 H1050" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
- <rect x="1065" y="130" width="100" height="92" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="collect-to-update" d="M1010 176 H1050" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
+ <rect id="update" x="1065" y="130" width="100" height="92" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="1115" y="166" text-anchor="middle" font-size="16" font-weight="700" fill="#0d5e58">Update</text>
  <text x="1115" y="195" text-anchor="middle" font-size="12" fill="#315d56">状态</text>
- <path d="M1115 222 V300 H920" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
- <rect x="700" y="300" width="220" height="78" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <path id="update-to-output" d="M1115 222 V300 H920" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a12s)"/>
+ <rect id="output-queue" x="700" y="300" width="220" height="78" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="810" y="331" text-anchor="middle" font-size="18" font-weight="700" fill="#51488c">输出队列</text>
  <text x="810" y="356" text-anchor="middle" font-size="14" fill="#625b91">EngineCoreOutputs</text>
- <path d="M700 339 H165 V222" fill="none" stroke="#47756d" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a12s)"/>
+ <path id="loop-back" d="M700 339 H165 V222" fill="none" stroke="#47756d" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a12s)"/>
 </g>
 <rect x="55" y="415" width="1110" height="46" rx="11" fill="#fff6df" stroke="#d5a24a"/>
 <text x="80" y="444" font-family="Arial,'PingFang SC',sans-serif" font-size="15" font-weight="700" fill="#80571a">Busy loop：</text>
