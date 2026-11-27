@@ -172,3 +172,32 @@ test("09: free returns hash-retaining block to queue; eviction is conditional", 
   assert.match(xml, /释放 ≠ 淘汰/);
   assert.match(page("09"), /“释放”不等于“淘汰”/);
 });
+
+test("10: scheduler order is budget→running→waiting→KV; yes-label sits on success edge", () => {
+  const xml = svg("10-scheduler-decision-loop.svg");
+  idsAreUnique(xml, "10");
+  for (const id of ["step-budget", "step-running", "step-waiting", "step-kv", "decision-kv", "step-preempt", "step-output", "decision-to-output", "decision-to-preempt", "preempt-retry"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Top row left→right: budget → running → waiting → KV.
+  const order = ["step-budget", "step-running", "step-waiting", "step-kv"].map((id) => xml.indexOf('id="' + id + '"'));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), "box order must be budget→running→waiting→KV");
+  // "是" labels the success edge 判定→SchedulerOutput, not the orange retry edge.
+  const retryStart = xml.indexOf('id="preempt-retry"');
+  const retryLabel = xml.indexOf('>释放后重试<');
+  assert.ok(retryLabel > retryStart && retryLabel - retryStart < 260, "retry edge must carry its own label");
+  assert.doesNotMatch(xml.slice(retryStart, retryLabel), /是/);
+  assert.ok(xml.indexOf('>是</text>') > xml.indexOf('id="decision-to-output"'), "是 must follow the success edge");
+  assert.match(page("10"), /class="diagram-pan"/);
+  assert.match(page("10"), /接纳 Waiting[\s\S]{0,400}申请 KV blocks/);
+});
+
+test("10: preemption victim is another running request, not the requesting one", () => {
+  const xml = svg("10-preemption-recompute.svg");
+  idsAreUnique(xml, "10p");
+  for (const id of ["step-fail", "step-victim", "step-preempted", "step-waiting", "step-readmit", "step-hit", "step-recompute", "waiting-to-readmit", "readmit-to-hit", "readmit-to-recompute"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /另一条 Running 请求 · FCFS \/ Priority/);
+  assert.match(page("10"), /抢占对象是另一条正在运行的请求/);
+});

@@ -141,6 +141,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** \`09.html\`, \`assets/diagrams/09-prefix-cache-hash.svg\`, \`tests/svg-semantics.test.cjs\`.
 
+## Chapter 10 — Scheduler decision loop and recompute preemption
+
+**Reader question:** In one scheduler iteration, in what order are Running and Waiting requests handled, where does KV allocation sit, and when allocation fails, which request is preempted?
+
+**Before:** Figure 1 drew `② 推进 Running → ③ 接纳 Waiting → ④ 申请 KV`, but the prose's ordered list put `申请 KV blocks` before `接纳 Waiting`, contradicting both the figure and the interactive stepper. The green `是` label sat on the orange dashed preemption-retry edge instead of on the `判定 → SchedulerOutput` success edge. Figure 2 named the victim only as `FCFS / Priority`, so a reader could read the failing request as the one that becomes PREEMPTED. Neither figure had the mobile pan wrapper used in 01–09.
+
+**After:** The prose ordered list now reads `接纳 Waiting` → `申请 KV blocks`, matching figure 1 and the stepper (budget → Running → Waiting → KV → SchedulerOutput), and states that allocation happens inside each request's processing branch rather than in one global stage. Box and edge IDs were added; the `是` label moved onto the `decision-to-output` edge, and the retry edge is explicitly labelled `释放后重试`. Figure 2 now reads `另一条 Running 请求 · FCFS / Priority`, and the caption states the preemption target is another running request, not the requesting one. Both figures gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Simplified main path. Multimodal Encoder, KV Connector and Speculative Decoding branches are omitted; both the Running pass and the Waiting admission path allocate KV per request, which figure 1 groups into one step.
+
+**Primary evidence:** In-page references: [Architecture Overview — Scheduler](https://docs.vllm.ai/en/latest/design/arch_overview/) and [Optimization — Preemption](https://docs.vllm.ai/en/latest/configuration/optimization/#preemption); pinned source `vllm/v1/core/sched/scheduler.py` and `vllm/config/scheduler.py` at commit `c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf`.
+
+**Files:** `10.html`, `assets/diagrams/10-scheduler-decision-loop.svg`, `assets/diagrams/10-preemption-recompute.svg`, `evidence/10.json`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -154,7 +168,7 @@ For every later chapter apply this ordered gate:
 | 07 | Model/config/revision map | Revised; CI/visual QA pending |
 | 08 | KV memory budget | Revised; CI/visual QA pending |
 | 09 | Prefix hash chain | Revised; CI/visual QA pending |
-| 10 | Scheduler + recompute preemption (2 SVGs) | Pending one-by-one review |
+| 10 | Scheduler + recompute preemption (2 SVGs) | Revised; CI/visual QA pending |
 | 11 | Chunked prefill timeline | Pending one-by-one review |
 | 12 | V1 process topology + step loop (2 SVGs) | Pending one-by-one review |
 | 13 | Request lifecycle | Pending one-by-one review |

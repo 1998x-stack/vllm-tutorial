@@ -49,7 +49,9 @@
     </div>
 
     <figure class="diagram">
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
       <img src="assets/diagrams/10-scheduler-decision-loop.svg" alt="V1 Scheduler 每轮先处理 running 请求，再从 waiting 队列接纳请求，在 token budget 内分配 token 并申请 KV blocks；若分配失败则根据策略抢占请求，最后生成 SchedulerOutput 交给 EngineCore 执行">
+      </div>
       <figcaption>图 1：Scheduler 是一个迭代决策循环。它把 token 预算、请求状态和 KV Cache 容量放在同一个决策过程中。</figcaption>
     </figure>
 
@@ -95,8 +97,8 @@
       <ol>
         <li><strong>建立预算：</strong>初始化本轮 <code>token_budget</code>，并读取当前 Running / Waiting 请求数量和暂停状态。</li>
         <li><strong>推进 Running：</strong>先遍历已经运行的请求，计算它们还需要多少 token，并受本轮预算、模型长度和其他限制裁剪。</li>
-        <li><strong>申请 KV blocks：</strong>为请求本轮新增 token 申请 KV Cache slots。若申请成功，记录本轮分配的 block 和 token 数。</li>
         <li><strong>接纳 Waiting：</strong>如果还有活跃请求槽位和 token budget，再尝试接纳等待请求；必要时先查 Prefix Cache，再计算真正需要新做的 Prefill 工作。</li>
+        <li><strong>申请 KV blocks：</strong>为 Running 请求本轮新增 token 以及刚接纳的 Waiting 请求申请 KV Cache slots。若申请成功，记录本轮分配的 block 和 token 数；若空间不足，进入下一步的抢占路径。为简化示意，图中把两类请求的 KV 申请归并为一个步骤，实际实现是在各自的处理分支内申请。</li>
         <li><strong>生成 SchedulerOutput：</strong>把本轮请求、token 数、block IDs 和执行所需元数据打包，交给 EngineCore 的 Model Executor。</li>
       </ol>
       <div class="stepper" data-stepper>
@@ -121,8 +123,10 @@
       <h2>10.4 KV Cache 不够时如何抢占</h2>
       <p>假设模型权重和运行时工作区已经占据大部分显存，多个长上下文请求又逐渐填满 KV Cache。某个 Running 请求需要新的 KV blocks，却无法立即分配。Scheduler 可以选择一个正在运行的请求进行 <strong>Preemption（抢占）</strong>，把它的缓存块释放出来，再尝试当前请求。</p>
       <figure class="diagram">
-        <img src="assets/diagrams/10-preemption-recompute.svg" alt="KV Cache 分配失败后，Scheduler 选择一个 Running 请求，释放其 KV blocks，将其进度重置并放回 Waiting 队列；之后重新接纳时可能从 Prefix Cache 命中部分前缀，否则需要重新计算">
-        <figcaption>图 2：V1 的典型抢占路径是释放 KV Cache 并重新计算，而不是默认把请求状态交换到 CPU 再原样恢复。</figcaption>
+        <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+        <img src="assets/diagrams/10-preemption-recompute.svg" alt="KV Cache 分配失败后，Scheduler 选择另一条 Running 请求作为抢占对象，释放其 KV blocks，将其进度重置并放回 Waiting 队列；之后重新接纳时可能从 Prefix Cache 命中部分前缀，否则需要重新计算">
+        </div>
+        <figcaption>图 2：V1 的典型抢占路径是释放 KV Cache 并重新计算，而不是默认把请求状态交换到 CPU 再原样恢复。抢占对象是另一条正在运行的请求，而不是发起申请的当前请求。</figcaption>
       </figure>
       <p>需要区分“抢占有哪些可能”和“当前默认用哪一种”：PagedAttention 论文提出了两种释放 KV 的方式——重算（recomputation）与交换（swapping）。当前 vLLM V1 的默认路径是释放缓存块并重算，而不是把完整 KV Cache 换出到 CPU 再原样恢复。</p>
       <p>当前 V1 的 <code>_preempt_request()</code> 关键动作包括：</p>

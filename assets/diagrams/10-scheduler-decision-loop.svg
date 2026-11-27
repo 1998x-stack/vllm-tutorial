@@ -6,34 +6,35 @@
 <text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">V1 Scheduler：每一轮都重新规划 token 与 KV 资源</text>
 <text x="52" y="82" font-family="Arial,'PingFang SC',sans-serif" font-size="16" fill="#60716c">简化主路径：多模态、Speculative Decoding、KV Connector 等分支暂不展开。</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="60" y="124" width="240" height="88" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <rect id="step-budget" x="60" y="124" width="240" height="88" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="180" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#51488c">① 建立 token budget</text>
  <text x="180" y="187" text-anchor="middle" font-size="14" fill="#625b91">max_num_scheduled_tokens</text>
  <path d="M300 168 H340" stroke="#47756d" stroke-width="2.5" marker-end="url(#a10)"/>
- <rect x="355" y="124" width="240" height="88" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <rect id="step-running" x="355" y="124" width="240" height="88" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="475" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#0d5e58">② 推进 Running</text>
  <text x="475" y="187" text-anchor="middle" font-size="14" fill="#315d56">按每条请求的进度分配 token</text>
  <path d="M595 168 H635" stroke="#47756d" stroke-width="2.5" marker-end="url(#a10)"/>
- <rect x="650" y="124" width="240" height="88" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <rect id="step-waiting" x="650" y="124" width="240" height="88" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="770" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">③ 接纳 Waiting</text>
  <text x="770" y="187" text-anchor="middle" font-size="14" fill="#87533f">Prefix Cache / admission</text>
  <path d="M890 168 H930" stroke="#47756d" stroke-width="2.5" marker-end="url(#a10)"/>
- <rect x="945" y="124" width="195" height="88" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <rect id="step-kv" x="945" y="124" width="195" height="88" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="1042" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#264b45">④ 申请 KV</text>
  <text x="1042" y="187" text-anchor="middle" font-size="14" fill="#53636b">allocate_slots()</text>
- <path d="M1042 212 V263 H880" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a10)"/>
- <rect x="625" y="242" width="255" height="82" rx="14" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
+ <path id="kv-to-decision" d="M1042 212 V263 H880" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a10)"/>
+ <rect id="decision-kv" x="625" y="242" width="255" height="82" rx="14" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
  <text x="752" y="276" text-anchor="middle" font-size="18" font-weight="700" fill="#80571a">空间是否足够？</text>
  <text x="752" y="303" text-anchor="middle" font-size="14" fill="#80571a">KV blocks 可分配？</text>
- <path d="M625 283 H465 V355" fill="none" stroke="#c66a46" stroke-width="2.5" marker-end="url(#a10)"/>
+ <path id="decision-to-preempt" d="M625 283 H465 V355" fill="none" stroke="#c66a46" stroke-width="2.5" marker-end="url(#a10)"/>
  <text x="535" y="270" font-size="14" font-weight="700" fill="#9c4d30">否</text>
- <rect x="300" y="355" width="330" height="90" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <rect id="step-preempt" x="300" y="355" width="330" height="90" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="465" y="390" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">⑤ 按策略抢占请求</text>
  <text x="465" y="419" text-anchor="middle" font-size="14" fill="#87533f">释放 KV blocks · 回到 Waiting</text>
- <path d="M465 355 V335 H752 V324" fill="none" stroke="#c66a46" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a10)"/>
- <text x="775" y="347" font-size="14" font-weight="700" fill="#0d5e58">是</text>
- <path d="M880 283 H1040 V355" fill="none" stroke="#147d73" stroke-width="2.5" marker-end="url(#a10)"/>
- <rect x="900" y="355" width="240" height="90" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="preempt-retry" d="M465 355 V335 H752 V324" fill="none" stroke="#c66a46" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a10)"/>
+ <text x="600" y="329" font-size="13" font-weight="700" fill="#9c4d30">释放后重试</text>
+ <path id="decision-to-output" d="M880 283 H1040 V355" fill="none" stroke="#147d73" stroke-width="2.5" marker-end="url(#a10)"/>
+ <text x="952" y="272" font-size="14" font-weight="700" fill="#0d5e58">是</text>
+ <rect id="step-output" x="900" y="355" width="240" height="90" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="1020" y="390" text-anchor="middle" font-size="18" font-weight="700" fill="#0d5e58">⑥ SchedulerOutput</text>
  <text x="1020" y="419" text-anchor="middle" font-size="14" fill="#315d56">请求 / token 数 / block IDs</text>
  <path d="M1020 445 V500 H770" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a10)"/>

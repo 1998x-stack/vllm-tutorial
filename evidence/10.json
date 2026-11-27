@@ -1,9 +1,18 @@
 {
   "chapter": "10",
-  "reviewed_at": "2026-11-21",
+  "reviewed_at": "2026-11-27",
   "scope": "V1 Scheduler token budget, request admission, queue ordering, KV allocation and preemption.",
   "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
   "claims": [
+    {
+      "id": "per-request-kv-allocation-in-loops",
+      "claim": "KV slot allocation happens per scheduled request inside the Running pass and again when a Waiting request is admitted; it is not a single global allocation stage that runs once after all requests are selected.",
+      "kind": "official_behavior",
+      "status": "verified",
+      "source_url": "https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py",
+      "locator": "schedule: allocate_slots calls inside the Running loop and the Waiting loop",
+      "notes": "Figure 1 groups both calls into a single '申请 KV' step for readability and states this simplification in the prose; the source order is Running allocation then Waiting admission."
+    },
     {
       "id": "unified-token-budget-scheduler",
       "claim": "V1 Scheduler uses a unified per-step token budget and tracks each request's computed-token progress; the same scheduling loop can cover prefill, decode, chunked prefill, prefix caching and speculative decoding.",
