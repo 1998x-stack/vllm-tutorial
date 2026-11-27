@@ -197,6 +197,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** `13.html`, `assets/diagrams/13-request-lifecycle.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 14 — Sampling pipeline order
+
+**Reader question:** Does softmax happen before or after Temperature and the logits processors, and on what does each control operate?
+
+**Before:** The pipeline drew `Model logits → Softmax → Logits processors → Temperature`, i.e. softmax first and the penalties/constraints after it. That contradicted the chapter prose (“Temperature 对 logits 做缩放，再执行 softmax”) and implied two softmax operations in sequence.
+
+**After:** The figure is reordered `Model logits → Logits processors → Temperature (zᵢ/T) → Softmax (pᵢ = softmax(zᵢ/T)) → Candidate filters → Renormalize → Select token`, matching the prose and the vLLM sampler order. The Temperature box now scales logits (`zᵢ / T`) and the Softmax box carries the probability formula; in-figure notes state that penalties/constraints act on logits and that filters act on probabilities. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Conceptual pipeline, not one kernel's exact call order; the chapter still labels the interactive lab as a teaching model, and Temperature = 0 as a Greedy special path rather than division by zero.
+
+**Primary evidence:** In-page references: [SamplingParams](https://docs.vllm.ai/en/latest/api/vllm/sampling_params/) and pinned `vllm/sampling_params.py`, `vllm/v1/sample/ops/topk_topp_sampler.py` at commit `c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf`; Fan et al. (2018), Holtzman et al. (2019), Nguyen et al. (2024).
+
+**Files:** `14.html`, `assets/diagrams/14-sampling-pipeline.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -214,7 +228,7 @@ For every later chapter apply this ordered gate:
 | 11 | Chunked prefill timeline | Revised; CI/visual QA pending |
 | 12 | V1 process topology + step loop (2 SVGs) | Revised; CI/visual QA pending |
 | 13 | Request lifecycle | Revised; CI/visual QA pending |
-| 14 | Sampling pipeline | Pending one-by-one review |
+| 14 | Sampling pipeline | Revised; CI/visual QA pending |
 | 15 | Production serving topology | Pending one-by-one review |
 | 16 | Kubernetes GPU scheduling | Pending one-by-one review |
 | 17 | Latency waterfall | Pending one-by-one review |

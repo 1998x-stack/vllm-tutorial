@@ -51,8 +51,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/14-sampling-pipeline.svg" alt="从模型 logits 到概率分布，经过惩罚和约束、temperature、Top-k Top-p Min-p 候选过滤、重新归一化，最终执行 greedy 或随机抽样">
-      <figcaption>图 1：生成控制的概念流程。具体参数在运行时由不同 logits processor、采样器和约束解码后端实现；这张图强调各类控制改变的对象，不代表所有后端共享一条固定内核调用顺序。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/14-sampling-pipeline.svg" alt="模型 logits 先经过 logits processors（惩罚、bias、允许集合），再按 Temperature 缩放，然后由 softmax 转成概率分布；Top-k、Top-p、Min-p 在概率上裁剪候选，剩余概率重新归一化后用 greedy 或随机抽样选出下一个 token">
+      </div>
+      <figcaption>图 1：生成控制的概念流程。顺序是 logits → logits processors → Temperature 缩放 → softmax → 候选过滤 → 重新归一化 → 取样：Temperature 缩放的是 logits，softmax 在其后产生概率，惩罚与约束作用在 logits 上。这张图强调各类控制改变的对象，不代表所有后端共享一条固定内核调用顺序。</figcaption>
     </figure>
 
     <section id="distribution">

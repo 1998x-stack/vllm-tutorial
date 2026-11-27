@@ -258,3 +258,17 @@ test("13: preemption returns to Waiting and conditional waits resume, not finish
   assert.match(page("13"), /class="diagram-pan"/);
   assert.match(page("13"), /PREEMPTED 由 RUNNING 进入/);
 });
+
+test("14: temperature scales logits before softmax; filters run on probabilities", () => {
+  const xml = svg("14-sampling-pipeline.svg");
+  idsAreUnique(xml, "14");
+  for (const id of ["model-logits", "logits-processors", "temperature", "softmax", "candidate-filters", "renormalize", "select-token"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Order must be logits → processors → temperature → softmax; softmax must not precede temperature.
+  const order = ["model-logits", "logits-processors", "temperature", "softmax"].map((id) => xml.indexOf('id="' + id + '"'));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), "temperature must scale logits before softmax");
+  assert.match(xml, /id="softmax-to-filters"[^>]*d="M927 265 V341"/);
+  assert.match(page("14"), /class="diagram-pan"/);
+  assert.match(page("14"), /Temperature 缩放的是 logits，softmax 在其后产生概率/);
+});
