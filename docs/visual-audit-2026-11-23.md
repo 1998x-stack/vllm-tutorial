@@ -377,6 +377,34 @@ For every later chapter apply this ordered gate:
 
 **Files:** `26.html`, `assets/diagrams/26-evidence-roadmap.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 27 — RAG trust boundaries
+
+**Reader question:** Which pipeline stage does each trust boundary belong to?
+
+**Before:** The `不可信数据边界` and `输出验证边界` boxes floated below the pipeline with only a horizontal arrow between them, disconnected from the stages they govern; the HTML caption repeated its own alt sentence; no ids or pan wrapper.
+
+**After:** Two directed connectors now attach the boundaries to their stages: `文档检索 → 不可信数据边界` (`retrieve-to-untrusted`) and `生成与引用 → 输出验证边界` (`generate-to-validation`). The horizontal edge between the boundaries is relabelled `授权来源 ID`, making explicit that citation validation uses the authorized retrieved source IDs. Box and edge ids were added, the duplicated caption text removed, and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Conceptual trust boundaries; the retriever is a transparent term-matching baseline, not an embedding/reranker system, and citation existence is not generative faithfulness.
+
+**Primary evidence:** In-page references: [Automatic Prefix Caching](https://docs.vllm.ai/en/latest/design/prefix_caching/), [Security](https://docs.vllm.ai/en/latest/usage/security/) and the repository's `examples/rag_demo.py` as cited in chapter 27.
+
+**Files:** `27.html`, `assets/diagrams/27-rag-trust-boundaries.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 28 — Course knowledge map
+
+**Reader question:** How do the 28 chapters form one causal chain rather than 28 separate terms?
+
+**Before:** The connector from the top topic row down to `模型执行与多 GPU` started at `x=617`, in the empty gap between the `内存` and `调度` boxes, so the join looked like it came from nowhere; no ids or pan wrapper; the HTML caption repeated its own alt sentence.
+
+**After:** A `top-bus` now runs under the four top topics (`178 → 1022`) with short drops from each topic, and a single `row-to-execution` arrow descends into the execution box; the execution box then branches to `生产 15–18`, `评测 24–25` and `应用 26–28`. Box and edge ids were added, the duplicated caption text removed, and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** A synthesis map, not a strict prerequisite DAG; it does not claim all 28 chapters are independent and it carries no benchmark claims.
+
+**Primary evidence:** In-page references: [vLLM Architecture Overview](https://docs.vllm.ai/en/latest/design/arch_overview/) and [vLLM Releases](https://github.com/vllm-project/vllm/releases) as cited in chapter 28.
+
+**Files:** `28.html`, `assets/diagrams/28-course-knowledge-map.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -407,8 +435,8 @@ For every later chapter apply this ordered gate:
 | 24 | Debugging/triage | Revised; CI/visual QA pending |
 | 25 | Benchmark design | Revised; CI/visual QA pending |
 | 26 | Evidence maturity roadmap | Revised; CI/visual QA pending |
-| 27 | RAG trust boundaries | Pending one-by-one review |
-| 28 | Course knowledge map | Pending one-by-one review |
+| 27 | RAG trust boundaries | Revised; CI/visual QA pending |
+| 28 | Course knowledge map | Revised; CI/visual QA pending |
 
 ## Verification status
 

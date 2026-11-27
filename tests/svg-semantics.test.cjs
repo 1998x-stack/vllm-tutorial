@@ -424,3 +424,27 @@ test("26: evidence ladder steps are directed and flagged as non-roadmap", () => 
   assert.match(xml, /箭头表示证据强度递增，不代表功能必须按顺序成熟，也不是路线图承诺/);
   assert.match(page("26"), /class="diagram-pan"/);
 });
+
+test("27: RAG stages connect to their trust boundaries", () => {
+  const xml = svg("27-rag-trust-boundaries.svg");
+  idsAreUnique(xml, "27");
+  for (const id of ["gateway-auth", "retriever", "context-builder", "generator", "untrusted-boundary", "output-boundary", "auth-to-retrieve", "retrieve-to-untrusted", "generate-to-validation", "source-to-validation"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Retrieval feeds the untrusted-boundary box; generation feeds the output-validation box.
+  assert.match(xml, /id="retrieve-to-untrusted"[^>]*d="M469 243 V301"[^>]*marker-end/);
+  assert.match(xml, /id="generate-to-validation"[^>]*d="M1065 243 V301"[^>]*marker-end/);
+  assert.match(page("27"), /class="diagram-pan"/);
+  assert.match(page("27"), /依据授权来源 ID 核对引用/);
+});
+
+test("28: knowledge map rows join a shared execution bus", () => {
+  const xml = svg("28-course-knowledge-map.svg");
+  idsAreUnique(xml, "28");
+  for (const id of ["grp-foundations", "grp-memory", "grp-scheduling", "grp-generation", "top-bus", "row-to-execution", "grp-execution", "grp-production", "grp-eval", "grp-application", "execution-to-application"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /id="top-bus"[^>]*d="M178 240 H1022"/);
+  assert.match(xml, /id="row-to-execution"[^>]*d="M617 240 L617 297"[^>]*marker-end/);
+  assert.match(page("28"), /class="diagram-pan"/);
+});
