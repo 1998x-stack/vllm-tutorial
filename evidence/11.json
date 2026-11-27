@@ -1,6 +1,6 @@
 {
   "chapter": "11",
-  "reviewed_at": "2026-11-21",
+  "reviewed_at": "2026-11-27",
   "scope": "V1 Chunked Prefill scheduling, token budget trade-offs, long-prefill threshold and multimodal chunk boundaries.",
   "upstream_source_commit": "c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf",
   "claims": [

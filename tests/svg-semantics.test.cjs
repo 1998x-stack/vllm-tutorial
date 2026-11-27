@@ -201,3 +201,18 @@ test("10: preemption victim is another running request, not the requesting one",
   assert.match(xml, /另一条 Running 请求 · FCFS \/ Priority/);
   assert.match(page("10"), /抢占对象是另一条正在运行的请求/);
 });
+
+test("11: prefill chunk bars scale with token count", () => {
+  const xml = svg("11-chunked-prefill-timeline.svg");
+  idsAreUnique(xml, "11");
+  for (const id of ["step1-decode", "step1-prefill", "step2-prefill", "step3-prefill", "step4-decode", "step4-prefill"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  const w = (id) => Number(xml.match(new RegExp('id="' + id + '"[^>]*width="(\\d+)"'))[1]);
+  const near = (a, b) => Math.abs(a - b) < 0.05;
+  assert.ok(near(w("step1-prefill") / w("step1-decode"), 13 / 3), "step1 bars must scale with tokens");
+  assert.ok(near(w("step4-prefill") / w("step4-decode"), 1 / 3), "step4 bars must scale with tokens");
+  assert.ok(w("step4-prefill") < w("step1-prefill"), "1-token chunk must be shorter than 13-token chunk");
+  assert.match(page("11"), /class="diagram-pan"/);
+  assert.match(page("11"), /横条长度与 token 数成正比/);
+});

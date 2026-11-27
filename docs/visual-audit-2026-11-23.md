@@ -155,6 +155,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** `10.html`, `assets/diagrams/10-scheduler-decision-loop.svg`, `assets/diagrams/10-preemption-recompute.svg`, `evidence/10.json`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 11 — Chunked Prefill timeline
+
+**Reader question:** When a long prompt shares each iteration's token budget with decode work, how much of the budget does each part use — and is the chunk size fixed?
+
+**Before:** The timeline drew `Decode 3` at 190px and `Prefill chunk 13` at 590px, so bar length implied 3 is about a third of 13 (the real ratio is 3/13 ≈ 0.23), and nothing stated that length encodes token count. The figure had no mobile pan wrapper.
+
+**After:** Bar widths are now proportional to token count (3 tokens → 146px, 13 tokens → 634px, 1 token → 49px); the 1-token final chunk is visibly the shortest; the caption and an in-figure note state 横条长度与 token 数成正比; and the figure gained element ids plus the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Each row is a teaching iteration; the 3-decode / 40-prompt / 16-budget numbers are an illustrative arithmetic example, not a scheduler simulation. Bar length encodes token count only.
+
+**Primary evidence:** In-page references: [Optimization — Chunked Prefill](https://docs.vllm.ai/en/latest/configuration/optimization/#chunked-prefill) and [V1 Scheduler.schedule()](https://github.com/vllm-project/vllm/blob/c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf/vllm/v1/core/sched/scheduler.py).
+
+**Files:** `11.html`, `assets/diagrams/11-chunked-prefill-timeline.svg`, `evidence/11.json`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -169,7 +183,7 @@ For every later chapter apply this ordered gate:
 | 08 | KV memory budget | Revised; CI/visual QA pending |
 | 09 | Prefix hash chain | Revised; CI/visual QA pending |
 | 10 | Scheduler + recompute preemption (2 SVGs) | Revised; CI/visual QA pending |
-| 11 | Chunked prefill timeline | Pending one-by-one review |
+| 11 | Chunked prefill timeline | Revised; CI/visual QA pending |
 | 12 | V1 process topology + step loop (2 SVGs) | Pending one-by-one review |
 | 13 | Request lifecycle | Pending one-by-one review |
 | 14 | Sampling pipeline | Pending one-by-one review |

@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
       <img src="assets/diagrams/11-chunked-prefill-timeline.svg" alt="三个 Decode 请求每轮各使用一个 token，长 Prompt 在每轮剩余 token budget 中推进一段；长 Prompt 从一个完整大块变成多个动态 chunk，与 Decode 交错">
-      <figcaption>图 1：Chunked Prefill 不要求长 Prompt 一次性占满一轮；在 Decode 工作之后，剩余 token budget 可以用于推进 Prefill。</figcaption>
+      </div>
+      <figcaption>图 1：Chunked Prefill 不要求长 Prompt 一次性占满一轮；在 Decode 工作之后，剩余 token budget 可以用于推进 Prefill。图中横条长度与 token 数成正比。</figcaption>
     </figure>
 
     <section id="problem">
