@@ -12,7 +12,7 @@
 <main id="content" class="article-content"><article><header class="article-header"><p class="chapter-kicker">第 20 章 · 并行计算与高级推理</p><h1>Pipeline、Data 与 Expert Parallelism：沿不同维度拆模型</h1><p class="article-dek">比较 PP、DP、TP 与 EP 的切分维度、通信路径、MoE rank 布局与集群资源预算。</p><div class="article-meta"><span class="meta-chip">高级</span><span class="meta-chip">源码与官方文档交叉审校</span><span class="meta-chip">离线优先</span></div></header>
 <p class="article-lead">假如有八张 GPU，是把八张卡都给同一个模型，还是分成两个模型副本？答案取决于模型尺寸、请求量、互联、GPU 资源和是否属于 MoE。不同并行维度针对的问题不同。</p>
 <div class="outcomes"><h2>学习目标</h2><ul><li>区分 TP、PP、DP 与 EP 的权重分布。</li><li>解释 PP bubble、DP rank 级并发与 MoE all-to-all。</li><li>识别 EP 与 DP 组合时 attention 和 expert 的差别。</li><li>为真实集群提出可压测的并行选型假设。</li></ul></div>
-<figure class="diagram"><img src="assets/diagrams/20-parallelism-topology.svg" alt="TP 沿层内矩阵宽度切分，PP 按层堆栈切分，DP 复制整个模型，EP 按 MoE 专家切分"><figcaption>图 1：四种并行维度的概念对比。不同维度改变的是模型权重、层、请求或专家的归属。图解采用教学抽象，不等于任意模型在任意硬件上的精确执行计划。</figcaption></figure>
+<figure class="diagram"><div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容"><img src="assets/diagrams/20-parallelism-topology.svg" alt="TP 沿层内矩阵宽度切分；PP 按层堆栈切分成多个阶段，激活逐阶段向后传递；DP 复制整个模型、各副本处理独立请求批次；EP 由 router dispatch token 到不同专家，再把结果 combine 回原序列"></div><figcaption>图 1：四种并行维度的概念对比。不同维度改变的是模型权重、层、请求或专家的归属：PP 的绿色箭头表示激活逐阶段前传，EP 的橙色箭头表示 token dispatch 到专家、结果再 combine。图解采用教学抽象，不等于任意模型在任意硬件上的精确执行计划。</figcaption></figure>
 <section id="dimensions"><h2>20.1 四种并行到底在切什么？</h2>
 <p>把整个推理服务看成三条坐标轴：<strong>同一个模型的层内矩阵</strong>（TP）、<strong>不同的层</strong>（PP）、<strong>独立请求批次</strong>（DP）。MoE 模型多出一条：<strong>专家权重和 token routing</strong>（EP）。它们可以组合，但不会“免费乘起来”。</p>
 <div class="table-wrap"><table><thead><tr><th>维度</th><th>如何分配权重</th><th>主要通信</th><th>主要目标</th></tr></thead><tbody>

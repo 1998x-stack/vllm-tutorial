@@ -265,6 +265,34 @@ For every later chapter apply this ordered gate:
 
 **Primary evidence:** In-page references: [vLLM Security](https://docs.vllm.ai/en/latest/usage/security/) and [Kubernetes Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) as cited in chapter 18.
 
+## Chapter 19 — Tensor parallel partitions
+
+**Reader question:** Do the two tensor-parallel ranks run in sequence, and what does each compute?
+
+**Before:** The column-parallel lane drew `W → GPU 0 → GPU 1`, implying GPU 1 consumed GPU 0's output. Column parallelism actually has both ranks compute from the same input with their own weight shard; only row parallelism needs a cross-rank reduction.
+
+**After:** The column lane now branches `W → GPU 0` and `W → GPU 1` (dashed branch into the second rank) and states `X 广播到各 rank，各自用分片 W 并行计算；下游需全量输出时 Y = [Y₀ | Y₁]（All-Gather）`. The `GPU 0 → GPU 1` edge is removed. The row lane keeps `X = [X₀ | X₁]`,`W = [W₀ ; W₁]` → local `Z₀`,`Z₁` → All-Reduce `Y = Z₀ + Z₁`. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Two-rank teaching example; real kernels may use Reduce-Scatter / All-Gather fusion and Sequence Parallelism, and TP does not imply doubled throughput.
+
+**Primary evidence:** In-page references: [Parallelism and Scaling](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/), pinned `linear.py` / `parallel_state.py`, and [Megatron-LM](https://arxiv.org/abs/1909.08053) as cited in chapter 19.
+
+**Files:** `19.html`, `assets/diagrams/19-tensor-parallel-partitions.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 20 — Parallelism topology comparison
+
+**Reader question:** What does each parallelism axis actually move, and in which direction?
+
+**Before:** The four-panel comparison had no directed edges at all: the PP panel showed four layer-stage boxes with no activation transfer direction, and the EP panel showed dispatch/combine as captions only, so the defining data movement of PP and EP was invisible.
+
+**After:** Three green `pp-flow` arrows now carry activation left→right across `L1–12 → L13–24 → L25–36 → L37–48`; eight orange arrows (`ep-dispatch-*` downward, `ep-combine-*` upward) show tokens dispatched to experts and results combined back. Panel ids, an orange marker and the keyboard-focusable `diagram-pan` wrapper were added.
+
+**Scope:** Conceptual comparison; `GPU ≈ DP × TP × PP` is a planning estimate, `EP_SIZE = TP_SIZE × DP_SIZE` is version-scoped, and attention vs experts may use different layouts.
+
+**Primary evidence:** In-page references: [GPipe](https://arxiv.org/abs/1811.06965), [Megatron-LM](https://arxiv.org/abs/1909.08053), [GShard](https://arxiv.org/abs/2006.16668), [Parallelism and Scaling](https://docs.vllm.ai/en/latest/serving/parallelism_scaling/), [Data Parallel Deployment](https://docs.vllm.ai/en/latest/serving/data_parallel_deployment/) and [Expert Parallel Deployment](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment/) as cited in chapter 20.
+
+**Files:** `20.html`, `assets/diagrams/20-parallelism-topology.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -287,8 +315,8 @@ For every later chapter apply this ordered gate:
 | 16 | Kubernetes GPU scheduling | Revised; CI/visual QA pending |
 | 17 | Latency waterfall | Revised; CI/visual QA pending |
 | 18 | Security/trust boundaries | Revised; CI/visual QA pending |
-| 19 | Tensor parallel partitions | Pending one-by-one review |
-| 20 | Parallelism topology | Pending one-by-one review |
+| 19 | Tensor parallel partitions | Revised; CI/visual QA pending |
+| 20 | Parallelism topology | Revised; CI/visual QA pending |
 | 21 | Speculative acceptance | Pending one-by-one review |
 | 22 | Multimodal input flow | Pending one-by-one review |
 | 23 | nano-vLLM control flow | Pending one-by-one review |

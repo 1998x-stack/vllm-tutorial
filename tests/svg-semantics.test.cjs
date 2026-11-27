@@ -325,3 +325,30 @@ test("18: trust boundaries are directed and cache_salt is not isolation", () => 
   assert.match(page("18"), /class="diagram-pan"/);
   assert.match(page("18"), /不是多租户隔离边界/);
 });
+
+test("19: column-parallel ranks compute in parallel, not chained", () => {
+  const xml = svg("19-tensor-parallel-partitions.svg");
+  idsAreUnique(xml, "19");
+  for (const id of ["col-input", "col-weight", "col-gpu0", "col-gpu1", "row-input", "row-ranks", "allreduce", "w-to-gpu0", "w-to-gpu1", "row-to-gpus", "gpus-to-allreduce"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Both ranks are fed from the shared input; there must be no GPU0 → GPU1 edge.
+  assert.match(xml, /id="w-to-gpu1"[^>]*d="M645 186 V262 H1027 V250"/);
+  assert.doesNotMatch(xml, /M862 186 L902 186/);
+  assert.match(page("19"), /不是 GPU0 再传给 GPU1/);
+  assert.match(page("19"), /class="diagram-pan"/);
+});
+
+test("20: PP activation flow and EP dispatch/combine are directed", () => {
+  const xml = svg("20-parallelism-topology.svg");
+  idsAreUnique(xml, "20");
+  for (const id of ["panel-tp", "panel-pp", "panel-dp", "panel-ep", "pp-flow-1", "pp-flow-2", "pp-flow-3", "ep-dispatch-1", "ep-combine-1"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  const order = ["pp-flow-1", "pp-flow-2", "pp-flow-3"].map((id) => xml.indexOf('id="' + id + '"'));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), "PP stages must flow left→right");
+  assert.match(xml, /id="ep-dispatch-1"[^>]*marker-end/);
+  assert.match(xml, /id="ep-combine-1"[^>]*marker-end/);
+  assert.match(page("20"), /class="diagram-pan"/);
+  assert.match(page("20"), /EP 的橙色箭头表示 token dispatch/);
+});
