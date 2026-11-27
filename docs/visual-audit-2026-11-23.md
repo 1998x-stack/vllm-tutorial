@@ -293,6 +293,34 @@ For every later chapter apply this ordered gate:
 
 **Files:** `20.html`, `assets/diagrams/20-parallelism-topology.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 21 — Speculative acceptance trace
+
+**Reader question:** Which draft tokens may be committed, and what does the target model add afterwards?
+
+**Before:** The trace showed the accept/reject/residual steps but did not state that the target additionally emits one token after the accepted prefix, so `E[L] = 1 + E[A]` in the prose had no counterpart in the figure. No ids or pan wrapper.
+
+**After:** The `Accept contiguous prefix` panel gained the line `接受前缀后目标再产生 1 个 bonus token：E[L] = 1 + E[A]`. Box and edge ids were added for `draft`, `target`, `accept-prefix`, the four positions, `residual-box` and `reject-to-correct`, and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** A single draft round; the figure does not claim all draft/verify variants preserve the target distribution (the FLy caveat stays in the prose), and it is not a speedup promise.
+
+**Primary evidence:** In-page references: [Speculative Decoding](https://docs.vllm.ai/en/latest/features/speculative_decoding/), [Acceptance Metrics](https://docs.vllm.ai/en/latest/features/speculative_decoding/acceptance_metrics/), pinned `vllm/config/speculative.py`, and [Speculative Sampling](https://arxiv.org/abs/2302.01318) as cited in chapter 21.
+
+**Files:** `21.html`, `assets/diagrams/21-speculative-acceptance.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 22 — Multimodal input path
+
+**Reader question:** Does each modality enter through the same guarded entry, and where is it fused?
+
+**Before:** Only the text path was drawn leaving the `Gateway`; the `Image / Video` and `Audio` boxes had no incoming edge, even though 22.5 requires media URL allowlisting and size/auth checks at the Gateway / preprocessor. No ids or pan wrapper.
+
+**After:** `Gateway → Image / Video` and `Gateway → Audio` edges were added (in addition to `Gateway → Text tokens`), so all three modalities pass the media policy before their separate encode paths; the three encode paths still meet at the model-specific `projection / fusion` box and then the `LLM / Decoder`. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Conceptual pipeline; fusion location is architecture-specific (LLaVA-style projector vs Flamingo-style cross-attention), and image count does not determine visual-token count.
+
+**Primary evidence:** In-page references: [Multimodal Inputs](https://docs.vllm.ai/en/latest/features/multimodal_inputs/), pinned `vllm/config/multimodal.py`, [LLaVA](https://arxiv.org/abs/2304.08485) and [Flamingo](https://arxiv.org/abs/2204.14198) as cited in chapter 22.
+
+**Files:** `22.html`, `assets/diagrams/22-multimodal-input-path.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -317,8 +345,8 @@ For every later chapter apply this ordered gate:
 | 18 | Security/trust boundaries | Revised; CI/visual QA pending |
 | 19 | Tensor parallel partitions | Revised; CI/visual QA pending |
 | 20 | Parallelism topology | Revised; CI/visual QA pending |
-| 21 | Speculative acceptance | Pending one-by-one review |
-| 22 | Multimodal input flow | Pending one-by-one review |
+| 21 | Speculative acceptance | Revised; CI/visual QA pending |
+| 22 | Multimodal input flow | Revised; CI/visual QA pending |
 | 23 | nano-vLLM control flow | Pending one-by-one review |
 | 24 | Debugging/triage | Pending one-by-one review |
 | 25 | Benchmark design | Pending one-by-one review |

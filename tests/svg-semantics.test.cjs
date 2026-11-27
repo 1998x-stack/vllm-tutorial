@@ -352,3 +352,27 @@ test("20: PP activation flow and EP dispatch/combine are directed", () => {
   assert.match(page("20"), /class="diagram-pan"/);
   assert.match(page("20"), /EP 的橙色箭头表示 token dispatch/);
 });
+
+test("21: speculative acceptance keeps only a contiguous prefix plus bonus token", () => {
+  const xml = svg("21-speculative-acceptance.svg");
+  idsAreUnique(xml, "21");
+  for (const id of ["draft", "target", "accept-prefix", "pos-1", "pos-2", "pos-3", "pos-4", "residual-box", "reject-to-correct", "target-to-accept"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /接受前缀后目标再产生 1 个 bonus token：E\[L\] = 1 \+ E\[A\]/);
+  assert.match(xml, /从残差目标分布校正/);
+  assert.match(page("21"), /class="diagram-pan"/);
+  assert.match(page("21"), /玩具估计 E\[L\] = 1 \+ E\[A\]/);
+});
+
+test("22: gateway guards every modality before encoding and fusion", () => {
+  const xml = svg("22-multimodal-input-path.svg");
+  idsAreUnique(xml, "22");
+  for (const id of ["gateway", "text-tokens", "vision-media", "audio-media", "fusion", "llm-decoder", "gateway-to-text", "gateway-to-vision", "gateway-to-audio", "vision-to-fusion", "audio-to-fusion", "fusion-to-llm"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /id="gateway-to-vision"[^>]*marker-end/);
+  assert.match(xml, /id="gateway-to-audio"[^>]*marker-end/);
+  assert.match(page("22"), /class="diagram-pan"/);
+  assert.match(page("22"), /三类输入都先经过 Gateway 的媒体策略/);
+});
