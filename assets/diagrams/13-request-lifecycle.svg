@@ -5,46 +5,44 @@
 <rect width="1200" height="650" rx="24" fill="#fbfaf7"/>
 <text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">请求状态不是一条直线：等待、运行、回退与终止都可能发生</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="55" y="125" width="205" height="82" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <rect id="api-input" x="55" y="125" width="205" height="82" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="157" y="159" text-anchor="middle" font-size="18" font-weight="700" fill="#264b45">API 输入处理</text>
  <text x="157" y="185" text-anchor="middle" font-size="14" fill="#53636b">Tokenize / preprocess</text>
- <path d="M260 166 H300" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
- <rect x="315" y="125" width="200" height="82" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <path id="api-to-waiting" d="M260 166 H300" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
+ <rect id="state-waiting" x="315" y="125" width="200" height="82" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="415" y="159" text-anchor="middle" font-size="18" font-weight="700" fill="#51488c">WAITING</text>
  <text x="415" y="185" text-anchor="middle" font-size="14" fill="#625b91">Scheduler queue</text>
- <path d="M515 166 H555" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
- <rect x="570" y="125" width="205" height="82" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="waiting-to-running" d="M515 166 H555" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
+ <rect id="state-running" x="570" y="125" width="205" height="82" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="672" y="159" text-anchor="middle" font-size="18" font-weight="700" fill="#0d5e58">RUNNING</text>
  <text x="672" y="185" text-anchor="middle" font-size="14" fill="#315d56">Prefill / Decode</text>
- <path d="M775 166 H815" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
- <rect x="830" y="125" width="205" height="82" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <path id="running-to-output" d="M775 166 H815" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
+ <rect id="output-processing" x="830" y="125" width="205" height="82" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="932" y="159" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">OUTPUT</text>
  <text x="932" y="185" text-anchor="middle" font-size="14" fill="#87533f">Detokenize / stream</text>
- <path d="M1035 166 H1075" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
- <rect x="1090" y="125" width="85" height="82" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="output-to-finish" d="M1035 166 H1075" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
+ <rect id="state-finish" x="1090" y="125" width="85" height="82" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="1132" y="159" text-anchor="middle" font-size="16" font-weight="700" fill="#0d5e58">FINISH</text>
  <text x="1132" y="185" text-anchor="middle" font-size="12" fill="#315d56">free</text>
- <path d="M415 207 V270 H672 V207" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a13)"/>
- <text x="535" y="257" font-size="13" fill="#60716c">被接纳 / 分配 KV</text>
- <path d="M672 207 V340 H415 V207" fill="none" stroke="#c66a46" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a13)"/>
- <rect x="315" y="340" width="200" height="76" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
- <text x="415" y="370" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">PREEMPTED</text>
- <text x="415" y="396" text-anchor="middle" font-size="13" fill="#87533f">释放 KV · 回到 Waiting</text>
- <path d="M415 340 V300 H315 V207" fill="none" stroke="#c66a46" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a13)"/>
- <rect x="570" y="470" width="205" height="76" rx="14" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
- <text x="672" y="500" text-anchor="middle" font-size="17" font-weight="700" fill="#80571a">WAITING_FOR_REMOTE_KVS</text>
- <text x="672" y="525" text-anchor="middle" font-size="13" fill="#80571a">等待外部 KV 传输</text>
- <path d="M672 207 V470" stroke="#d5a24a" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a13)"/>
- <path d="M775 508 H930 V207" fill="none" stroke="#d5a24a" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a13)"/>
- <rect x="55" y="470" width="420" height="76" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
- <text x="265" y="500" text-anchor="middle" font-size="17" font-weight="700" fill="#264b45">其他等待状态（条件性）</text>
- <text x="265" y="525" text-anchor="middle" font-size="13" fill="#53636b">Grammar not ready · Streaming session paused</text>
- <path d="M415 207 V470" stroke="#47756d" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a13)"/>
- <rect x="830" y="340" width="345" height="76" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
- <text x="1002" y="370" text-anchor="middle" font-size="17" font-weight="700" fill="#0d5e58">Finished 状态</text>
- <text x="1002" y="396" text-anchor="middle" font-size="13" fill="#315d56">STOP · LENGTH · ABORT · ERROR</text>
- <path d="M932 207 V340" stroke="#147d73" stroke-width="2.5" marker-end="url(#a13)"/>
- <text x="950" y="275" font-size="13" fill="#0d5e58">结束条件</text>
+ <path id="running-to-preempted" d="M667 207 V296" fill="none" stroke="#c66a46" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a13)"/>
+ <text x="688" y="258" font-size="13" fill="#9c4d30">KV 不足 · 抢占</text>
+ <rect id="state-preempted" x="560" y="300" width="215" height="80" rx="14" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <text x="667" y="335" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">PREEMPTED</text>
+ <text x="667" y="361" text-anchor="middle" font-size="13" fill="#87533f">可恢复 · 非终态</text>
+ <path id="preempted-to-waiting" d="M560 340 H440 V212" fill="none" stroke="#c66a46" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a13)"/>
+ <text x="446" y="232" font-size="13" fill="#9c4d30">释放 KV · 回 Waiting</text>
+ <path id="waiting-to-cond" d="M340 207 V296" fill="none" stroke="#47756d" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a13)"/>
+ <text x="196" y="258" font-size="13" fill="#53636b">条件等待</text>
+ <rect id="state-cond-waits" x="180" y="300" width="250" height="80" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <text x="305" y="335" text-anchor="middle" font-size="16" font-weight="700" fill="#264b45">条件性等待状态</text>
+ <text x="305" y="361" text-anchor="middle" font-size="12" fill="#53636b">GRAMMAR · REMOTE_KVS · STREAMING</text>
+ <path id="cond-to-waiting" d="M400 300 V212" fill="none" stroke="#47756d" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a13)"/>
+ <text x="408" y="258" font-size="13" fill="#53636b">就绪后继续</text>
+ <path id="finish-to-states" d="M1132 207 V296" fill="none" stroke="#147d73" stroke-width="2.5" marker-end="url(#a13)"/>
+ <text x="1004" y="258" text-anchor="end" font-size="13" fill="#0d5e58">终态原因</text>
+ <rect id="finished-states" x="830" y="300" width="345" height="80" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <text x="1002" y="335" text-anchor="middle" font-size="17" font-weight="700" fill="#0d5e58">Finished 状态</text>
+ <text x="1002" y="361" text-anchor="middle" font-size="13" fill="#315d56">STOP · LENGTH · ABORT · ERROR</text>
 </g>
 <text x="55" y="600" font-family="Arial,'PingFang SC',sans-serif" font-size="14" fill="#60716c">状态图为教学抽象；一个请求不一定经历所有等待状态。PREEMPTED 是可恢复状态，不是终态。</text>
 </svg>

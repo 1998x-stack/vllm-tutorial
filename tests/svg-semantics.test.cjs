@@ -241,3 +241,20 @@ test("12: EngineCore step loop order schedule → execute → collect → update
   assert.match(xml, /id="update-to-output"[^>]*d="M1115 222 V300 H920"/);
   assert.match(page("12"), /class="diagram-pan"/);
 });
+
+test("13: preemption returns to Waiting and conditional waits resume, not finish", () => {
+  const xml = svg("13-request-lifecycle.svg");
+  idsAreUnique(xml, "13");
+  for (const id of ["api-input", "state-waiting", "state-running", "output-processing", "state-finish", "state-preempted", "state-cond-waits", "running-to-preempted", "preempted-to-waiting", "waiting-to-cond", "cond-to-waiting"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // PREEMPTED is entered from RUNNING and returns to WAITING (a resumable branch, not a terminal one).
+  assert.match(xml, /id="running-to-preempted"[^>]*marker-end/);
+  assert.match(xml, /id="preempted-to-waiting"[^>]*d="M560 340 H440 V212"/);
+  // Conditional waits loop back to Waiting; nothing routes a waiting state straight to OUTPUT.
+  assert.match(xml, /id="cond-to-waiting"[^>]*d="M400 300 V212"/);
+  assert.doesNotMatch(xml, /H930 V207/);
+  assert.match(xml, /可恢复 · 非终态/);
+  assert.match(page("13"), /class="diagram-pan"/);
+  assert.match(page("13"), /PREEMPTED 由 RUNNING 进入/);
+});

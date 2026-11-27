@@ -183,6 +183,20 @@ For every later chapter apply this ordered gate:
 
 **Files:** `12.html`, `assets/diagrams/12-v1-process-topology.svg`, `assets/diagrams/12-enginecore-step-loop.svg`, `evidence/12.json`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 13 — Request lifecycle: Waiting, Running, preemption and finish
+
+**Reader question:** Is a preempted request finished, and where does a request go while waiting for a grammar, remote KV or a streamed input?
+
+**Before:** `RUNNING` was drawn returning to `WAITING` with a single dashed path that carried no arrowhead into the `PREEMPTED` box, so `PREEMPTED` looked like a stray label rather than a state entered from Running. A second dashed path sent `WAITING_FOR_REMOTE_KVS` straight to `OUTPUT`, contradicting the prose that the scheduler resumes scheduling after the transfer. A redundant `WAITING → RUNNING` loop duplicated the direct admission edge, and the figure had no ids, no mobile pan wrapper.
+
+**After:** The figure now draws a directed `RUNNING → PREEMPTED` edge (`KV 不足 · 抢占`) and a separate `PREEMPTED → WAITING` edge (`释放 KV · 回 Waiting`), labelled `可恢复 · 非终态`. The remote/grammar/streaming waits are grouped into one `条件性等待状态` box with directed edges `WAITING → 条件等待` and `条件等待 → WAITING`, so no waiting state routes to OUTPUT. `FINISH → Finished 状态` enumerates STOP/LENGTH/ABORT/ERROR. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Conceptual state graph, not an exhaustive enum of every `RequestStatus`; a request need not visit every conditional wait. Abort and error still travel through the output path.
+
+**Primary evidence:** In-page references: [Architecture Overview](https://docs.vllm.ai/en/latest/design/arch_overview/) and pinned `vllm/v1/request.py` (`RequestStatus`, `is_finished()`), `vllm/v1/core/sched/scheduler.py`, `vllm/v1/engine/output_processor.py` at commit `c2fb5c5aba0a904fdbecb8e01b7c41db5bfaeadf`.
+
+**Files:** `13.html`, `assets/diagrams/13-request-lifecycle.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -199,7 +213,7 @@ For every later chapter apply this ordered gate:
 | 10 | Scheduler + recompute preemption (2 SVGs) | Revised; CI/visual QA pending |
 | 11 | Chunked prefill timeline | Revised; CI/visual QA pending |
 | 12 | V1 process topology + step loop (2 SVGs) | Revised; CI/visual QA pending |
-| 13 | Request lifecycle | Pending one-by-one review |
+| 13 | Request lifecycle | Revised; CI/visual QA pending |
 | 14 | Sampling pipeline | Pending one-by-one review |
 | 15 | Production serving topology | Pending one-by-one review |
 | 16 | Kubernetes GPU scheduling | Pending one-by-one review |

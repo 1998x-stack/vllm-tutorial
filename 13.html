@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/13-request-lifecycle.svg" alt="请求从 API 输入处理进入 EngineCore 并加入 Waiting 队列；Scheduler 接纳后进入 Running，经过 Prefill 和 Decode；KV Cache 不足时进入 Preempted 并回到 Waiting；正常停止、达到长度上限、Abort 或 Error 时进入 Finished 并释放资源">
-      <figcaption>图 1：请求生命周期包含主路径和回退路径。PREEMPTED 会回到等待队列，不是终态；Finished 状态才会触发请求清理与资源释放。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/13-request-lifecycle.svg" alt="主路径 API 输入处理 → WAITING → RUNNING → OUTPUT → FINISH；RUNNING 在 KV 不足时进入 PREEMPTED，PREEMPTED 释放 KV 后回到 WAITING；WAITING 可进入 GRAMMAR、REMOTE_KVS、STREAMING 等条件性等待状态并在就绪后继续">
+      </div>
+      <figcaption>图 1：请求生命周期包含主路径和回退路径。PREEMPTED 由 RUNNING 进入、释放 KV 后回到 Waiting，不是终态；条件性等待状态（Grammar、远端 KV、流式会话）也从 Waiting 进入并在就绪后继续。只有 FINISH 才会触发请求清理与资源释放。</figcaption>
     </figure>
 
     <section id="overview">
