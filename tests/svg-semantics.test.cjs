@@ -399,3 +399,28 @@ test("24: triage branches feed one evidence loop", () => {
   assert.match(page("24"), /class="diagram-pan"/);
   assert.match(page("24"), /任一分支都汇入/);
 });
+
+test("25: benchmark controls feed one measurement plane that fans out to metrics", () => {
+  const xml = svg("25-benchmark-design.svg");
+  idsAreUnique(xml, "25");
+  for (const id of ["ctrl-model", "ctrl-workload", "ctrl-arrival", "ctrl-cache", "measure-plane", "plane-to-bus", "metric-bus", "metric-ttft", "metric-itl", "metric-throughput", "metric-failure", "out-ttft", "out-itl", "out-throughput", "out-failure"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /id="metric-bus"[^>]*d="M197 427 H1025"/);
+  for (const id of ["metric-ttft", "metric-itl", "metric-throughput", "metric-failure"]) {
+    assert.match(xml, new RegExp('id="' + id + '"[^>]*marker-end'));
+  }
+  assert.match(page("25"), /class="diagram-pan"/);
+});
+
+test("26: evidence ladder steps are directed and flagged as non-roadmap", () => {
+  const xml = svg("26-evidence-roadmap.svg");
+  idsAreUnique(xml, "26");
+  for (const id of ["step-1", "step-2", "step-3", "step-4", "step-5", "step-1-to-2", "step-2-to-3", "step-3-to-4", "step-4-to-5", "ladder-note"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  const order = ["step-1-to-2", "step-2-to-3", "step-3-to-4", "step-4-to-5"].map((id) => xml.indexOf('id="' + id + '"'));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), "ladder edges must be monotonic");
+  assert.match(xml, /箭头表示证据强度递增，不代表功能必须按顺序成熟，也不是路线图承诺/);
+  assert.match(page("26"), /class="diagram-pan"/);
+});

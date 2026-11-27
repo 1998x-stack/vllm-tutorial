@@ -349,6 +349,34 @@ For every later chapter apply this ordered gate:
 
 **Files:** `24.html`, `assets/diagrams/24-debugging-triage.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 25 — Benchmark design
+
+**Reader question:** Which are the independent controlled variables, and how do they map to the dependent metrics?
+
+**Before:** A single central arrow left the measurement plane and ended in the empty gap between the `ITL / TPOT` and `Output tok/s` boxes, so the plane did not actually connect to its four metrics; the figure had no ids or pan wrapper and the HTML caption repeated its own alt sentence.
+
+**After:** The single arrow is replaced by a small fan-out: `plane-to-bus` → a `metric-bus` → four directed arrows into `TTFT`, `ITL / TPOT`, `Output tok/s` and `失败率`. Box and edge ids were added for the four controlled variables, the measurement plane and the four metrics, the duplicated caption text was removed, and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** 变量 → 测量 → 指标 conceptual map, not a claim about a specific benchmark number.
+
+**Primary evidence:** In-page references: [vLLM Benchmark CLI](https://docs.vllm.ai/en/latest/benchmarking/cli/) and [vLLM Production Metrics](https://docs.vllm.ai/en/latest/usage/metrics/) as cited in chapter 25.
+
+**Files:** `25.html`, `assets/diagrams/25-benchmark-design.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 26 — Evidence maturity ladder
+
+**Reader question:** Is the evidence ladder a progression, and does it promise that a feature will mature in order?
+
+**Before:** The five evidence steps (`论文 / RFC` → `固定源码` → `官方 Release` → `复现实验` → `生产观测`) were placed on a diagonal but had **no connecting edges**, so the increasing evidence strength was invisible and the figure read as five unrelated boxes.
+
+**After:** Four directed `step-N-to-N+1` arrows now connect the steps, and an in-figure note states `箭头表示证据强度递增，不代表功能必须按顺序成熟，也不是路线图承诺` — matching the SVG `desc` and the chapter rule that maturity labels are mandatory. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Evidence-strength ladder, not a feature roadmap: it does not claim any research direction is a released default or a guaranteed future release, and no benchmark numbers are shown.
+
+**Primary evidence:** In-page references: [vLLM Releases](https://github.com/vllm-project/vllm/releases) and the pinned source tree as cited in chapter 26.
+
+**Files:** `26.html`, `assets/diagrams/26-evidence-roadmap.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -377,8 +405,8 @@ For every later chapter apply this ordered gate:
 | 22 | Multimodal input flow | Revised; CI/visual QA pending |
 | 23 | nano-vLLM control flow | Revised; CI/visual QA pending |
 | 24 | Debugging/triage | Revised; CI/visual QA pending |
-| 25 | Benchmark design | Pending one-by-one review |
-| 26 | Evidence maturity roadmap | Pending one-by-one review |
+| 25 | Benchmark design | Revised; CI/visual QA pending |
+| 26 | Evidence maturity roadmap | Revised; CI/visual QA pending |
 | 27 | RAG trust boundaries | Pending one-by-one review |
 | 28 | Course knowledge map | Pending one-by-one review |
 
