@@ -239,6 +239,32 @@ For every later chapter apply this ordered gate:
 
 **Files:** `16.html`, `assets/diagrams/16-kubernetes-gpu-scheduling.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 17 — Latency waterfall and metric boundaries
+
+**Reader question:** Which segment does each latency metric actually measure, and where does the client clock stop matching the server clock?
+
+**Before:** The timeline drew a `Queue` segment from a client `Request sent` mark to `Scheduled` with no boundary note, so a reader could equate the client-visible queued interval with the server-side `Queue Time` metric even though 17.2 warns against mixing measurement points. The figure had no ids or pan wrapper.
+
+**After:** The spans keep their definitions (`TTFT = first output − request sent`; `E2E = final output − request sent`; `ITL` between adjacent output events; TPOT `≈ (E2E − TTFT)/(output tokens − 1)`), and an in-figure note now states that `Request sent / Final output` are client observation points and that the server-side `Queue Time` starts when the engine receives the request, so it is not identical to the drawn `Queue` segment. Segment, span and note ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Client-observed definitions; ITL and TPOT diverge when one streaming event carries multiple tokens, and the histogram/bucket caveats remain in the prose.
+
+**Primary evidence:** In-page references: [vLLM metrics design](https://docs.vllm.ai/en/latest/design/metrics/), [Prometheus histograms](https://prometheus.io/docs/practices/histograms/) as cited in chapter 17.
+
+**Files:** `17.html`, `assets/diagrams/17-latency-waterfall.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 18 — Security trust boundaries
+
+**Reader question:** Which components may cross which trust boundary, and is a shared prefix cache a tenant-isolation boundary?
+
+**Before:** The trust-zone diagram had no arrowheads at the boundary crossings and no element ids, so the direction of trust traversal (public → Gateway → private serving network → GPU worker network) was implied only by position. The `cache_salt` caveat in 18.4 had no counterpart in the figure.
+
+**After:** Directional markers were added: `Public Clients → TLS Gateway` (orange) is the only untrusted ingress, `Gateway → vLLM API Server` (green) crosses into the private serving network, `API Server → GPU Worker Network` shows the trusted-node-only distributed boundary, and `Operations Network → API Server` (dashed orange) is a separate operations path. A second note states that `cache_salt` only mitigates a specific prefix-cache timing side channel and is not a tenant-isolation boundary. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Boundary responsibilities, not a specific gateway product; authorization and tool/data access control remain application responsibilities covered by chapter 19.
+
+**Primary evidence:** In-page references: [vLLM Security](https://docs.vllm.ai/en/latest/usage/security/) and [Kubernetes Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) as cited in chapter 18.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -259,8 +285,8 @@ For every later chapter apply this ordered gate:
 | 14 | Sampling pipeline | Revised; CI/visual QA pending |
 | 15 | Production serving topology | Revised; CI/visual QA pending |
 | 16 | Kubernetes GPU scheduling | Revised; CI/visual QA pending |
-| 17 | Latency waterfall | Pending one-by-one review |
-| 18 | Security/trust boundaries | Pending one-by-one review |
+| 17 | Latency waterfall | Revised; CI/visual QA pending |
+| 18 | Security/trust boundaries | Revised; CI/visual QA pending |
 | 19 | Tensor parallel partitions | Pending one-by-one review |
 | 20 | Parallelism topology | Pending one-by-one review |
 | 21 | Speculative acceptance | Pending one-by-one review |

@@ -50,8 +50,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/18-security-trust-boundaries.svg" alt="公网用户只能访问 TLS Gateway，Gateway 负责认证、限流和路径 allowlist；Gateway 到内网 vLLM API Server 通过私有网络；分布式 GPU worker 与 KV transfer 网络仅允许可信节点；Prometheus 和管理端点只允许运维网络访问">
-      <figcaption>图 1：最小暴露面的信任边界。公网只应到达经过保护的入口；推理服务、GPU 分布式通信、运维端点和指标抓取应按职责隔离。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/18-security-trust-boundaries.svg" alt="公网用户只能到达 TLS Gateway（橙色箭头表示不可信网络的唯一入口），Gateway 负责认证、限流和路径 allowlist；Gateway 经私有网络到达内网 vLLM API Server；API Server 向下连接仅限可信节点的 GPU worker 与 KV transfer 网络；Prometheus 和管理端点只允许运维网络访问；cache_salt 不是租户隔离边界">
+      </div>
+      <figcaption>图 1：最小暴露面的信任边界。公网只应到达经过保护的入口；推理服务、GPU 分布式通信、运维端点和指标抓取应按职责隔离。跨边界的箭头表示信任域的转移；<code>cache_salt</code> 只缓解特定前缀缓存计时侧信道，不是多租户隔离边界。</figcaption>
     </figure>
 
     <section id="threat">

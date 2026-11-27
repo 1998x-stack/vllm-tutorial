@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/17-latency-waterfall.svg" alt="一次请求的时间线分为请求到达、排队、Prefill、首 token 返回、Decode 多个 token、最后 token 返回；标出 Queue Time、TTFT、ITL、TPOT 与 End-to-End Latency 的测量区间">
-      <figcaption>图 1：请求端到端时间线。TTFT、ITL 与 TPOT 的测量起止点不同，必须先明确测量口径，再比较不同工具和版本的数字。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/17-latency-waterfall.svg" alt="一次请求的客户端时间线：请求到达、排队、Prefill、首 token 返回、Decode 多个 token、最后 token 返回；标出 Queue Time、TTFT、ITL、TPOT 与 End-to-End Latency 的测量区间，并注明客户端与服务端测量边界不同">
+      </div>
+      <figcaption>图 1：请求端到端时间线。TTFT、ITL 与 TPOT 的测量起止点不同；图中 “Request sent / Final output” 是客户端观测点，服务端 Queue Time 从引擎收到请求起计，因此必须先明确测量口径，再比较不同工具和版本的数字。</figcaption>
     </figure>
 
     <section id="layers">

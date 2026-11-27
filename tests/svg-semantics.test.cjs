@@ -299,3 +299,29 @@ test("16: traffic flows Service → Pod and Device Plugin registers devices with
   assert.match(page("16"), /class="diagram-pan"/);
   assert.match(page("16"), /Service \/ Router → Ready Pod/);
 });
+
+test("17: latency spans are ordered and measurement boundary is stated", () => {
+  const xml = svg("17-latency-waterfall.svg");
+  idsAreUnique(xml, "17");
+  for (const id of ["timeline-events", "seg-queue", "seg-prefill", "seg-decode", "span-ttft", "span-e2e", "span-itl", "tpot-note"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // TTFT ends where Decode begins; E2E spans the whole line.
+  assert.match(xml, /id="span-ttft"[^>]*d="M105 125 V105 H565 V125"/);
+  assert.match(xml, /id="span-e2e"[^>]*d="M105 285 V310 H1090 V285"/);
+  assert.match(xml, /服务端 Queue Time 从引擎收到请求起计/);
+  assert.match(page("17"), /class="diagram-pan"/);
+});
+
+test("18: trust boundaries are directed and cache_salt is not isolation", () => {
+  const xml = svg("18-security-trust-boundaries.svg");
+  idsAreUnique(xml, "18");
+  for (const id of ["public-clients", "tls-gateway", "vllm-api-server", "gpu-worker-network", "operations-network", "public-to-gateway", "gateway-to-api", "api-to-worker-network", "operations-to-api"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /id="gateway-to-api"[^>]*marker-end="url\(#a18\)"/);
+  assert.match(xml, /id="public-to-gateway"[^>]*marker-end="url\(#a18o\)"/);
+  assert.match(xml, /cache_salt 只缓解特定前缀缓存计时侧信道，不是多租户隔离边界/);
+  assert.match(page("18"), /class="diagram-pan"/);
+  assert.match(page("18"), /不是多租户隔离边界/);
+});

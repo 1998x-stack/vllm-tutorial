@@ -1,34 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
 <title id="title">vLLM security trust boundaries</title>
 <desc id="desc">Public clients can reach only a TLS Gateway with authentication, rate limits and endpoint allowlist. The gateway connects over a private serving network to vLLM API servers. Distributed GPU communication and KV transfer are isolated to trusted nodes. Prometheus and operational endpoints are reachable only from a separate operations network.</desc>
+<defs><marker id="a18" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#147d73"/></marker><marker id="a18o" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#c66a46"/></marker></defs>
 <rect width="1200" height="620" rx="24" fill="#fbfaf7"/>
 <text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">Security Boundaries：不要把所有端口放在同一个信任域</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="55" y="140" width="205" height="100" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <rect id="public-clients" x="55" y="140" width="205" height="100" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="157" y="180" text-anchor="middle" font-size="19" font-weight="700" fill="#264b45">Public Clients</text>
  <text x="157" y="210" text-anchor="middle" font-size="14" fill="#53636b">Untrusted network</text>
- <path d="M260 190 H315" stroke="#c66a46" stroke-width="3"/>
- <rect x="330" y="115" width="260" height="150" rx="15" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="public-to-gateway" d="M260 190 H315" stroke="#c66a46" stroke-width="3" marker-end="url(#a18o)"/>
+ <rect id="tls-gateway" x="330" y="115" width="260" height="150" rx="15" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="460" y="153" text-anchor="middle" font-size="20" font-weight="700" fill="#0d5e58">TLS Gateway</text>
  <text x="460" y="184" text-anchor="middle" font-size="14" fill="#315d56">Auth · Rate limit</text>
  <text x="460" y="211" text-anchor="middle" font-size="14" fill="#315d56">Endpoint allowlist</text>
  <text x="460" y="239" text-anchor="middle" font-size="12" fill="#315d56">Public ingress boundary</text>
- <path d="M590 190 H645" stroke="#147d73" stroke-width="3"/>
- <rect x="660" y="115" width="255" height="150" rx="15" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <path id="gateway-to-api" d="M590 190 H645" stroke="#147d73" stroke-width="3" marker-end="url(#a18)"/>
+ <rect id="vllm-api-server" x="660" y="115" width="255" height="150" rx="15" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="787" y="153" text-anchor="middle" font-size="20" font-weight="700" fill="#9c4d30">vLLM API Server</text>
  <text x="787" y="184" text-anchor="middle" font-size="14" fill="#87533f">Private serving network</text>
  <text x="787" y="211" text-anchor="middle" font-size="14" fill="#87533f">Protected business routes</text>
  <text x="787" y="239" text-anchor="middle" font-size="12" fill="#87533f">No direct public access</text>
- <path d="M787 265 V315" stroke="#47756d" stroke-width="2.5"/>
- <rect x="660" y="330" width="255" height="110" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <path id="api-to-worker-network" d="M787 265 V315" stroke="#47756d" stroke-width="2.5" marker-end="url(#a18)"/>
+ <rect id="gpu-worker-network" x="660" y="330" width="255" height="110" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="787" y="369" text-anchor="middle" font-size="18" font-weight="700" fill="#51488c">GPU Worker Network</text>
  <text x="787" y="399" text-anchor="middle" font-size="14" fill="#625b91">TP / PP / DP · KV transfer</text>
  <text x="787" y="422" text-anchor="middle" font-size="12" fill="#625b91">Trusted nodes only</text>
- <rect x="55" y="350" width="475" height="120" rx="14" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
+ <rect id="operations-network" x="55" y="350" width="475" height="120" rx="14" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
  <text x="292" y="390" text-anchor="middle" font-size="19" font-weight="700" fill="#80571a">Operations Network</text>
  <text x="292" y="420" text-anchor="middle" font-size="14" fill="#80571a">Prometheus · Grafana · Logs · Traces</text>
  <text x="292" y="446" text-anchor="middle" font-size="12" fill="#80571a">/metrics and control endpoints restricted</text>
- <path d="M530 410 H640 V265 H660" fill="none" stroke="#d5a24a" stroke-width="2.5" stroke-dasharray="7 5"/>
+ <path id="operations-to-api" d="M530 410 H640 V265 H660" fill="none" stroke="#d5a24a" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a18o)"/>
  <text x="55" y="535" font-size="14" fill="#60716c">分布式通信默认不应暴露给不可信网络；Gateway allowlist 与网络隔离必须同时存在。</text>
+ <text x="55" y="565" font-size="13" fill="#60716c">cache_salt 只缓解特定前缀缓存计时侧信道，不是多租户隔离边界；共享实例不提供租户隔离。</text>
 </g>
 </svg>
