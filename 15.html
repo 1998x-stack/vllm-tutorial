@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/15-production-serving-topology.svg" alt="客户端通过 TLS 与 API Gateway 通信，Gateway 完成鉴权限流并将请求送到 Router；Router 依据模型、会话、前缀缓存和负载选择 vLLM replica；每个 replica 使用独立 GPU 和本地 KV Cache；Prometheus、日志与 tracing 负责观测">
-      <figcaption>图 1：生产推理服务的职责分层。vLLM replica 执行模型；Gateway 负责安全边界；Router 负责实例选择；观测系统帮助判断流量、缓存和资源状态。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/15-production-serving-topology.svg" alt="客户端通过 TLS 与 API Gateway 通信，Gateway 完成鉴权限流并将请求送到 Router；Router 依据模型、会话、前缀缓存和负载选择 vLLM replica；每个 replica 使用独立 GPU 和本地 KV Cache；结果与流式响应沿虚线路径经 Gateway 返回客户端；Prometheus、日志与 tracing 负责观测">
+      </div>
+      <figcaption>图 1：生产推理服务的职责分层。请求沿实线从左向右进入 Gateway、Router 与 replica；结果与流式响应沿橙色虚线反方向返回客户端（必须经 Router 与 Gateway）。vLLM replica 执行模型；Gateway 负责安全边界；Router 负责实例选择；观测系统帮助判断流量、缓存和资源状态。</figcaption>
     </figure>
 
     <section id="topology">

@@ -272,3 +272,30 @@ test("14: temperature scales logits before softmax; filters run on probabilities
   assert.match(page("14"), /class="diagram-pan"/);
   assert.match(page("14"), /Temperature 缩放的是 logits，softmax 在其后产生概率/);
 });
+
+test("15: serving topology shows request down and streamed response back", () => {
+  const xml = svg("15-production-serving-topology.svg");
+  idsAreUnique(xml, "15");
+  for (const id of ["clients", "api-gateway", "router", "replica-pool", "observability", "clients-to-gateway", "gateway-to-router", "router-to-replica", "replica-to-client"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Forward path left→right and a dashed return lane into Clients.
+  assert.match(xml, /id="replica-to-client"[^>]*d="M845 305 H137 V240"/);
+  assert.match(xml, /id="replica-to-client"[^>]*stroke-dasharray/);
+  assert.match(page("15"), /class="diagram-pan"/);
+  assert.match(page("15"), /流式响应沿橙色虚线反方向返回客户端/);
+});
+
+test("16: traffic flows Service → Pod and Device Plugin registers devices with kubelet", () => {
+  const xml = svg("16-kubernetes-gpu-scheduling.svg");
+  idsAreUnique(xml, "16");
+  for (const id of ["deployment", "api-scheduler", "gpu-node", "gpu-driver", "device-plugin", "kubelet", "ready-pod", "service-router", "plugin-to-kubelet", "kubelet-to-scheduler", "service-to-pod"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  // Service must point at the Ready Pod, not the other way round.
+  assert.match(xml, /id="service-to-pod"[^>]*d="M340 440 H600 V490 H726"[^>]*marker-end="url\(#a16\)"/);
+  assert.match(xml, /id="plugin-to-kubelet"[^>]*marker-end/);
+  assert.match(xml, /id="kubelet-to-scheduler"[^>]*stroke-dasharray/);
+  assert.match(page("16"), /class="diagram-pan"/);
+  assert.match(page("16"), /Service \/ Router → Ready Pod/);
+});

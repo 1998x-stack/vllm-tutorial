@@ -1,38 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
 <title id="title">Kubernetes GPU scheduling for vLLM</title>
 <desc id="desc">Kubernetes API Server and Scheduler evaluate Deployment and Pod resource requirements. GPU vendor driver and Device Plugin register extended GPU resources on nodes. Scheduler places a vLLM Pod on a node with available GPU, kubelet and container runtime launch the container, and Service or Router directs requests to ready pods.</desc>
-<defs><marker id="a16" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<defs><marker id="a16" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker><marker id="a16r" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#c66a46"/></marker></defs>
 <rect width="1200" height="620" rx="24" fill="#fbfaf7"/>
 <text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">Kubernetes GPU Scheduling：声明资源，再由集群完成放置</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="55" y="125" width="230" height="105" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <rect id="deployment" x="55" y="125" width="230" height="105" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="170" y="164" text-anchor="middle" font-size="19" font-weight="700" fill="#51488c">Deployment</text>
  <text x="170" y="193" text-anchor="middle" font-size="14" fill="#625b91">Pod template</text>
  <text x="170" y="214" text-anchor="middle" font-size="13" fill="#625b91">nvidia.com/gpu: 1</text>
- <path d="M285 177 H335" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
- <rect x="350" y="125" width="235" height="105" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="deployment-to-scheduler" d="M285 177 H335" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
+ <rect id="api-scheduler" x="350" y="125" width="235" height="105" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="467" y="164" text-anchor="middle" font-size="19" font-weight="700" fill="#0d5e58">API Server + Scheduler</text>
  <text x="467" y="193" text-anchor="middle" font-size="14" fill="#315d56">资源请求 / 节点约束</text>
  <text x="467" y="214" text-anchor="middle" font-size="13" fill="#315d56">选择可放置节点</text>
- <path d="M585 177 H635" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
- <rect x="650" y="95" width="485" height="285" rx="16" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <path id="scheduler-to-node" d="M585 177 H635" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
+ <rect id="gpu-node" x="650" y="95" width="485" height="285" rx="16" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="892" y="130" text-anchor="middle" font-size="20" font-weight="700" fill="#264b45">GPU Node</text>
- <rect x="680" y="150" width="185" height="92" rx="11" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
+ <rect id="gpu-driver" x="680" y="150" width="185" height="92" rx="11" fill="#fff6df" stroke="#d5a24a" stroke-width="2"/>
  <text x="772" y="183" text-anchor="middle" font-size="17" font-weight="700" fill="#80571a">GPU Driver</text>
  <text x="772" y="211" text-anchor="middle" font-size="13" fill="#80571a">NVIDIA runtime</text>
- <rect x="890" y="150" width="215" height="92" rx="11" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <rect id="device-plugin" x="890" y="150" width="215" height="92" rx="11" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="997" y="183" text-anchor="middle" font-size="17" font-weight="700" fill="#51488c">Device Plugin</text>
  <text x="997" y="211" text-anchor="middle" font-size="13" fill="#625b91">register extended resource</text>
- <path d="M865 196 H890" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
- <rect x="680" y="265" width="425" height="82" rx="11" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <path id="driver-to-plugin" d="M865 196 H890" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
+ <path id="plugin-to-kubelet" d="M997 242 V261" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
+ <text x="1005" y="258" font-size="12" fill="#625b91">register devices</text>
+ <rect id="kubelet" x="680" y="265" width="425" height="82" rx="11" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="892" y="297" text-anchor="middle" font-size="18" font-weight="700" fill="#9c4d30">Kubelet + Container Runtime</text>
  <text x="892" y="325" text-anchor="middle" font-size="14" fill="#87533f">mount device · start vLLM container</text>
- <path d="M892 380 V430" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
- <rect x="730" y="445" width="325" height="90" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="kubelet-to-pod" d="M892 380 V430" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
+ <path id="kubelet-to-scheduler" d="M680 306 H520 V234" fill="none" stroke="#c66a46" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a16r)"/>
+ <text x="540" y="300" font-size="12" fill="#80571a">advertise nvidia.com/gpu</text>
+ <rect id="ready-pod" x="730" y="445" width="325" height="90" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="892" y="480" text-anchor="middle" font-size="19" font-weight="700" fill="#0d5e58">Ready vLLM Pod</text>
  <text x="892" y="510" text-anchor="middle" font-size="14" fill="#315d56">Model · GPU · KV Cache</text>
- <path d="M730 490 H600 V440 H340" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
- <rect x="55" y="390" width="285" height="100" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <path id="service-to-pod" d="M340 440 H600 V490 H726" fill="none" stroke="#47756d" stroke-width="2.5" marker-end="url(#a16)"/>
+ <rect id="service-router" x="55" y="390" width="285" height="100" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="197" y="429" text-anchor="middle" font-size="18" font-weight="700" fill="#264b45">Service / Router</text>
  <text x="197" y="458" text-anchor="middle" font-size="14" fill="#53636b">send traffic to Ready Pods</text>
 </g>

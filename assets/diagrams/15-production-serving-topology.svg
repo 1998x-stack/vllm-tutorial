@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
 <title id="title">Production vLLM serving topology</title>
 <desc id="desc">Clients reach a TLS API gateway for authentication, quotas and request validation. A router selects a vLLM replica using model, session, prefix-cache and load signals. Each replica owns its model execution and local GPU KV cache. Prometheus, logs and traces collect operational signals.</desc>
-<defs><marker id="a15" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker></defs>
+<defs><marker id="a15" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#47756d"/></marker><marker id="a15r" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#c66a46"/></marker></defs>
 <rect width="1200" height="620" rx="24" fill="#fbfaf7"/>
 <text x="52" y="52" font-family="Arial,'PingFang SC',sans-serif" font-size="26" font-weight="700" fill="#1f3835">Production Serving：入口、安全、路由、执行与观测</text>
 <g font-family="Arial,'PingFang SC',sans-serif">
- <rect x="55" y="145" width="165" height="90" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
+ <rect id="clients" x="55" y="145" width="165" height="90" rx="14" fill="#fff" stroke="#b7cbc3" stroke-width="2"/>
  <text x="137" y="181" text-anchor="middle" font-size="19" font-weight="700" fill="#264b45">Clients</text>
  <text x="137" y="208" text-anchor="middle" font-size="14" fill="#53636b">Apps / SDKs</text>
- <path d="M220 190 H270" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
- <rect x="285" y="125" width="215" height="130" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="clients-to-gateway" d="M220 190 H270" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
+ <rect id="api-gateway" x="285" y="125" width="215" height="130" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="392" y="165" text-anchor="middle" font-size="19" font-weight="700" fill="#0d5e58">API Gateway</text>
  <text x="392" y="195" text-anchor="middle" font-size="14" fill="#315d56">TLS · Auth · Quota</text>
  <text x="392" y="220" text-anchor="middle" font-size="14" fill="#315d56">Request validation</text>
- <path d="M500 190 H550" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
- <rect x="565" y="125" width="215" height="130" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
+ <path id="gateway-to-router" d="M500 190 H550" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
+ <rect id="router" x="565" y="125" width="215" height="130" rx="14" fill="#f0effa" stroke="#6d63a8" stroke-width="2"/>
  <text x="672" y="165" text-anchor="middle" font-size="19" font-weight="700" fill="#51488c">Router</text>
  <text x="672" y="195" text-anchor="middle" font-size="14" fill="#625b91">Model / Session</text>
  <text x="672" y="220" text-anchor="middle" font-size="14" fill="#625b91">Prefix / Load signals</text>
- <path d="M780 190 H830" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
- <rect x="845" y="105" width="290" height="330" rx="16" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
+ <path id="router-to-replica" d="M780 190 H830" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
+ <rect id="replica-pool" x="845" y="105" width="290" height="330" rx="16" fill="#fff0e8" stroke="#c66a46" stroke-width="2"/>
  <text x="990" y="143" text-anchor="middle" font-size="20" font-weight="700" fill="#9c4d30">vLLM Replica Pool</text>
  <rect x="870" y="165" width="240" height="72" rx="10" fill="#fff" stroke="#e2b49f"/>
  <text x="990" y="194" text-anchor="middle" font-size="17" font-weight="700" fill="#9c4d30">Replica A</text>
@@ -30,12 +30,14 @@
  <rect x="870" y="337" width="240" height="72" rx="10" fill="#fff" stroke="#e2b49f"/>
  <text x="990" y="366" text-anchor="middle" font-size="17" font-weight="700" fill="#9c4d30">Replica N</text>
  <text x="990" y="390" text-anchor="middle" font-size="13" fill="#87533f">Engine · GPU · Local KV</text>
- <path d="M990 435 V495" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
- <rect x="790" y="505" width="400" height="75" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
+ <path id="replica-to-observability" d="M990 435 V495" stroke="#47756d" stroke-width="2.5" marker-end="url(#a15)"/>
+ <rect id="observability" x="790" y="505" width="400" height="75" rx="14" fill="#e5f3ef" stroke="#147d73" stroke-width="2"/>
  <text x="990" y="535" text-anchor="middle" font-size="18" font-weight="700" fill="#0d5e58">Observability</text>
  <text x="990" y="561" text-anchor="middle" font-size="14" fill="#315d56">Prometheus · Logs · Traces · Alerts</text>
- <path d="M392 255 V540 H790" fill="none" stroke="#d5a24a" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a15)"/>
+ <path id="gateway-to-observability" d="M392 255 V540 H790" fill="none" stroke="#c66a46" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a15r)"/>
  <text x="420" y="524" font-size="13" fill="#80571a">Gateway metrics / audit</text>
+ <path id="replica-to-client" d="M845 305 H137 V240" fill="none" stroke="#c66a46" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#a15r)"/>
+ <text x="200" y="298" font-size="13" fill="#9c4d30">流式响应 / 结果返回（经 Router 与 Gateway）</text>
 </g>
 <text x="55" y="590" font-family="Arial,'PingFang SC',sans-serif" font-size="13" fill="#60716c">Replica 可以由一张或多张 GPU 组成；每个实例的 KV Cache 通常具有局部性。</text>
 </svg>

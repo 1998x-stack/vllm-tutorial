@@ -211,6 +211,34 @@ For every later chapter apply this ordered gate:
 
 **Files:** `14.html`, `assets/diagrams/14-sampling-pipeline.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 15 — Production serving topology: request and response paths
+
+**Reader question:** Where does the security boundary sit, and how does a streamed response get back to the client?
+
+**Before:** Every edge pointed left→right (request direction only); there was no response/streaming return lane, even though 15.4 stresses SSE, proxy buffering and client disconnect. Edge colours reused the green marker even on the dashed audit edge.
+
+**After:** The forward path `Clients → API Gateway → Router → vLLM Replica Pool` is unchanged, and a dashed orange return lane `vLLM Replica Pool → Clients` (labelled `流式响应 / 结果返回（经 Router 与 Gateway）`) is added with its own orange marker. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Responsibility layers, not a fixed proxy implementation; it does not claim Prefix-aware routing is always optimal or that a single replica pool is the only topology.
+
+**Primary evidence:** In-page references: [Prefix-aware routing](https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/prefix-aware-routing.html), [Load-aware routing](https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/loadaware-routing.html) and [Security](https://docs.vllm.ai/en/latest/usage/security/) as cited in chapter 15.
+
+**Files:** `15.html`, `assets/diagrams/15-production-serving-topology.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 16 — Kubernetes GPU scheduling edges
+
+**Reader question:** Who advertises `nvidia.com/gpu`, and which way does traffic flow between a Service and a Ready Pod?
+
+**Before:** The traffic edge was drawn `Ready Pod → Service / Router`, the reverse of its own label “send traffic to Ready Pods”. The `kubelet` box had no incoming edge, so the Device Plugin → kubelet registration link was missing. There was no edge showing kubelet advertising node GPU capacity back to the scheduler.
+
+**After:** Traffic is corrected to `Service / Router → Ready Pod`. A solid `Device Plugin → kubelet` edge (`register devices`) is added, and a dashed `kubelet → API Server + Scheduler` edge labelled `advertise nvidia.com/gpu` shows the capacity advertisement loop. Box and edge ids were added and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Device Plugin and extended-resource names are vendor- and cluster-scoped; MIG and time-slicing change advertised resource semantics and are covered in the chapter prose, not the figure.
+
+**Primary evidence:** In-page references: [Scheduling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/), [Production Stack deployment](https://docs.vllm.ai/en/latest/deployment/integrations/production-stack/) and [Pod disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/) as cited in chapter 16.
+
+**Files:** `16.html`, `assets/diagrams/16-kubernetes-gpu-scheduling.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -229,8 +257,8 @@ For every later chapter apply this ordered gate:
 | 12 | V1 process topology + step loop (2 SVGs) | Revised; CI/visual QA pending |
 | 13 | Request lifecycle | Revised; CI/visual QA pending |
 | 14 | Sampling pipeline | Revised; CI/visual QA pending |
-| 15 | Production serving topology | Pending one-by-one review |
-| 16 | Kubernetes GPU scheduling | Pending one-by-one review |
+| 15 | Production serving topology | Revised; CI/visual QA pending |
+| 16 | Kubernetes GPU scheduling | Revised; CI/visual QA pending |
 | 17 | Latency waterfall | Pending one-by-one review |
 | 18 | Security/trust boundaries | Pending one-by-one review |
 | 19 | Tensor parallel partitions | Pending one-by-one review |

@@ -49,8 +49,10 @@
     </div>
 
     <figure class="diagram">
-      <img src="assets/diagrams/16-kubernetes-gpu-scheduling.svg" alt="Kubernetes API Server 和 Scheduler 读取 GPU 资源请求，将 vLLM Deployment Pod 放置到有 NVIDIA Device Plugin GPU 资源的节点；节点上的 kubelet 和 container runtime 启动容器，Pod 通过 Service 和 Router 接收流量">
-      <figcaption>图 1：Kubernetes GPU 调度链路。Kubernetes 负责资源分配和容器编排；GPU 驱动、Device Plugin 与容器运行时负责把设备交给工作负载。</figcaption>
+      <div class="diagram-pan" tabindex="0" role="region" aria-label="图解可横向滚动，使用左右方向键查看完整内容">
+      <img src="assets/diagrams/16-kubernetes-gpu-scheduling.svg" alt="Deployment 声明 nvidia.com/gpu，API Server 与 Scheduler 依据资源请求选择节点；节点上的 GPU Driver 供 Device Plugin 注册设备，Device Plugin 将设备注册给 kubelet，kubelet 与 container runtime 启动 vLLM 容器得到 Ready Pod；kubelet 将 nvidia.com/gpu 容量上报给 Scheduler；Service 与 Router 把流量发送给 Ready Pod">
+      </div>
+      <figcaption>图 1：Kubernetes GPU 调度链路。Deployment → Scheduler → Node 是放置方向；节点内 GPU Driver → Device Plugin → kubelet 提供设备，kubelet 反向上报 <code>nvidia.com/gpu</code> 容量（橙色虚线）。就绪后方向是 Service / Router → Ready Pod，而不是 Pod 主动向 Service 发送流量。Kubernetes 只负责设备资源分配与容器编排；GPU 拓扑、NCCL 与 KV Cache 容量仍需部署设计与压测验证。</figcaption>
     </figure>
 
     <section id="architecture">
