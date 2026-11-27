@@ -321,6 +321,34 @@ For every later chapter apply this ordered gate:
 
 **Files:** `22.html`, `assets/diagrams/22-multimodal-input-path.svg`, `tests/svg-semantics.test.cjs`.
 
+## Chapter 23 — nano-vLLM control flow
+
+**Reader question:** What is the actual call chain from a prompt to the next token in the pinned nano-vLLM source?
+
+**Before:** The chain was drawn `LLMEngine → Scheduler → BlockManager → ModelRunner`, so `BlockManager` looked like a sequential stage that invoked the runner, and the actual `Scheduler.schedule() → ModelRunner.run()` call edge from §23.2 was absent. No ids or pan wrapper.
+
+**After:** The figure now adds the solid call edge `Scheduler → ModelRunner` labelled `schedule() 返回本轮 batch`, keeping `Scheduler → BlockManager` and a dashed-labelled `block_table` data edge `BlockManager → ModelRunner` (a data dependency, not a call). Box and edge ids were added for the nano classes (`LLMEngine`, `Scheduler`, `BlockManager`, `ModelRunner`, `Attention / Triton`, `Scheduler.postprocess`, `Result / Sequence`) and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Pinned nano-vLLM commit `bb823b3e06983d71485a8e1f23715ebd87d98ef8`; nano names are not production V1 module names. The Triton `store_kvcache_kernel` path is described in the prose, not reproduced here.
+
+**Primary evidence:** In-page references to the pinned nano-vLLM source files `llm_engine.py`, `scheduler.py`, `block_manager.py`, `model_runner.py` and `layers/attention.py` as listed in chapter 23.
+
+**Files:** `23.html`, `assets/diagrams/23-nano-vllm-control-flow.svg`, `tests/svg-semantics.test.cjs`.
+
+## Chapter 24 — Troubleshooting triage
+
+**Reader question:** Are the four symptom branches and the evidence/hypothesis loop one process or two unrelated pictures?
+
+**Before:** The four symptom branches ended as dead ends, visually disconnected from the `提出假设 → 收集新证据 → 修复与回归验收` row, and the figure had no ids or pan wrapper; the HTML caption repeated its own alt sentence.
+
+**After:** A directed connector `branches-to-loop` now runs from the branch bottoms into `提出一个可证伪假设`, making explicit that every branch enters the same evidence loop. Box and edge ids were added for the symptom, four layers and the loop steps, the duplicated caption text was removed, and the figure gained the keyboard-focusable `diagram-pan` wrapper.
+
+**Scope:** Hypothesis-driven triage, not a specific OOM/NCCL fix; the chapter keeps startup vs runtime OOM, NCCL and CUDAGraph/Torch Compile as separate hypotheses, and warns that trace/debug modes are costly.
+
+**Primary evidence:** In-page references: [vLLM Troubleshooting](https://docs.vllm.ai/en/latest/usage/troubleshooting/), [Conserving Memory](https://docs.vllm.ai/en/latest/configuration/conserving_memory/) and [Production Metrics](https://docs.vllm.ai/en/latest/usage/metrics/) as cited in chapter 24.
+
+**Files:** `24.html`, `assets/diagrams/24-debugging-triage.svg`, `tests/svg-semantics.test.cjs`.
+
 ## Coverage ledger — every chapter must be reviewed separately
 
 | Chapter | SVG topic | Status |
@@ -347,8 +375,8 @@ For every later chapter apply this ordered gate:
 | 20 | Parallelism topology | Revised; CI/visual QA pending |
 | 21 | Speculative acceptance | Revised; CI/visual QA pending |
 | 22 | Multimodal input flow | Revised; CI/visual QA pending |
-| 23 | nano-vLLM control flow | Pending one-by-one review |
-| 24 | Debugging/triage | Pending one-by-one review |
+| 23 | nano-vLLM control flow | Revised; CI/visual QA pending |
+| 24 | Debugging/triage | Revised; CI/visual QA pending |
 | 25 | Benchmark design | Pending one-by-one review |
 | 26 | Evidence maturity roadmap | Pending one-by-one review |
 | 27 | RAG trust boundaries | Pending one-by-one review |

@@ -376,3 +376,26 @@ test("22: gateway guards every modality before encoding and fusion", () => {
   assert.match(page("22"), /class="diagram-pan"/);
   assert.match(page("22"), /三类输入都先经过 Gateway 的媒体策略/);
 });
+
+test("23: nano-vLLM control flow shows the schedule → run call edge", () => {
+  const xml = svg("23-nano-vllm-control-flow.svg");
+  idsAreUnique(xml, "23");
+  for (const id of ["llm-engine", "scheduler", "block-manager", "model-runner", "attention-triton", "postprocess", "result-sequence", "engine-to-scheduler", "scheduler-to-runner", "blockmanager-to-runner", "runner-to-postprocess", "postprocess-to-result"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /id="scheduler-to-runner"[^>]*d="M485 214 V255 H760 V282"/);
+  assert.match(xml, /block_table/);
+  assert.match(page("23"), /class="diagram-pan"/);
+  assert.match(page("23"), /Scheduler.schedule\(\)<\/code> → <code>ModelRunner.run\(\)/);
+});
+
+test("24: triage branches feed one evidence loop", () => {
+  const xml = svg("24-debugging-triage.svg");
+  idsAreUnique(xml, "24");
+  for (const id of ["root-symptom", "locate-layer", "layer-model-load", "layer-oom", "layer-nccl", "layer-queue", "hypothesis", "gather-evidence", "fix-regression", "branches-to-loop"]) {
+    assert.match(xml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(xml, /id="branches-to-loop"[^>]*d="M1067 446 V468 H270 V500"[^>]*marker-end/);
+  assert.match(page("24"), /class="diagram-pan"/);
+  assert.match(page("24"), /任一分支都汇入/);
+});
